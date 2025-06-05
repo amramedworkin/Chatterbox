@@ -1,0 +1,113 @@
+@startuml sequence_diagram
+
+autonumber
+
+participant User as U
+participant Script as S
+participant "Local File System" as LFS
+participant "Google Cloud Console" as GCC
+participant "Gmail API" as GAPI
+participant "External Sender" as ExtSENDER
+participant "External Recipient" as ExtRECIPIENT
+
+title `pollGmail.js` Execution Flow
+
+U -> S: `node pollGmail.js [args]`
+activate S
+
+S -> LFS: Read command-line arguments (e.g., --email, --clean)
+S -> LFS: Read persisted config (sender, recipient, total poll cycles)
+
+alt Email Change or --clean flag
+    S -> LFS: Delete `sendtest_token.json`, `last_history_id.txt`, `total_poll_cycles.txt`
+    S --> U: Log clean operation
+    S --> S: (Exit if only --clean was requested)
+end
+
+S -> S: Initialize `runPollingCycleCount`
+S -> S: Calculate `pollInterval` and `pollDuration`
+
+group Authorization
+    S -> LFS: Check `sendtest_token.json` existence
+    alt `sendtest_token.json` exists
+        S -> LFS: Read `sendtest_token.json`
+        S -> S: Set OAuth client credentials
+        S --> U: Log "Using existing tokens"
+    else `sendtest_token.json` does not exist
+        S -> LFS: Read `credentials.json`
+        S -> S: Create OAuth client from credentials
+        S -> GAPI: Generate authorization URL with `gmail.readonly`, `gmail.send` scopes
+        GAPI --> S: Authorization URL
+        S --> U: Display Authorization URL and prompt for code
+        U -> U: Visit URL, Sign In, Grant Permissions
+        U -> GAPI: Authorize Application
+        GAPI --> U: Redirect to `localhost:3000` with `code` in URL
+        U -> S: Manually enter `code`
+        S -> GAPI: Exchange `code` for access_token and refresh_token
+        GAPI --> S: Tokens (access_token, refresh_token)
+        S -> LFS: Save `sendtest_token.json`
+        S --> U: Log "Tokens stored"
+    end
+end Authorization
+
+loop Polling Cycles (until --duration met or script stopped)
+    S -> S: Increment `runPollingCycleCount`
+    S -> LFS: Read `last_history_id.txt`
+    S -> LFS: Read `total_poll_cycles.txt`
+    S -> S: Adjust `totalPersistentPollCycles` based on `runPollingCycleCount`
+    S -> LFS: Save (updated) `total_poll_cycles.txt`
+    S --> U: Log "POLL: cycle X in this run out of Y persisted total"
+
+    alt First run or history reset (`last_history_id` is '0')
+        S -> GAPI: Get current `historyId` (`users.getProfile`)
+        GAPI --> S: `currentHistoryId`
+        S -> LFS: Write `currentHistoryId` to `last_history_id.txt`
+        S --> S: Skip message fetching for this cycle (set initial baseline)
+    else Subsequent runs
+        S -> GAPI: List history (new messages since `last_history_id`)
+        GAPI --> S: `history` (list of message IDs)
+
+        alt No new messages
+            S --> U: Log "0 messages since last poll"
+        else New messages found
+            S --> U: Log "X messages since last poll"
+            loop For each newMessage in history
+                S -> GAPI: Get full message details
+                GAPI --> S: `message` (headers, payload, parts)
+
+                S -> S: Parse Subject (chatterbox, conversationId, title)
+                S -> S: Extract sender (`fromHeader`), recipient (`toHeader`), timestamp (`dateHeader`)
+
+                alt Is "Chatterbox" email
+                    S -> S: Determine/Generate `conversationId`
+                    S -> LFS: Ensure `interactions/<conversationId>` folder exists (recursive create)
+                    S -> LFS: Determine `nextSequenceNumber` (e.g., 001, 002)
+                    S -> LFS: Create `interactions/<conversationId>/<nextSequenceNumber>` folder
+                    S -> GAPI: Process message parts (get `prompt`, attachments)
+                    GAPI --> S: Attachment data
+                    S -> LFS: Save attachments to `interactions/<conversationId>/<nextSequenceNumber>/`
+                    S --> U: Log parsed email details (FROM, TO, TIMESTAMP, ITEM, SUBJECT, STATUS, Attachments, BODY)
+
+                    S -> GAPI: Send confirmation email to original sender
+                    GAPI --> S: Confirmation sent status
+                    S --> U: Log confirmation email sent
+                else Is not "Chatterbox" email
+                    S -> S: Process message parts (get `prompt`, no attachment saving path)
+                    S --> U: Log parsed email details (FROM, TO, TIMESTAMP, ITEM, SUBJECT, STATUS, Attachments, BODY)
+                end
+            end
+            S -> LFS: Update `last_history_id.txt` to `maxHistoryId`
+        end
+    end
+    S --> S: Wait `pollInterval`
+end
+
+alt `pollDuration` reached
+    S --> U: Log "Polling duration reached. Exiting."
+    S --> S: Stop polling interval
+    S --> S: Exit process
+end
+
+deactivate S
+
+@enduml

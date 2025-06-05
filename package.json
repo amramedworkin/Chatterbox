@@ -1,0 +1,22 @@
+{
+  "name": "nodetest",
+  "version": "1.0.0",
+  "description": "",
+  "main": "sendEmail.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "Amram E. Dworkin <amram.dworkin@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "dotenv": "^16.5.0",
+    "fs": "^0.0.1-security",
+    "googleapis": "^149.0.0",
+    "mailparser": "^3.7.3",
+    "node-imap": "^0.9.6",
+    "nodemailer": "^7.0.3",
+    "openai": "^5.1.0",
+    "readline": "^1.3.0"
+  }
+}

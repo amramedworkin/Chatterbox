@@ -1,0 +1,36 @@
+@startuml c4_component_diagram
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+
+LAYOUT_WITH_LEGEND()
+
+Boundary(system, "Gmail Poller System") {
+    Component(pollGmail, "pollGmail.js", "Node.js Application", "Core logic for polling Gmail, processing emails, and managing local data.")
+}
+
+System_Ext(gmailApi, "Gmail API", "Google Cloud Platform", "Provides access to Gmail Mailbox data and sending capabilities.")
+System_Ext(externalSender, "External Email Sender", "External User/System", "Sends emails to the polled Gmail inbox.")
+System_Ext(externalRecipient, "External Email Recipient", "External User/System", "Receives confirmation/response emails from the Poller.")
+
+Boundary(localFsBoundary, "Local File System") {
+    Component(credentialsFile, "credentials.json", "OAuth Client File", "Contains OAuth Client ID and Secret for Google API access.")
+    Component(tokenFile, "sendtest_token.json", "OAuth Token File", "Stores Access and Refresh Tokens for ongoing API authorization.")
+    Component(historyIdFile, "last_history_id.txt", "History ID File", "Persists the last processed Gmail history ID for efficient polling.")
+    Component(polledEmailFile, "last_polled_email.txt", "Config File", "Persists the last used Gmail address for polling.")
+    Component(totalPollCyclesFile, "total_poll_cycles.txt", "Counter File", "Persists the total count of polling cycles across runs.")
+    Component(interactionsFolder, "interactions/", "Directory Structure", "Stores parsed email prompts and attachments in conversation-specific subfolders.")
+}
+
+Rel(pollGmail, gmailApi, "1. Authenticates & Fetches/Sends Emails", "HTTPS")
+Rel(pollGmail, credentialsFile, "2. Reads Client Credentials", "File System")
+Rel(pollGmail, tokenFile, "3. Reads/Writes OAuth Tokens", "File System")
+Rel(pollGmail, historyIdFile, "4. Reads/Writes Last History ID", "File System")
+Rel(pollGmail, polledEmailFile, "5. Reads/Writes Polled Email Address", "File System")
+Rel(pollGmail, totalPollCyclesFile, "6. Reads/Writes Total Poll Cycles", "File System")
+Rel(pollGmail, interactionsFolder, "7. Writes Parsed Prompts/Attachments", "File System")
+
+Rel(externalSender, gmailApi, "Sends Email To", "SMTP")
+Rel(gmailApi, pollGmail, "Delivers Incoming Emails To", "API Calls")
+Rel(pollGmail, gmailApi, "Sends Confirmation/Response To", "API Calls")
+Rel(gmailApi, externalRecipient, "Delivers Outgoing Emails From", "SMTP")
+
+@enduml
