@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    "target": "es2021", // Specifies the JavaScript version to compile to (e.g., ES2021)
+    "module": "commonjs", // Specifies the module system for the compiled JavaScript (CommonJS is standard for Node.js)
+    "lib": ["es2021", "dom"], // Includes built-in library types (e.g., Array, Promise, and DOM APIs if applicable for browser-side code)
+    "strict": true, // Enables all strict type-checking options, highly recommended
+    "esModuleInterop": true, // Allows default imports from modules with no default export (e.g., import * as React from 'react')
+    "skipLibCheck": true, // Skips type checking of declaration files (.d.ts). Useful for speeding up compilation.
+    "forceConsistentCasingInFileNames": true, // Ensures consistent casing for file names across the project
+    "outDir": "./dist", // Specifies the output directory for compiled JavaScript files
+    "rootDir": "./", // Specifies the root directory of your TypeScript source files
+    "types": ["jest", "node"] // Specifies type definition files to be included (e.g., for Jest and Node.js built-ins)
+  },
+  "include": ["src/**/*.ts", "test/**/*.ts"], // Specifies which files TypeScript should compile (your source and test files)
+  "exclude": ["node_modules"] // Specifies which files or folders TypeScript should exclude from compilation
+}

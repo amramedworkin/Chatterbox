@@ -1,0 +1,83 @@
+Folder PATH listing for volume TI10658600C
+Volume serial number is 62CB-5FE4
+D:.
+�   .env
+�   .eslintrc.json
+�   .gitignore
+�   .gitignore~
+�   .prettierrc.json
+�   credentials.json
+�   package-lock.json
+�   package.json
+�   tt.txt
+�   
+����.vscode
+�       launch.json
+�       
+����bin
+�       clean.ps1
+�       ppp.ps1
+�       sss.ps1
+�       
+����data
+�       last_history_id.txt
+�       last_polled_email.txt
+�       last_polled_uid.txt
+�       last_sent_email_number.txt
+�       oauth_desktop_client_secret.json
+�       oauth_lambda_client_secret.json
+�       sendtest_last_sent_email_number.txt
+�       sendtest_recipient_email.txt
+�       sendtest_sender_email.txt
+�       sendtest_send_count.txt
+�       sendtest_token.json
+�       token.json
+�       total_poll_cycles.txt
+�       
+����images
+�       c4_component_diagram.cmapx
+�       c4_component_diagram.png
+�       c4_component_diagram.svg
+�       chatterbox_branding.jpg
+�       chatterbox_branding.png
+�       chatterbox_logo.png
+�       chatterbox_logo_150x150.png
+�       chatterbox_logo_heading.png
+�       sequence_diagram.cmapx
+�       sequence_diagram.png
+�       sequence_diagram.svg
+�       
+����interactions
+�       README.md
+�       
+����puml
+�       C4_Component_Diagram_for_pollGmail_js.puml
+�       Sequence_Diagram_for_pollGmail_js.puml
+�       
+����src
+�   �   config.json
+�   �   converseWithLlm.js
+�   �   listUniqueAttachments.js
+�   �   loadConfig.js
+�   �   pollGmail.js
+�   �   
+�   ����poll
+�   �       fastPollGmail.js
+�   �       
+�   ����utils
+�           authorizeGmail.js
+�           
+����test
+    �   sendTestGmail.js
+    �   sendtest_last_sent_email_number.txt
+    �   sendtest_token.json
+    �   testGmailAuth.js
+    �   testOpenAiConversation.js
+    �   
+    ����attachments
+            attachment_1.txt
+            attachment_2.txt
+            attachment_3.txt
+            attachment_4.txt
+            attachment_5.txt
+            

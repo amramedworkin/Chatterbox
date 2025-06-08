@@ -1,0 +1,53 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Launch pollGmail.js",
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "program": "${workspaceFolder}/src/pollGmail.js",
+            "args": [
+                "--interval", "0.25", // Example arguments
+                "--duration", "1"
+                // "--email", "your.test.email@gmail.com"
+            ],
+            "console": "integratedTerminal"
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Launch sendTestGmail.js",
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "program": "${workspaceFolder}/test/sendTestGmail.js",
+            "args": [
+                "--attach", "3", // Example arguments
+                // "--id", "123e4567-e89b-12d3-a456-426614174000",
+                // "--sender", "amram.dworkin@gmail.com",
+                // "--to", "awsamram@gmail.com"
+            ],
+            "console": "integratedTerminal"
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Launch Clean Script (PowerShell Wrapper)",
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            // Use this if you want to run your PowerShell wrapper for clean operations
+            "runtimeExecutable": "powershell",
+            "program": "${workspaceFolder}/clean.ps1",
+            "args": [
+                "--all", // Example arguments for the clean script
+                // "ABC", // Example filter parameter
+                // "--keepinteractions"
+            ],
+            "console": "integratedTerminal"
+        }
+    ]
+}

@@ -1,0 +1,53 @@
+{
+  "app": {
+    "interactionsBaseFolder": "../interactions",
+    "defaultPollGmailUser": "awsamram@gmail.com"
+  },
+  "google": {
+    "credentialsPath": "./credentials.json",
+    "pollTokenPath": "./data/token.json",
+    "lastHistoryIdPath": "./data/last_history_id.txt",
+    "lastPolledEmailPath": "./data/last_polled_email.txt",
+    "totalPollCyclesPath": "./data/total_poll_cycles.txt",
+    "scopes": [
+      "https://www.googleapis.com/auth/gmail.readonly",
+      "https://www.googleapis.com/auth/gmail.send"
+    ],
+    "redirectUri": "http://localhost:3000"
+  },
+  "polling": {
+    "defaultIntervalMinutes": 2.0,
+    "defaultDurationMinutes": 60
+  },
+  "flags": {
+    "defaultSilent": false
+  },
+  "openai": {
+    "llmModel": "gpt-4o",
+    "organizationId": "org-jtUOS2ket5MKPTVgmcbv5mIP",
+    "maxResponseTokens": 10000,
+    "openaiApiKeyNOTE": "apiKey is *not* here, it's always from .env"
+  },
+  "sendTest": {
+    "testAttachmentsFolder": "./test/attachments",
+    "tokenPath": "./data/sendtest_token.json",
+    "lastSentEmailNumberPath": "./data/sendtest_last_sent_email_number.txt",
+    "senderEmailPath": "./data/sendtest_sender_email.txt",
+    "recipientEmailPath": "./data/sendtest_recipient_email.txt",
+    "sendCountPath": "./data/sendtest_send_count.txt",
+    "defaultSender": "amram.dworkin@gmail.com",
+    "defaultRecipient": "awsamram@gmail.com",
+    "scopes": [
+      "https://www.googleapis.com/auth/gmail.send"
+    ]
+  },
+  "testOpenAi": {
+    "testPrompt": "Explain the concept of quantum entanglement in simple terms.",
+    "dialogPrompts": [
+      "Hello, LLM. How are you today?",
+      "Can you tell me a short, funny story about a talking cat?",
+      "What did the cat say or do next? Make it even funnier.",
+      "Summarize our conversation so far in one sentence."
+    ]
+  }
+}

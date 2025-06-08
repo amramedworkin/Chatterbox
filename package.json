@@ -1,22 +1,61 @@
 {
   "name": "nodetest",
   "version": "1.0.0",
-  "description": "",
-  "main": "sendEmail.js",
+  "description": "A Gmail Poller for LLM Interactions and Testing Utilities",
+  "main": "dist/src/pollGmail.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "tsc",
+    "poll": "node dist/src/pollGmail.js",
+    "clean": "bin/clean.ps1",
+    "test": "npm run test:send && npm run test:prompt && npm run test:dialog",
+    "test:all": "jest",
+    "test:auth": "jest /source/Chatterbox/test/testGmailAuth.ts --runInBand",
+    "test:send": "node dist/test/testSendGmail.js",
+    "test:completion": "node dist/test/testOpenAiCompletion.js",
+    "test:dialog": "node dist/test/testOpenAiConversation.js --dialog",
+    "lint": "eslint \"{src,test}/**/*.ts\"",
+    "lint:fix": "eslint \"{src,test}/**/*.ts\" --fix",
+    "format": "prettier --write \"{src,test}/**/*.ts\""
   },
-  "keywords": [],
+  "keywords": [
+    "gmail",
+    "polling",
+    "llm",
+    "openai",
+    "automation",
+    "chatterbox",
+    "email"
+  ],
   "author": "Amram E. Dworkin <amram.dworkin@gmail.com>",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/amramedworkin/Chatterbox.git"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "dependencies": {
     "dotenv": "^16.5.0",
-    "fs": "^0.0.1-security",
     "googleapis": "^149.0.0",
     "mailparser": "^3.7.3",
     "node-imap": "^0.9.6",
     "nodemailer": "^7.0.3",
-    "openai": "^5.1.0",
-    "readline": "^1.3.0"
+    "openai": "^5.1.0"
+  },
+  "devDependencies": {
+    "@types/eslint": "^8.56.10",
+    "@types/jest": "^29.5.12",
+    "@types/mailparser": "^3.4.4",
+    "@types/node": "^20.14.8",
+    "@types/prettier": "^3.0.0",
+    "eslint": "^8.57.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-jest": "^28.13.0",
+    "eslint-plugin-prettier": "^5.4.1",
+    "jest": "^29.7.0",
+    "prettier": "^3.2.5",
+    "ts-jest": "^29.2.2",
+    "typescript": "^5.5.2"
   }
 }
