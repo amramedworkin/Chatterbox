@@ -9,12 +9,12 @@
     "clean": "bin/clean.ps1",
     "test": "npm run test:send && npm run test:prompt && npm run test:dialog",
     "test:all": "jest",
-    "test:auth": "jest /source/Chatterbox/test/testGmailAuth.ts --runInBand",
+    "test:auth": "jest dist/test/authGmail.test.js --runInBand",
     "test:send": "node dist/test/testSendGmail.js",
     "test:completion": "node dist/test/testOpenAiCompletion.js",
     "test:dialog": "node dist/test/testOpenAiConversation.js --dialog",
-    "lint": "eslint \"{src,test}/**/*.ts\"",
-    "lint:fix": "eslint \"{src,test}/**/*.ts\" --fix",
+    "lint": "ESLINT_USE_FLAT_CONFIG=false eslint \"{src,test}/**/*.ts\"",
+    "lint:fix": "ESLINT_USE_FLAT_CONFIG=false eslint \"{src,test}/**/*.ts\" --fix",
     "format": "prettier --write \"{src,test}/**/*.ts\""
   },
   "keywords": [
