@@ -9,7 +9,7 @@
     "clean": "bin/clean.ps1",
     "test": "npm run test:send && npm run test:prompt && npm run test:dialog",
     "test:all": "jest",
-    "test:auth": "jest test/testGmailAuth.ts --runInBand",
+    "test:auth": "jest test/gmailAuth.test.ts --runInBand",
     "test:send": "node dist/test/testSendGmail.js",
     "test:completion": "node dist/test/testOpenAiCompletion.js",
     "test:dialog": "node dist/test/testOpenAiConversation.js --dialog",
@@ -45,7 +45,7 @@
   },
   "devDependencies": {
     "@types/eslint": "^8.56.10",
-    "@types/jest": "^29.5.12",
+    "@types/jest": "^29.5.14",
     "@types/mailparser": "^3.4.4",
     "@types/node": "^20.14.8",
     "@types/prettier": "^3.0.0",
@@ -57,7 +57,7 @@
     "eslint-plugin-prettier": "^5.4.1",
     "jest": "^29.7.0",
     "prettier": "^3.2.5",
-    "ts-jest": "^29.2.2",
+    "ts-jest": "^29.3.4",
     "typescript": "^5.5.2"
   }
 }
