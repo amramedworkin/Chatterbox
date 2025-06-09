@@ -12,7 +12,7 @@ import { AppConfig } from '../src/types/config'; // Import AppConfig
 // Define a simple type for the mock's 'options' parameter to bypass 'Abortable' type issues
 // This is used for the second argument of readline.question when it's not the callback.
 interface MockedQuestionOptions {
-    signal?: any; // A generic signal property, as we're not using AbortSignal functionality in the mock
+    signal?: unknown; // A generic signal property, as we're not using AbortSignal functionality in the mock
 }
 
 // --- Test Configuration and Paths ---
@@ -43,10 +43,11 @@ describe('authorizeGmail (Integration Test)', () => {
             console.log(
                 `Copied credentials from ${originalConfig.google.credentialsPath} to ${TEST_CREDENTIALS_PATH}`
             );
-        } catch (error: any) {
+        } catch (error: unknown) {
+            const err = error as NodeJS.ErrnoException;
             console.error(
                 `ERROR: Could not copy credentials.json for integration test. Make sure ${originalConfig.google.credentialsPath} exists and is accessible.`,
-                error
+                err
             );
             process.exit(1);
         }
@@ -54,12 +55,10 @@ describe('authorizeGmail (Integration Test)', () => {
         try {
             await fs.unlink(TEST_TOKEN_PATH);
             console.log(`Cleaned up existing ${TEST_TOKEN_PATH}`);
-        } catch (error: any) {
-            if (error.code !== 'ENOENT') {
-                console.warn(
-                    `Warning: Could not remove existing ${TEST_TOKEN_PATH}:`,
-                    error.message
-                );
+        } catch (error: unknown) {
+            const err = error as NodeJS.ErrnoException;
+            if (err.code !== 'ENOENT') {
+                console.warn(`Warning: Could not remove existing ${TEST_TOKEN_PATH}:`, err.message);
             }
         }
     });
@@ -115,8 +114,9 @@ describe('authorizeGmail (Integration Test)', () => {
     test('should authorize and save tokens if no existing tokens', async () => {
         try {
             await fs.unlink(TEST_TOKEN_PATH);
-        } catch (e: any) {
-            if (e.code !== 'ENOENT') throw e;
+        } catch (e: unknown) {
+            const err = e as NodeJS.ErrnoException;
+            if (err.code !== 'ENOENT') throw err;
         }
 
         console.log(`\n--- MANUAL INTERACTION REQUIRED FOR FIRST AUTHORIZATION TEST ---`);

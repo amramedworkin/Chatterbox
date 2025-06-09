@@ -53,10 +53,11 @@ async function authorize(): Promise<Auth.OAuth2Client> {
             await getNewToken(oAuth2Client);
         }
         return oAuth2Client;
-    } catch (err: any) {
-        console.error('Error loading client secret file or authorizing:', err);
+    } catch (err: unknown) {
+        const error = err as NodeJS.ErrnoException & { path?: string };
+        console.error('Error loading client secret file or authorizing:', error);
         // Specific error message for missing credentials.json
-        if (err.code === 'ENOENT' && err.path === config.google.credentialsPath) {
+        if (error.code === 'ENOENT' && error.path === config.google.credentialsPath) {
             console.error(
                 `CRITICAL ERROR: 'credentials.json' not found at the expected path: ${config.google.credentialsPath}`
             );
@@ -322,10 +323,11 @@ async function sendTestEmail(
                         `Warning: Attachment file "${attachmentFilename}" not found at "${attachmentFilePath}". Skipping.`
                     );
                 }
-            } catch (err: any) {
+            } catch (err: unknown) {
+                const error = err as Error;
                 console.warn(
                     `Warning: Error checking attachment file "${attachmentFilename}":`,
-                    err.message
+                    error.message
                 );
             }
         }
@@ -375,8 +377,9 @@ async function sendTestEmail(
                 rawEmailContent.push(attachmentBase64);
                 rawEmailContent.push('');
                 console.log(`Attached file: ${filename}`);
-            } catch (err: any) {
-                console.error(`Error reading or attaching file "${filename}":`, err.message);
+            } catch (err: unknown) {
+                const error = err as Error;
+                console.error(`Error reading or attaching file "${filename}":`, error.message);
             }
         }
         rawEmailContent.push(`--${boundary}--`); // Closing boundary
@@ -411,9 +414,10 @@ async function sendTestEmail(
         } else {
             console.log('No attachments sent.');
         }
-    } catch (sendErr: any) {
-        console.error('Error sending test email:', sendErr.message);
-        if (sendErr.code === 401) {
+    } catch (sendErr: unknown) {
+        const error = sendErr as NodeJS.ErrnoException & { code?: number };
+        console.error('Error sending test email:', error.message);
+        if (error.code === 401) {
             console.error(
                 'Authentication failed. Ensure your tokens are valid and have `gmail.send` scope.'
             );
@@ -496,10 +500,11 @@ async function main(): Promise<void> {
                         subfolderCount = subfolders.filter(
                             (subDirent) => subDirent.isDirectory() && /^\d{3}$/.test(subDirent.name)
                         ).length;
-                    } catch (readSubDirErr: any) {
+                    } catch (readSubDirErr: unknown) {
                         // Ignore error if subfolder cannot be read (e.g., permissions)
+                        const error = readSubDirErr as Error;
                         console.warn(
-                            `    Warning: Could not read subfolders for ${listedConversationId}: ${readSubDirErr.message}`
+                            `    Warning: Could not read subfolders for ${listedConversationId}: ${error.message}`
                         );
                     }
                     console.log(
@@ -510,13 +515,14 @@ async function main(): Promise<void> {
             if (!foundFolders) {
                 console.log('No conversation folders found.');
             }
-        } catch (err: any) {
-            if (err.code === 'ENOENT') {
+        } catch (err: unknown) {
+            const error = err as NodeJS.ErrnoException;
+            if (error.code === 'ENOENT') {
                 console.log(
                     `Interactions folder (${config.app.interactionsBaseFolder}) not found. No conversation folders to list.`
                 );
             } else {
-                console.error('Error listing conversation folders:', err.message);
+                console.error('Error listing conversation folders:', error.message);
             }
         }
         process.exit(0); // Exit after listing

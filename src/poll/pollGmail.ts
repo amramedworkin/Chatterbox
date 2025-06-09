@@ -1,9 +1,8 @@
 // src/poll/pollGmail.ts
 // Import necessary libraries.
 import { google } from 'googleapis';
+import { OAuth2Client } from 'google-auth-library';
 import { promises as fs } from 'fs';
-import * as path from 'path';
-import * as readline from 'readline'; // No need for crypto unless you actually use it here
 import 'dotenv/config';
 
 // Load configuration from loadConfig.ts
@@ -56,7 +55,7 @@ function getTimestamp(): string {
  * Logs a message with a timestamp.
  * @param {...any} args The arguments to log.
  */
-function logWithTimestamp(...args: any[]): void {
+function logWithTimestamp(...args: unknown[]): void {
     const timestamp = getTimestamp();
     console.log(timestamp, ...args);
 }
@@ -78,7 +77,7 @@ function determineGmailUser(): string {
  * @param {OAuth2Client} auth The authenticated OAuth2 client.
  * @param {number} currentPollingCycle The current polling cycle number.
  */
-async function fetchNewEmails(auth: any, currentPollingCycle: number): Promise<void> {
+async function fetchNewEmails(auth: OAuth2Client, currentPollingCycle: number): Promise<void> {
     const gmail = google.gmail({ version: 'v1', auth });
     const lastHistoryIdPath = config.google.lastHistoryIdPath;
     const totalPollCyclesPath = config.google.totalPollCyclesPath;
@@ -89,8 +88,9 @@ async function fetchNewEmails(auth: any, currentPollingCycle: number): Promise<v
     try {
         lastHistoryId = await fs.readFile(lastHistoryIdPath, 'utf8');
         totalPollCycles = parseInt((await fs.readFile(totalPollCyclesPath, 'utf8')) || '0');
-    } catch (err: any) {
-        if (err.code === 'ENOENT') {
+    } catch (err: unknown) {
+        const error = err as NodeJS.ErrnoException;
+        if (error.code === 'ENOENT') {
             logWithTimestamp(`No existing history ID or total poll cycles found. Starting fresh.`);
         } else {
             logWithTimestamp(`Error reading history ID or total poll cycles file:`, err);
@@ -139,8 +139,9 @@ async function fetchNewEmails(auth: any, currentPollingCycle: number): Promise<v
 
         // Save total poll cycles
         await fs.writeFile(totalPollCyclesPath, totalPollCycles.toString());
-    } catch (err: any) {
-        if (err.code === 404 || err.code === 400) {
+    } catch (err: unknown) {
+        const error = err as NodeJS.ErrnoException & { code?: number };
+        if (error.code === 404 || error.code === 400) {
             // Likely an invalid history ID or initial sync
             logWithTimestamp(
                 'Error fetching Gmail history (possibly invalid history ID or first run). Resetting history ID.'
@@ -182,7 +183,7 @@ async function main(): Promise<void> {
                 'Cleanup complete. Please re-run the script to re-authorize and start fresh.'
             );
             return;
-        } catch (err) {
+        } catch (err: unknown) {
             logWithTimestamp('Error during clean operation:', err);
             process.exit(1);
         }
@@ -215,7 +216,7 @@ async function main(): Promise<void> {
                 pollDurationMinutes * 60 * 1000
             );
         }
-    } catch (err) {
+    } catch (err: unknown) {
         logWithTimestamp('Failed to start poller:', err);
         process.exit(1); // Exit if initial authorization fails
     }

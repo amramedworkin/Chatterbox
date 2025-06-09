@@ -1,15 +1,15 @@
 // src/loadConfig.ts
 
 import 'dotenv/config';
-import * as path from 'path'; // path is not strictly needed in this version but can be kept
-import { AppConfig } from './types/config'; // Import the defined AppConfig interface
+import { AppConfig } from './types/config';
 
-let appDefaults: any = {};
+let appDefaults: Partial<AppConfig> = {};
 try {
     // Adjusted path: Go up from 'dist/src' to 'dist', then up to the project root,
     // where config.json now resides.
-    appDefaults = require('../../config.json');
-} catch (error: any) {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    appDefaults = require('../../config.json') as Partial<AppConfig>;
+} catch (error: unknown) {
     console.error(
         "Error loading config.json. Please ensure it exists and is valid JSON and located in the 'root' directory.",
         error
@@ -18,9 +18,15 @@ try {
 }
 
 const getOrDefault = <T>(envVar: string, appDefaultPath: string, fallback: T): T => {
-    const defaultVal = appDefaultPath
-        .split('.')
-        .reduce((obj: any, key: string) => obj && obj[key], appDefaults);
+    const defaultVal = appDefaultPath.split('.').reduce<Record<string, unknown> | undefined>(
+        (obj, key: string) => {
+            if (obj && typeof obj === 'object') {
+                return (obj as Record<string, unknown>)[key] as Record<string, unknown> | undefined;
+            }
+            return undefined;
+        },
+        appDefaults as Record<string, unknown>
+    );
 
     const envValue = process.env[envVar];
 
