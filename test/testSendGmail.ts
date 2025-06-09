@@ -32,7 +32,8 @@ async function authorize(): Promise<Auth.OAuth2Client> {
         // Use config.google.credentialsPath (e.g., "./credentials.json" from project root)
         const credentialsContent = await fs.readFile(config.google.credentialsPath, 'utf8');
         // Destructure only client_secret and client_id, as redirect_uris is not used directly here
-        const { client_secret, client_id /*, redirect_uris */ } = JSON.parse(credentialsContent).installed;
+        const { client_secret, client_id /*, redirect_uris */ } =
+            JSON.parse(credentialsContent).installed;
 
         oAuth2Client = new google.auth.OAuth2(
             client_id,
@@ -289,7 +290,7 @@ async function sendTestEmail(
     bodyText += `Conversation ID: ${conversationId || 'null'}\r\n`;
     bodyText += `Attachment count: ${attachCount}\r\n`; // Initial requested attach count
 
-    let actualAttachments: string[] = []; // To store names of successfully attached files for email body list
+    const actualAttachments: string[] = []; // To store names of successfully attached files for email body list
 
     if (attachCount > 0) {
         // Use config.app.testAttachmentsFolder (e.g., "./test/attachments" from project root)
@@ -332,7 +333,7 @@ async function sendTestEmail(
 
     bodyText += `Attachments: ${actualAttachments.length > 0 ? actualAttachments.join(', ') : '<none>'}\r\n`;
 
-    let emailHeaders: string[] = [
+    const emailHeaders: string[] = [
         `To: ${recipientEmail}`, // Use the passed recipient email
         `From: ${gmailUser}`, // Use the global sender email
         `Subject: ${subject}`,
@@ -340,8 +341,8 @@ async function sendTestEmail(
         'MIME-Version: 1.0',
     ];
 
-    let rawEmailContent: string[] = [];
-    let boundary = `----=_Part_${Date.now()}_${Math.random().toString(36).substring(2, 15)}`;
+    const rawEmailContent: string[] = [];
+    const boundary = `----=_Part_${Date.now()}_${Math.random().toString(36).substring(2, 15)}`;
 
     if (actualAttachments.length > 0) {
         emailHeaders.push(`Content-Type: multipart/mixed; boundary="${boundary}"`);

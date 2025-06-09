@@ -90,10 +90,7 @@ async function getNewToken(oAuth2Client: OAuth2Client, scopes: string[]): Promis
  * @param {AppConfig} config The application configuration.
  * @returns {Promise<OAuth2Client>} An authenticated OAuth2 client.
  */
-export async function authorizeGmail(
-    email: string,
-    config: AppConfig
-): Promise<OAuth2Client> {
+export async function authorizeGmail(email: string, config: AppConfig): Promise<OAuth2Client> {
     const credentialsPath = config.google.credentialsPath;
     const tokenPath = config.google.pollTokenPath;
     const scopes = config.google.scopes;
@@ -116,7 +113,7 @@ export async function authorizeGmail(
         redirect_uris[0]
     ) as OAuth2Client;
 
-    let tokenData: TokenData = await readTokenData(tokenPath);
+    const tokenData: TokenData = await readTokenData(tokenPath);
 
     if (tokenData[email]) {
         oAuth2Client.setCredentials(tokenData[email]);

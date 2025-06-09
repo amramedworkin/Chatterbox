@@ -88,7 +88,7 @@ async function fetchNewEmails(auth: any, currentPollingCycle: number): Promise<v
 
     try {
         lastHistoryId = await fs.readFile(lastHistoryIdPath, 'utf8');
-        totalPollCycles = parseInt(await fs.readFile(totalPollCyclesPath, 'utf8') || '0');
+        totalPollCycles = parseInt((await fs.readFile(totalPollCyclesPath, 'utf8')) || '0');
     } catch (err: any) {
         if (err.code === 'ENOENT') {
             logWithTimestamp(`No existing history ID or total poll cycles found. Starting fresh.`);
@@ -142,7 +142,9 @@ async function fetchNewEmails(auth: any, currentPollingCycle: number): Promise<v
     } catch (err: any) {
         if (err.code === 404 || err.code === 400) {
             // Likely an invalid history ID or initial sync
-            logWithTimestamp('Error fetching Gmail history (possibly invalid history ID or first run). Resetting history ID.');
+            logWithTimestamp(
+                'Error fetching Gmail history (possibly invalid history ID or first run). Resetting history ID.'
+            );
             await fs.unlink(lastHistoryIdPath).catch(() => {}); // Attempt to delete, ignore if not found
         } else {
             logWithTimestamp('Error fetching new emails:', err);
@@ -176,7 +178,9 @@ async function main(): Promise<void> {
             await fs.unlink(config.google.lastHistoryIdPath).catch(() => {});
             await fs.unlink(config.google.totalPollCyclesPath).catch(() => {});
 
-            logWithTimestamp('Cleanup complete. Please re-run the script to re-authorize and start fresh.');
+            logWithTimestamp(
+                'Cleanup complete. Please re-run the script to re-authorize and start fresh.'
+            );
             return;
         } catch (err) {
             logWithTimestamp('Error during clean operation:', err);

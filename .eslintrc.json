@@ -1,33 +1,50 @@
 {
+  "root": true, // Stop ESLint from looking in parent folders for config files
   "env": {
-    "node": true,    // Enables Node.js global variables and Node.js scoping.
-    "es2021": true   // Adds all ECMAScript 2021 globals and parsing features.
+    "node": true, // Enables Node.js global variables and Node.js scoping.
+    "es2021": true // Adds all ECMAScript 2021 globals and parsing features.
+  },
+  // Specifies the ESLint parser for TypeScript
+  "parser": "@typescript-eslint/parser", //
+  "parserOptions": {
+    "ecmaVersion": 2021, // Allows parsing of modern ECMAScript features (ECMAScript 2021)
+    "sourceType": "module", // Allows using import/export syntax (ES Modules)
+    // Required for rules that need type information (e.g., no-floating-promises)
+    "project": "./tsconfig.json" //
   },
   "extends": [
-    "eslint:recommended",    // Recommended ESLint rules for general best practices
+    "eslint:recommended", // Recommended ESLint rules for general best practices
+    "plugin:@typescript-eslint/recommended", // Recommended rules for TypeScript
     "plugin:prettier/recommended" // Integrates Prettier rules with ESLint
   ],
-  "parserOptions": {
-    "ecmaVersion": 12,       // Allows parsing of modern ECMAScript features
-    "sourceType": "module"   // Allows using import/export syntax (ES Modules)
-  },
   "rules": {
     // Custom rules or overrides can go here.
-    "no-console": "off",
-    "no-unused-vars": "warn" // Treat as warning instead of error
+    "no-console": "off", //
+    
+    // Disable the base ESLint rule as it can report false positives for TypeScript
+    "no-unused-vars": "off", //
+    // Enable the TypeScript-specific rule for unused variables
+    "@typescript-eslint/no-unused-vars": "warn", //
+
+    // Allow require() statements, which might be used for config files or legacy modules
+    "@typescript-eslint/no-var-requires": "off" //
   },
   "overrides": [
     {
-      "files": ["**/*.test.js", "**/*.spec.js", "**/test/**/*.js"], // Apply these settings to test files
+      // Apply these settings to both JavaScript and TypeScript test files
+      "files": ["**/*.test.{js,ts}", "**/*.spec.{js,ts}", "**/test/**/*.{js,ts}"], //
       "env": {
         "jest": true // This enables Jest global variables for test files
       },
       "extends": [
+        "plugin:@typescript-eslint/recommended", // Ensure TypeScript rules for TS test files
         "plugin:jest/recommended" // Recommended Jest rules
       ],
       "rules": {
         // You can add specific rules for test files here if needed
-        "jest/valid-expect": "error"
+        "jest/valid-expect": "error", //
+        // Often useful to allow require in test files for mocking etc.
+        "@typescript-eslint/no-var-requires": "off" //
       }
     }
   ]

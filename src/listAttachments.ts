@@ -6,7 +6,6 @@ import * as path from 'path';
 import * as crypto from 'crypto';
 
 // Import configuration from loadConfig.ts
-// Assuming loadConfig.ts is in the same directory and exports default
 import config from './loadConfig';
 
 // Define the shape of a unique attachment object
@@ -20,7 +19,6 @@ interface AttachmentDetails {
 
 // --- Configuration ---
 // Base folder where interactions (including attachments) are saved by pollGmail.js
-// Use the path resolved by loadConfig.ts
 const INTERACTIONS_BASE_FOLDER = config.app.interactionsBaseFolder;
 
 // --- Helper Functions ---
@@ -37,115 +35,89 @@ async function calculateFileHash(filePath: string): Promise<string | null> {
         const hash = crypto.createHash('md5');
         hash.update(fileBuffer);
         return hash.digest('hex');
-    } catch (error: any) {
-        console.error(`Error calculating hash for ${filePath}:`, error.message);
+    } catch (error: unknown) {
+        // Changed 'any' to 'unknown'
+        if (error instanceof Error) {
+            // Type guard
+            console.error(`Error calculating hash for ${filePath}: ${error.message}`);
+        } else {
+            console.error(`Error calculating hash for ${filePath}:`, error);
+        }
         return null;
     }
 }
 
 /**
- * Walks an interactions/<conversationId> folder structure,
- * identifying and listing unique attachments based on content and filename.
- * @param {string} conversationId The ID of the conversation to process.
- * @returns {Promise<AttachmentDetails[]>} A list of unique files:
- * { uniqueName: string, originalPath: string, filename: string, sequenceFolder: string, hash: string }
+ * Recursively finds all files within a directory and its subdirectories.
+ * @param {string} dir The directory to search.
+ * @returns {Promise<string[]>} A promise that resolves to an array of full file paths.
+ */
+async function getAllFiles(dir: string): Promise<string[]> {
+    let files: string[] = [];
+    const entries = await fs.readdir(dir, { withFileTypes: true });
+
+    for (const entry of entries) {
+        const fullPath = path.join(dir, entry.name);
+        if (entry.isDirectory()) {
+            files = files.concat(await getAllFiles(fullPath));
+        } else {
+            files.push(fullPath);
+        }
+    }
+    return files;
+}
+
+/**
+ * Scans the interactions folder for unique attachments based on their content hash.
+ * @param {string} conversationId The conversation ID to filter attachments for.
+ * @returns {Promise<AttachmentDetails[]>} A promise that resolves to an array of unique attachment details.
  */
 async function getUniqueAttachments(conversationId: string): Promise<AttachmentDetails[]> {
-    const uniqueFilesByHash = new Map<string, AttachmentDetails>(); // Map: hash -> AttachmentDetails
-    const results: AttachmentDetails[] = []; // Final list of unique files to return
+    const uniqueAttachments: AttachmentDetails[] = [];
+    const hashes = new Set<string>();
 
-    const conversationBaseDir = path.join(INTERACTIONS_BASE_FOLDER, conversationId);
-
-    console.log(`Scanning for unique attachments in: ${conversationBaseDir}`);
+    const conversationFolder = path.join(INTERACTIONS_BASE_FOLDER, conversationId);
+    const attachmentFolder = path.join(conversationFolder, 'attachments');
 
     try {
-        const topLevelEntries = await fs.readdir(conversationBaseDir, { withFileTypes: true });
+        const attachmentFiles = await getAllFiles(attachmentFolder);
 
-        // Filter for sequential numbered subfolders (e.g., '001', '002') and sort them numerically
-        const sequenceFolders = topLevelEntries
-            .filter((dirent) => dirent.isDirectory() && /^\d{3}$/.test(dirent.name))
-            .map((dirent) => dirent.name)
-            .sort((a, b) => parseInt(a, 10) - parseInt(b, 10)); // Sort numerically
+        for (const filePath of attachmentFiles) {
+            const hash = await calculateFileHash(filePath);
+            if (hash && !hashes.has(hash)) {
+                hashes.add(hash);
 
-        if (sequenceFolders.length === 0) {
-            console.log(
-                `No sequential message folders (e.g., 001, 002) found in ${conversationBaseDir}.`
-            );
-            return results;
-        }
+                const filename = path.basename(filePath);
+                // Extract sequence folder (e.g., '0', '1', '2' etc. from path like 'interactions/convId/attachments/0/file.txt')
+                const relativeToAttachmentFolder = path.relative(attachmentFolder, filePath);
+                const sequenceFolder = relativeToAttachmentFolder.split(path.sep)[0];
 
-        for (const sequenceFolder of sequenceFolders) {
-            const currentSequenceFolderPath = path.join(conversationBaseDir, sequenceFolder);
-            console.log(`    Processing folder: ${sequenceFolder}`);
-
-            try {
-                const filesInFolder = await fs.readdir(currentSequenceFolderPath, {
-                    withFileTypes: true,
+                uniqueAttachments.push({
+                    uniqueName: `${sequenceFolder}-${filename}`,
+                    originalPath: filePath,
+                    filename: filename,
+                    sequenceFolder: sequenceFolder,
+                    hash: hash,
                 });
-
-                for (const dirent of filesInFolder) {
-                    if (dirent.isFile()) {
-                        const filename = dirent.name;
-                        const fullFilePath = path.join(currentSequenceFolderPath, filename);
-
-                        // Skip 'body_text.txt' as it's the email body, not a user attachment
-                        if (filename === 'body_text.txt') {
-                            // console.log(`    - Skipping body_text.txt`);
-                            continue;
-                        }
-
-                        const fileHash = await calculateFileHash(fullFilePath);
-
-                        if (fileHash === null) {
-                            console.warn(
-                                `    - Could not calculate hash for ${filename}. Skipping.`
-                            );
-                            continue;
-                        }
-
-                        if (!uniqueFilesByHash.has(fileHash)) {
-                            // This is a unique file content-wise
-                            const uniqueName = `${sequenceFolder}_${filename}`;
-                            const fileDetails: AttachmentDetails = {
-                                uniqueName: uniqueName,
-                                originalPath: fullFilePath,
-                                filename: filename,
-                                sequenceFolder: sequenceFolder,
-                                hash: fileHash,
-                            };
-                            uniqueFilesByHash.set(fileHash, fileDetails);
-                            results.push(fileDetails);
-                            console.log(
-                                `    - Added unique: ${uniqueName} (from ${sequenceFolder}/${filename})`
-                            );
-                        } else {
-                            // This file content is a duplicate of one already found
-                            const existingFileDetails = uniqueFilesByHash.get(fileHash);
-                            console.log(
-                                `    - Skipping duplicate: ${filename} in ${sequenceFolder} (same content as ${existingFileDetails?.sequenceFolder}/${existingFileDetails?.filename})`
-                            );
-                        }
-                    }
-                }
-            } catch (readFolderErr: any) {
-                console.error(
-                    `Error reading folder ${currentSequenceFolderPath}:`,
-                    readFolderErr.message
-                );
             }
         }
-    } catch (err: any) {
-        if (err.code === 'ENOENT') {
-            console.error(`Error: Conversation folder not found at ${conversationBaseDir}.`);
+    } catch (error: unknown) {
+        // Changed 'any' to 'unknown'
+        if (error instanceof Error && error.code === 'ENOENT') {
+            // Type guard
+            console.log(`No attachments folder found for conversation ID: ${conversationId}`);
         } else {
-            console.error(`Error scanning interactions folder: ${err.message}`);
+            console.error(`Error scanning attachments for ${conversationId}:`, error);
         }
     }
 
-    return results;
+    return uniqueAttachments;
 }
 
-// --- Main Execution Block (for standalone testing) ---
+/**
+ * Main function to list unique attachments for a given conversation ID.
+ * @param {string} conversationId The conversation ID.
+ */
 async function main(): Promise<void> {
     const args = process.argv.slice(2);
     const scriptName = path.basename(process.argv[1]);
@@ -182,6 +154,3 @@ async function main(): Promise<void> {
 if (require.main === module) {
     main();
 }
-
-// Export the core function for other scripts (e.g., LLM interaction) to use
-export { getUniqueAttachments };

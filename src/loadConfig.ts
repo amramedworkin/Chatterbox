@@ -17,11 +17,7 @@ try {
     process.exit(1);
 }
 
-const getOrDefault = <T>(
-    envVar: string,
-    appDefaultPath: string,
-    fallback: T
-): T => {
+const getOrDefault = <T>(envVar: string, appDefaultPath: string, fallback: T): T => {
     const defaultVal = appDefaultPath
         .split('.')
         .reduce((obj: any, key: string) => obj && obj[key], appDefaults);
@@ -87,7 +83,9 @@ const config: AppConfig = {
         ),
         scopes: process.env.GOOGLE_SCOPES
             ? process.env.GOOGLE_SCOPES.split(' ')
-            : (appDefaults.google ? appDefaults.google.scopes : ['https://www.googleapis.com/auth/gmail.readonly']),
+            : appDefaults.google
+              ? appDefaults.google.scopes
+              : ['https://www.googleapis.com/auth/gmail.readonly'],
         redirectUri: getOrDefault(
             'GOOGLE_REDIRECT_URI',
             'google.redirectUri',
@@ -107,19 +105,11 @@ const config: AppConfig = {
         ),
     },
     flags: {
-        defaultSilent: getOrDefault(
-            'DEFAULT_SILENT_FLAG',
-            'flags.defaultSilent',
-            false
-        ),
+        defaultSilent: getOrDefault('DEFAULT_SILENT_FLAG', 'flags.defaultSilent', false),
     },
     openai: {
         llmModel: getOrDefault('OPENAI_LLM_MODEL', 'openai.llmModel', 'gpt-4o'),
-        organizationId: getOrDefault(
-            'OPENAI_ORGANIZATION_ID',
-            'openai.organizationId',
-            ''
-        ),
+        organizationId: getOrDefault('OPENAI_ORGANIZATION_ID', 'openai.organizationId', ''),
         maxResponseTokens: getOrDefault(
             'OPENAI_MAX_RESPONSE_TOKENS',
             'openai.maxResponseTokens',
@@ -170,7 +160,9 @@ const config: AppConfig = {
         ),
         scopes: process.env.SENDTEST_SCOPES
             ? process.env.SENDTEST_SCOPES.split(' ')
-            : (appDefaults.sendTest ? appDefaults.sendTest.scopes : ['https://www.googleapis.com/auth/gmail.send']),
+            : appDefaults.sendTest
+              ? appDefaults.sendTest.scopes
+              : ['https://www.googleapis.com/auth/gmail.send'],
     },
     testOpenAi: {
         testPrompt: getOrDefault(
@@ -180,7 +172,9 @@ const config: AppConfig = {
         ),
         dialogPrompts: process.env.TESTOPENAI_DIALOG_PROMPTS
             ? process.env.TESTOPENAI_DIALOG_PROMPTS.split('|')
-            : (appDefaults.testOpenAi ? appDefaults.testOpenAi.dialogPrompts : []),
+            : appDefaults.testOpenAi
+              ? appDefaults.testOpenAi.dialogPrompts
+              : [],
     },
 };
 
