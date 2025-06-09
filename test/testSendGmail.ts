@@ -655,6 +655,8 @@ async function main(): Promise<void> {
         }
     }
 
+    console.log(`--attach count: ${attachCount}`);
+
     // If sender email changed, force re-authorization by deleting token
     if (forceReauthorization) {
         console.log(
