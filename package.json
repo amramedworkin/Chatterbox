@@ -9,7 +9,7 @@
     "clean": "bin/clean.ps1",
     "test": "npm run test:send && npm run test:prompt && npm run test:dialog",
     "test:all": "jest",
-    "test:auth": "jest /source/Chatterbox/test/testGmailAuth.ts --runInBand",
+    "test:auth": "jest test/testGmailAuth.ts --runInBand",
     "test:send": "node dist/test/testSendGmail.js",
     "test:completion": "node dist/test/testOpenAiCompletion.js",
     "test:dialog": "node dist/test/testOpenAiConversation.js --dialog",
