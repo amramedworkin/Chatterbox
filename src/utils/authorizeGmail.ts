@@ -33,11 +33,12 @@ export async function readTokenData(tokenPath: string): Promise<TokenData> {
     try {
         const content = await fs.readFile(tokenPath, 'utf8');
         return JSON.parse(content) as TokenData;
-    } catch (err: any) {
-        if (err.code === 'ENOENT') {
+    } catch (err: unknown) {
+        const error = err as NodeJS.ErrnoException;
+        if (error.code === 'ENOENT') {
             return {}; // Return empty object if file doesn't exist
         }
-        throw new Error(`Failed to read token data from ${tokenPath}: ${err.message}`);
+        throw new Error(`Failed to read token data from ${tokenPath}: ${error.message}`);
     }
 }
 
@@ -77,8 +78,9 @@ async function getNewToken(oAuth2Client: OAuth2Client, scopes: string[]): Promis
                 const { tokens } = await oAuth2Client.getToken(code);
                 oAuth2Client.setCredentials(tokens);
                 resolve();
-            } catch (err: any) {
-                reject(new Error(`Error retrieving access token: ${err.message}`));
+            } catch (err: unknown) {
+                const error = err as Error;
+                reject(new Error(`Error retrieving access token: ${error.message}`));
             }
         });
     });
@@ -98,9 +100,10 @@ export async function authorizeGmail(email: string, config: AppConfig): Promise<
     let credentialsContent: string;
     try {
         credentialsContent = await fs.readFile(credentialsPath, 'utf8');
-    } catch (err: any) {
+    } catch (err: unknown) {
+        const error = err as Error;
         throw new Error(
-            `Error loading client secret file from ${credentialsPath}: ${err.message}. Please ensure credentials.json is present.`
+            `Error loading client secret file from ${credentialsPath}: ${error.message}. Please ensure credentials.json is present.`
         );
     }
 

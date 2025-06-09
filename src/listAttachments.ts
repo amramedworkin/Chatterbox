@@ -102,9 +102,8 @@ async function getUniqueAttachments(conversationId: string): Promise<AttachmentD
             }
         }
     } catch (error: unknown) {
-        // Changed 'any' to 'unknown'
-        if (error instanceof Error && error.code === 'ENOENT') {
-            // Type guard
+        const err = error as NodeJS.ErrnoException;
+        if (err.code === 'ENOENT') {
             console.log(`No attachments folder found for conversation ID: ${conversationId}`);
         } else {
             console.error(`Error scanning attachments for ${conversationId}:`, error);
