@@ -4,7 +4,7 @@
   "description": "A Gmail Poller for LLM Interactions and Testing Utilities",
   "main": "dist/src/pollGmail.js",
   "scripts": {
-    "build": "tsc && ncp src/html dist/tokensite",
+    "build": "tsc && xcopy src\\html dist\\tokensite /E /I /Y",
     "poll": "node dist/src/pollGmail.js",
     "clean": "bin/clean.ps1",
     "test": "npm run test:send && npm run test:auth",
@@ -51,7 +51,7 @@
     "@types/node": "^20.14.8",
     "@types/prettier": "^3.0.0",
     "@typescript-eslint/eslint-plugin": "^8.33.1",
-    "@typescript-eslint/parser": "^8.33.1",
+    "@typescript-eslint/parser": "^8.57.0",
     "eslint": "^8.57.0",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-jest": "^28.13.0",
