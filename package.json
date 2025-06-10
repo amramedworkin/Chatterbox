@@ -4,7 +4,7 @@
   "description": "A Gmail Poller for LLM Interactions and Testing Utilities",
   "main": "dist/src/pollGmail.js",
   "scripts": {
-    "build": "tsc",
+    "build": "tsc && ncp src/html dist/tokensite",
     "poll": "node dist/src/pollGmail.js",
     "clean": "bin/clean.ps1",
     "test": "npm run test:send && npm run test:auth",
