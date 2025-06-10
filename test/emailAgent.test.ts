@@ -8,7 +8,7 @@ describe('runEmailAgent integration', () => {
     jest.setTimeout(1000 * 60 * 5);
 
     if (!messageId) {
-        test('skip when no message id provided', () => {
+        test.skip('skip when no message id provided', () => {
             console.warn('EMAIL_AGENT_TEST_MESSAGE_ID not set. Skipping test.');
         });
         return;
