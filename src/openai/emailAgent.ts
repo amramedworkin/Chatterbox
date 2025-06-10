@@ -9,7 +9,13 @@ function decodeBase64(data: string): string {
     return buff.toString('utf8');
 }
 
-function extractMessageBody(payload: any): string {
+interface GmailMessagePart {
+    mimeType?: string;
+    body?: { data?: string };
+    parts?: GmailMessagePart[];
+}
+
+function extractMessageBody(payload: GmailMessagePart | undefined): string {
     if (!payload) return '';
     if (payload.parts && Array.isArray(payload.parts)) {
         for (const part of payload.parts) {
@@ -58,8 +64,14 @@ export async function runEmailAgent(messageId: string, userEmail?: string): Prom
     const first = messages.data[0];
     let response = '';
     if (first && Array.isArray(first.content)) {
+        interface MessageContent {
+            type: string;
+            text?: { value: string };
+        }
         response = first.content
-            .map((c: any) => (c.type === 'text' && c.text ? c.text.value : ''))
+            .map((c: MessageContent) =>
+                c.type === 'text' && c.text ? c.text.value : ''
+            )
             .join('\n');
     }
     return response;
