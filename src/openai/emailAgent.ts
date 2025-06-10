@@ -1,7 +1,7 @@
 import { google } from 'googleapis';
 import OpenAI from 'openai';
-import config from './loadConfig';
-import { authorizeGmail } from './utils/authorizeGmail';
+import config from '../loadConfig';
+import { authorizeGmail } from '../utils/authorizeGmail';
 
 function decodeBase64(data: string): string {
   const normalized = data.replace(/-/g, '+').replace(/_/g, '/');
@@ -61,7 +61,7 @@ export async function runEmailAgent(messageId: string, userEmail?: string): Prom
 if (require.main === module) {
   const id = process.argv[2];
   if (!id) {
-    console.error('Usage: node dist/src/emailAgent.js <messageId>');
+    console.error('Usage: node dist/src/openai/emailAgent.js <messageId>');
     process.exit(1);
   }
   runEmailAgent(id)
