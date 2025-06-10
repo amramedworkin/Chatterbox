@@ -7,7 +7,7 @@
     "build": "tsc",
     "poll": "node dist/src/pollGmail.js",
     "clean": "bin/clean.ps1",
-    "test": "npm run test:send && npm run test:prompt && npm run test:dialog",
+    "test": "npm run test:send && npm run test:auth",
     "test:all": "jest",
     "test:jest:auth": "jest test/gmailAuth.test.ts --runInBand",
     "test:auth": "node dist/test/runAuth.test.js",
