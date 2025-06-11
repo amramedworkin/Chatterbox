@@ -4,10 +4,9 @@ import { promises as fs } from 'fs';
 import * as path from 'path';
 import * as readline from 'readline';
 import { google } from 'googleapis';
-import { OAuth2Client } from 'googleapis-common'; // Import OAuth2Client for type hinting
+import { OAuth2Client } from 'googleapis-common';
+import open from 'open'; // Import the 'open' package
 
-// Import AppConfig from '../types/config' if it exists and is needed.
-// Assuming it's correctly defined and passed down.
 import { AppConfig } from '../types/config';
 
 // Define an interface for the token data structure, allowing null for optional properties
@@ -18,8 +17,6 @@ interface TokenData {
         scope: string;
         token_type: string;
         expiry_date: number | null;
-        // id_token can also be present but might not be strictly needed for this flow,
-        // adding it as optional and nullable for better type accuracy if it were to be stored.
         id_token?: string | null;
     };
 }
@@ -55,6 +52,7 @@ async function writeTokenData(tokenPath: string, tokenData: TokenData): Promise<
 
 /**
  * Get new access token and refresh token by prompting user for authorization code.
+ * Opens the authorization URL in a browser automatically.
  * @param {OAuth2Client} oAuth2Client The OAuth2 client.
  * @param {string[]} scopes The scopes required for authorization.
  * @returns {Promise<void>}
@@ -64,7 +62,12 @@ async function getNewToken(oAuth2Client: OAuth2Client, scopes: string[]): Promis
         access_type: 'offline',
         scope: scopes,
     });
-    console.log('Authorize this app by visiting this URL:', authUrl);
+
+    console.log('Opening authorization URL in your browser...');
+    await open(authUrl); // Open the URL in the default browser
+
+    console.log('If the browser did not open, please visit this URL manually:');
+    console.log(authUrl); // Still print the URL as a fallback
 
     const rl = readline.createInterface({
         input: process.stdin,
@@ -72,17 +75,20 @@ async function getNewToken(oAuth2Client: OAuth2Client, scopes: string[]): Promis
     });
 
     return new Promise((resolve, reject) => {
-        rl.question('Enter the code from that page here: ', async (code) => {
-            rl.close();
-            try {
-                const { tokens } = await oAuth2Client.getToken(code);
-                oAuth2Client.setCredentials(tokens);
-                resolve();
-            } catch (err: unknown) {
-                const error = err as Error;
-                reject(new Error(`Error retrieving access token: ${error.message}`));
+        rl.question(
+            'Please complete the authorization in your browser and paste the code here: ',
+            async (code) => {
+                rl.close();
+                try {
+                    const { tokens } = await oAuth2Client.getToken(code);
+                    oAuth2Client.setCredentials(tokens);
+                    resolve();
+                } catch (err: unknown) {
+                    const error = err as Error;
+                    reject(new Error(`Error retrieving access token: ${error.message}`));
+                }
             }
-        });
+        );
     });
 }
 

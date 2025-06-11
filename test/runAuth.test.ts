@@ -74,7 +74,10 @@ async function test_authorize_and_save_tokens_if_no_existing_tokens() {
     }
 
     console.log(`\n--- MANUAL INTERACTION REQUIRED FOR FIRST AUTHORIZATION TEST ---`);
-    console.log(`If prompted, please paste the authorization code from your browser.`);
+    console.log(`A browser window should open automatically for authorization.`);
+    console.log(
+        `Please complete the authorization process in your browser and paste the code back here.`
+    );
     console.log(`------------------------------------------------------------------`);
 
     const authClient: OAuth2Client = await authorizeGmail(testUserEmail, testConfig);
@@ -101,7 +104,9 @@ async function test_should_use_existing_tokens_if_already_authorized() {
     // This test assumes the previous test successfully created a token.json
     // If running independently, you'd need to pre-create a valid token.json
 
-    console.log(`\n--- This test uses existing tokens. No manual interaction expected. ---`);
+    console.log(
+        `\n--- This test uses existing tokens. No manual browser interaction or prompt expected. ---`
+    );
 
     const authClient: OAuth2Client = await authorizeGmail(testUserEmail, testConfig);
 
@@ -113,7 +118,7 @@ async function test_should_use_existing_tokens_if_already_authorized() {
     // In a direct test, you observe console output. If a URL is printed and a prompt appears,
     // this test scenario has failed its intent.
     console.log(
-        'Observe the console: no authorization URL or prompt should appear above this line.'
+        'Observe the console: no authorization URL or prompt for code should appear above this line.'
     );
 
     const tokenData = await readTokenData(TEST_TOKEN_PATH);
