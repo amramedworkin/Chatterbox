@@ -13,6 +13,7 @@
     "resolveJsonModule": true,
     "esModuleInterop": true,
     "module": "commonjs",
+    "incremental": true,
     "target": "es2021"
   },
   "include": ["src/**/*.ts", "test/**/*.ts"],
