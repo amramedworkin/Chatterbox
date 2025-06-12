@@ -4,7 +4,7 @@ import * as readline from 'readline';
 import * as path from 'path';
 import 'dotenv/config';
 
-import { authorizeGmail, readTokenData } from '../src/utils/authorizeGmail';
+import { authorizeGmail, readTokenData } from '../src/mail/authorizeGmail';
 import { OAuth2Client } from 'googleapis-common';
 import originalConfig from '../src/loadConfig'; // Assuming loadConfig.ts now exports default
 import { AppConfig } from '../src/types/config'; // Import AppConfig

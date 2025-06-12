@@ -11,10 +11,7 @@ import { authorizeGmail } from './authorizeGmail';
  * @param userEmail Optional Gmail account to search; defaults to config.app.defaultPollGmailUser
  * @returns Promise resolving to an array of message IDs
  */
-export async function listGmails(
-    daysToSearch = 7,
-    userEmail?: string
-): Promise<string[]> {
+export async function listGmails(daysToSearch = 7, userEmail?: string): Promise<string[]> {
     const gmailUser = userEmail || config.app.defaultPollGmailUser;
     const auth: OAuth2Client = await authorizeGmail(gmailUser, config);
     const gmail = google.gmail({ version: 'v1', auth });
@@ -53,10 +50,12 @@ export async function listGmails(
 if (require.main === module) {
     const arg = process.argv[2];
     const days = arg ? parseInt(arg, 10) : undefined;
-    listGmails(days).then((ids) => {
-        console.log(ids.join('\n'));
-    }).catch((err) => {
-        console.error('Error listing Gmail messages:', err);
-        process.exit(1);
-    });
+    listGmails(days)
+        .then((ids) => {
+            console.log(ids.join('\n'));
+        })
+        .catch((err) => {
+            console.error('Error listing Gmail messages:', err);
+            process.exit(1);
+        });
 }

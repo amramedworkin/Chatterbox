@@ -1,33 +1,43 @@
-// utils/llmUtilities.js
+// utils/llmUtilities.ts
 // This module provides utility functions and shared resources for interacting with OpenAI,
 // to be reused by both single-turn completions and multi-turn dialogs.
 
-const OpenAI = require('openai');
-const fs = require('fs').promises; // Use promises version for async/await
-const path = require('path');
+import OpenAI from 'openai';
+import { promises as fs } from 'fs';
+import path from 'path';
 
-// Import the configuration object
-const config = require('../src/loadConfig'); // Assuming loadConfig.js is in src/
+// Import the configuration object (assumed to be typed elsewhere)
+import config from '../src/loadConfig'; // Adjust path if needed
 
 // --- OpenAI Client Initialization ---
-// Initialize OpenAI client once and export it
 const openai = new OpenAI({
     apiKey: config.openai.apiKey,
-    organization: config.openai.organizationId, // Optional, if you have an organization ID
+    organization: config.openai.organizationId, // Optional
 });
+
+// --- Types ---
+
+export interface AttachmentInfo {
+    filename: string;
+    size: number;
+}
+
+export type OpenAIContentPart =
+    | { type: 'image_url'; image_url: { url: string; detail: 'auto' | 'low' | 'high' } }
+    | { type: 'text'; text: string };
 
 // --- Helper Functions ---
 
 /**
  * Loads an attachment file, returning its base64 encoded content.
- * @param {string} filePath The full path to the attachment file.
- * @returns {Promise<string>} Base64 encoded file content.
+ * @param filePath The full path to the attachment file.
+ * @returns Base64 encoded file content, or null on failure.
  */
-async function loadAttachmentBase64(filePath) {
+export async function loadAttachmentBase64(filePath: string): Promise<string | null> {
     try {
         const fileBuffer = await fs.readFile(filePath);
         return fileBuffer.toString('base64');
-    } catch (error) {
+    } catch (error: unknown) {
         console.error(`Error loading attachment ${filePath}:`, error.message);
         return null;
     }
@@ -36,12 +46,15 @@ async function loadAttachmentBase64(filePath) {
 /**
  * Prepares attachments for inclusion in an OpenAI multimodal message.
  * It reads the actual files from the given path.
- * @param {Array<object>} attachmentsInfo An array of attachment objects ({ filename: string, size: number }).
- * @param {string} attachmentsFolderPath The specific folder for this message's attachments.
- * @returns {Promise<Array<object>>} An array of OpenAI image_url content objects or text content objects for the attachments.
+ * @param attachmentsInfo An array of attachment objects ({ filename: string, size: number }).
+ * @param attachmentsFolderPath The folder containing the attachments.
+ * @returns An array of OpenAI-compatible content parts.
  */
-async function prepareAttachmentsForOpenAI(attachmentsInfo, attachmentsFolderPath) {
-    const contentParts = [];
+export async function prepareAttachmentsForOpenAI(
+    attachmentsInfo: AttachmentInfo[],
+    attachmentsFolderPath: string
+): Promise<OpenAIContentPart[]> {
+    const contentParts: OpenAIContentPart[] = [];
 
     if (!attachmentsInfo || attachmentsInfo.length === 0) {
         return contentParts;
@@ -52,9 +65,8 @@ async function prepareAttachmentsForOpenAI(attachmentsInfo, attachmentsFolderPat
     for (const attach of attachmentsInfo) {
         const filePath = path.join(attachmentsFolderPath, attach.filename);
         const fileExtension = path.extname(attach.filename).toLowerCase();
-        let mimeType = 'application/octet-stream'; // Default MIME type
+        let mimeType = 'application/octet-stream';
 
-        // Determine MIME type based on extension
         if (fileExtension === '.txt') {
             mimeType = 'text/plain';
         } else if (fileExtension === '.jpg' || fileExtension === '.jpeg') {
@@ -62,9 +74,8 @@ async function prepareAttachmentsForOpenAI(attachmentsInfo, attachmentsFolderPat
         } else if (fileExtension === '.png') {
             mimeType = 'image/png';
         } else if (fileExtension === '.pdf') {
-            mimeType = 'application/pdf'; // GPT-4o can process PDFs for text
+            mimeType = 'application/pdf';
         }
-        // Add more MIME types as needed for other file types OpenAI supports
 
         try {
             if (mimeType.startsWith('image/')) {
@@ -74,7 +85,7 @@ async function prepareAttachmentsForOpenAI(attachmentsInfo, attachmentsFolderPat
                         type: 'image_url',
                         image_url: {
                             url: `data:${mimeType};base64,${base64Image}`,
-                            detail: 'auto', // or 'low', 'high'
+                            detail: 'auto',
                         },
                     });
                     console.log(`    - Added image attachment: ${attach.filename}`);
@@ -88,21 +99,17 @@ async function prepareAttachmentsForOpenAI(attachmentsInfo, attachmentsFolderPat
                 console.log(`    - Added text attachment: ${attach.filename}`);
             } else {
                 console.warn(
-                    `    - Skipping unsupported attachment type for LLM: ${attach.filename} (${mimeType}).`
+                    `    - Skipping unsupported attachment type: ${attach.filename} (${mimeType}).`
                 );
-                // For other file types, you might choose to embed as binary (if LLM supports)
-                // or provide a placeholder indicating a file was present but not processed.
             }
-        } catch (error) {
+        } catch (error: unknown) {
             console.error(`Error processing attachment ${attach.filename}:`, error.message);
         }
     }
+
     return contentParts;
 }
 
-// Export the OpenAI client and utility functions
-module.exports = {
-    openai,
-    loadAttachmentBase64, // Although not directly used by llmCompletion after refactor, it's a helper for prepareAttachmentsForOpenAI
-    prepareAttachmentsForOpenAI,
-};
+// --- Exports ---
+
+export { openai };
