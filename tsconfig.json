@@ -16,6 +16,6 @@
     "incremental": true,
     "target": "es2021"
   },
-  "include": ["src/**/*.ts", "test/**/*.ts", "authorizeGmail.ts"],
+  "include": ["src/**/*.ts", "test/**/*.ts", "src/mail/authorizeGmail.ts"],
   "exclude": ["node_modules"]
 }

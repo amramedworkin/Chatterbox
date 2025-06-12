@@ -7,7 +7,7 @@ import 'dotenv/config';
 
 // Load configuration from loadConfig.ts
 import config from '../loadConfig'; // Changed to import from TS file
-import { authorizeGmail } from '../../authorizeGmail'; // Corrected relative path
+import { authorizeGmail } from './authorizeGmail'; // Corrected relative path
 
 // --- Global Variables (derived from config and potentially command line) ---
 let gmailUser: string = config.app.defaultPollGmailUser; // Initialized from config

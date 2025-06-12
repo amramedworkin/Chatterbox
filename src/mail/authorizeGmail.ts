@@ -6,7 +6,7 @@ import { google } from 'googleapis';
 import { OAuth2Client } from 'googleapis-common';
 import open from 'open'; // Import the 'open' package
 
-import { AppConfig } from './src/types/config';
+import { AppConfig } from '../types/config';
 
 // Define an interface for the token data structure, allowing null for optional properties
 interface TokenData {

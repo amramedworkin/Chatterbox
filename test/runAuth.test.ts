@@ -4,7 +4,7 @@ import * as path from 'path';
 import * as assert from 'assert'; // Using Node.js built-in assert module
 import 'dotenv/config'; // To load environment variables if needed
 
-import { authorizeGmail, readTokenData } from '../authorizeGmail';
+import { authorizeGmail, readTokenData } from '../src/mail/authorizeGmail';
 import { OAuth2Client } from 'googleapis-common';
 import originalConfig from '../src/loadConfig'; // Assuming loadConfig.ts exists and exports default
 import { AppConfig } from '../src/types/config'; // Import AppConfig
