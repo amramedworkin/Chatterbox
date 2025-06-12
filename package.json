@@ -18,7 +18,7 @@
     "lint:fix:nocache": "eslint \"{src,test}/**/*.{ts,js}\" --fix",
 
     "mail:poll": "node dist/src/mail/pollGmail.js",
-    "mail:list:gmail": "node dist/src/listMails.js",
+    "mail:list:gmail": "node dist/src/mail/listGmails.js",
     "mail:list:attach": "node dist/src/listAttachments.js",
     "mail:list": "npm run mail:list:gmail && npm run mail:list:attach",
 
