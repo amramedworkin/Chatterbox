@@ -10,7 +10,8 @@
 
     "prepare": "husky install",
 
-    "lint": "git add -A && lint-staged",
+    "lint": "node scripts/lintAndCommit.js",
+
     "lint:all": "eslint \"{src,test}/**/*.{ts,js}\" --cache",
     "lint:fix": "eslint \"{src,test}/**/*.{ts,js}\" --cache --fix",
     "lint:nocache": "eslint \"{src,test}/**/*.{ts,js}\"",
