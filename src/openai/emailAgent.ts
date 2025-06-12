@@ -1,7 +1,7 @@
 import { google } from 'googleapis';
 import OpenAI from 'openai';
 import config from '../loadConfig';
-import { authorizeGmail } from '../mail/authorizeGmail';
+import { authorizeGmail } from '../../authorizeGmail';
 
 function decodeBase64(data: string): string {
     const normalized = data.replace(/-/g, '+').replace(/_/g, '/');

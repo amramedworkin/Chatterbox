@@ -1,7 +1,7 @@
 import { google } from 'googleapis';
 import { OAuth2Client } from 'googleapis-common';
 import config from '../loadConfig';
-import { authorizeGmail } from './authorizeGmail';
+import { authorizeGmail } from '../../authorizeGmail';
 
 /**
  * Lists Gmail message IDs containing 'chatterbox' in the subject line.
