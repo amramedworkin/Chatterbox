@@ -6,7 +6,7 @@ import * as path from 'path';
 import * as crypto from 'crypto';
 
 // Import configuration from loadConfig.ts
-import config from './loadConfig';
+import config from '../loadConfig';
 
 // Define the shape of a unique attachment object
 interface AttachmentDetails {

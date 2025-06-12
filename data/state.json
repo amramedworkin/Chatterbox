@@ -1,0 +1,17 @@
+{
+	"gmail": {
+		"last_history_id": 0,
+		"last_polled_email": "",
+		"last_polled_uid": 0,
+		"last_sent_email_number": 0,
+		"total_poll_cycles": 0
+	},
+	"test": {
+		"send": {
+			"last_sent_email_number": 0,
+			"last_send_count": 0,
+			"recipient_email": "",
+			"sender_email": ""
+		}
+	}
+}
