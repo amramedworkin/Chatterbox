@@ -1,5 +1,4 @@
 // src/utils/authorizeGmail.ts
-// And one more
 import { promises as fs } from 'fs';
 import * as path from 'path';
 import * as readline from 'readline';
