@@ -4,7 +4,6 @@ import * as path from 'path';
 import * as readline from 'readline';
 import { google } from 'googleapis';
 import { OAuth2Client } from 'googleapis-common';
-import open from 'open'; // Import the 'open' package
 
 import { AppConfig } from '../types/config';
 
@@ -51,7 +50,7 @@ async function writeTokenData(tokenPath: string, tokenData: TokenData): Promise<
 
 /**
  * Get new access token and refresh token by prompting user for authorization code.
- * Opens the authorization URL in a browser automatically.
+ * Displays the authorization URL for manual authorization.
  * @param {OAuth2Client} oAuth2Client The OAuth2 client.
  * @param {string[]} scopes The scopes required for authorization.
  * @returns {Promise<void>}
@@ -62,11 +61,9 @@ async function getNewToken(oAuth2Client: OAuth2Client, scopes: string[]): Promis
         scope: scopes,
     });
 
-    console.log('Opening authorization URL in your browser...');
-    await open(authUrl); // Open the URL in the default browser
-
-    console.log('If the browser did not open, please visit this URL manually:');
-    console.log(authUrl); // Still print the URL as a fallback
+    // Display the URL so the user can copy/paste it into a browser manually
+    console.log('Authorize this app by visiting this URL:');
+    console.log(authUrl);
 
     const rl = readline.createInterface({
         input: process.stdin,
