@@ -7,7 +7,7 @@ import { promises as fs } from 'fs';
 import path from 'path';
 
 // Import the configuration object (assumed to be typed elsewhere)
-import config from '../src/loadConfig'; // Adjust path if needed
+import config from '../loadConfig'; // Fixed import path
 
 // --- OpenAI Client Initialization ---
 const openai = new OpenAI({
@@ -38,7 +38,11 @@ export async function loadAttachmentBase64(filePath: string): Promise<string | n
         const fileBuffer = await fs.readFile(filePath);
         return fileBuffer.toString('base64');
     } catch (error: unknown) {
-        console.error(`Error loading attachment ${filePath}:`, error.message);
+        if (error instanceof Error) {
+            console.error(`Error loading attachment ${filePath}:`, error.message);
+        } else {
+            console.error(`Error loading attachment ${filePath}:`, error);
+        }
         return null;
     }
 }
@@ -103,7 +107,11 @@ export async function prepareAttachmentsForOpenAI(
                 );
             }
         } catch (error: unknown) {
-            console.error(`Error processing attachment ${attach.filename}:`, error.message);
+            if (error instanceof Error) {
+                console.error(`Error processing attachment ${attach.filename}:`, error.message);
+            } else {
+                console.error(`Error processing attachment ${attach.filename}:`, error);
+            }
         }
     }
 
