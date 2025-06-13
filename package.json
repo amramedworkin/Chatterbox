@@ -7,21 +7,16 @@
     "build": "tsc && xcopy src\\html dist\\tokensite /D /I /E /I /Y",
     "clean": "bin/clean.ps1",
     "format": "prettier --write \"{src,test}/**/*.ts\"",
-
     "prepare": "husky install",
-
     "lint": "node scripts/lintAndCommit.js",
-
     "lint:all": "eslint \"{src,test}/**/*.{ts,js}\" --cache",
     "lint:fix": "eslint \"{src,test}/**/*.{ts,js}\" --cache --fix",
     "lint:nocache": "eslint \"{src,test}/**/*.{ts,js}\"",
     "lint:fix:nocache": "eslint \"{src,test}/**/*.{ts,js}\" --fix",
-
     "mail:poll": "node dist/src/mail/pollGmail.js",
     "mail:list:gmail": "node dist/src/mail/listGmails.js",
     "mail:list:attach": "node dist/src/listAttachments.js",
     "mail:list": "npm run mail:list:gmail && npm run mail:list:attach",
-
     "test": "npm run test:send && npm run test:auth",
     "test:all": "jest",
     "test:jest:auth": "jest test/gmailAuth.test.ts --runInBand",
@@ -53,6 +48,7 @@
     "node": ">=18.0.0"
   },
   "dependencies": {
+    "chalk": "^5.4.1",
     "dotenv": "^16.5.0",
     "googleapis": "^149.0.0",
     "husky": "^9.1.7",

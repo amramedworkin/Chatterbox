@@ -120,7 +120,6 @@ describe('authorizeGmail (Integration Test)', () => {
         }
 
         console.log(`\n--- MANUAL INTERACTION REQUIRED FOR FIRST AUTHORIZATION TEST ---`);
-        console.log(`If prompted, please paste the authorization code from your browser.`);
         console.log(`------------------------------------------------------------------`);
 
         const authClient: OAuth2Client = await authorizeGmail(testUserEmail, testConfig);

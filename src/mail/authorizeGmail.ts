@@ -4,6 +4,7 @@ import * as path from 'path';
 import * as readline from 'readline';
 import { google } from 'googleapis';
 import { OAuth2Client } from 'googleapis-common';
+import chalk from 'chalk';
 
 import { AppConfig } from '../types/config';
 
@@ -62,8 +63,8 @@ async function getNewToken(oAuth2Client: OAuth2Client, scopes: string[]): Promis
     });
 
     // Display the URL so the user can copy/paste it into a browser manually
-    console.log('Authorize this app by visiting this URL:');
-    console.log(authUrl);
+    console.log(chalk.cyan('Authorize this app by visiting this URL:'));
+    console.log(chalk.cyan(authUrl));
 
     const rl = readline.createInterface({
         input: process.stdin,
