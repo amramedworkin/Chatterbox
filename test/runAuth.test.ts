@@ -74,7 +74,6 @@ async function test_authorize_and_save_tokens_if_no_existing_tokens() {
     }
 
     console.log(`\n--- MANUAL INTERACTION REQUIRED FOR FIRST AUTHORIZATION TEST ---`);
-    console.log(`A browser window should open automatically for authorization.`);
     console.log(
         `Please complete the authorization process in your browser and paste the code back here.`
     );

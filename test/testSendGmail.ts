@@ -6,6 +6,7 @@ import { promises as fs } from 'fs'; // For promise-based file operations (e.g.,
 import * as fsSync from 'fs'; // For synchronous file operations (e.g., readFileSync)
 import path from 'path';
 import readline from 'readline';
+import chalk from 'chalk';
 // const crypto = require('crypto'); // Removed as it's not used for GUID generation here
 
 // Load configuration from loadConfig.js.
@@ -78,8 +79,8 @@ async function getNewToken(oAuth2Client: Auth.OAuth2Client): Promise<Auth.OAuth2
         access_type: 'offline', // Request a refresh token
         scope: config.sendTest.scopes, // Use sendTest specific scopes from config
     });
-    console.log(`Authorize this app for sender "${gmailUser}" by visiting this URL:`);
-    console.log(authUrl);
+    console.log(chalk.cyan(`Authorize this app for sender "${gmailUser}" by visiting this URL:`));
+    console.log(chalk.cyan(authUrl));
 
     const rl = readline.createInterface({
         input: process.stdin,
