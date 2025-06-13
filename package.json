@@ -4,7 +4,7 @@
   "description": "A Gmail Poller for LLM Interactions and Testing Utilities",
   "main": "dist/src/pollGmail.js",
   "scripts": {
-    "build": "tsc && xcopy src\\html dist\\tokensite /D /I /E /I /Y",
+    "build": "tsc && xcopy src\\html dist\\tokensite /D /I /E /Y",
     "clean": "bin/clean.ps1",
     "format": "prettier --write \"{src,test}/**/*.ts\"",
     "prepare": "husky install",
@@ -14,9 +14,8 @@
     "lint:nocache": "eslint \"{src,test}/**/*.{ts,js}\"",
     "lint:fix:nocache": "eslint \"{src,test}/**/*.{ts,js}\" --fix",
     "mail:poll": "node dist/src/mail/pollGmail.js",
-    "mail:list:gmail": "node dist/src/mail/listGmails.js",
-    "mail:list:attach": "node dist/src/listAttachments.js",
-    "mail:list": "npm run mail:list:gmail && npm run mail:list:attach",
+    "mail:list": "npm run test:list:mail && npm run test:list:attach",
+    
     "test": "npm run test:send && npm run test:auth",
     "test:all": "jest",
     "test:jest:auth": "jest test/gmailAuth.test.ts --runInBand",
@@ -24,7 +23,9 @@
     "test:send": "node dist/test/testSendGmail.js",
     "test:completion": "node dist/test/testOpenAiCompletion.js",
     "test:dialog": "node dist/test/testOpenAiConversation.js --dialog",
-    "test:emailAgent": "jest test/emailAgent.test.ts"
+    "test:emailAgent": "jest test/emailAgent.test.ts",
+    "test:list:mail": "jest test/listGmails.test.ts --runInBand",
+    "test:list:attach": "jest test/listAttachments.test.ts --runInBand"
   },
   "lint-staged": {
     "*.{ts,js}": "eslint --cache --fix"

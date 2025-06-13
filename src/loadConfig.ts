@@ -91,7 +91,10 @@ const config: AppConfig = {
             ? process.env.GOOGLE_SCOPES.split(' ')
             : appDefaults.google
               ? appDefaults.google.scopes
-              : ['https://www.googleapis.com/auth/gmail.readonly'],
+              : [
+                    'https://www.googleapis.com/auth/gmail.readonly',
+                    'https://www.googleapis.com/auth/gmail.send',
+                ],
         redirectUri: getOrDefault(
             'GOOGLE_REDIRECT_URI',
             'google.redirectUri',

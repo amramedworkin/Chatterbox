@@ -9,7 +9,7 @@ import * as crypto from 'crypto';
 import config from '../loadConfig';
 
 // Define the shape of a unique attachment object
-interface AttachmentDetails {
+export interface AttachmentDetails {
     uniqueName: string;
     originalPath: string;
     filename: string;
@@ -36,9 +36,7 @@ async function calculateFileHash(filePath: string): Promise<string | null> {
         hash.update(fileBuffer);
         return hash.digest('hex');
     } catch (error: unknown) {
-        // Changed 'any' to 'unknown'
         if (error instanceof Error) {
-            // Type guard
             console.error(`Error calculating hash for ${filePath}: ${error.message}`);
         } else {
             console.error(`Error calculating hash for ${filePath}:`, error);
@@ -72,7 +70,7 @@ async function getAllFiles(dir: string): Promise<string[]> {
  * @param {string} conversationId The conversation ID to filter attachments for.
  * @returns {Promise<AttachmentDetails[]>} A promise that resolves to an array of unique attachment details.
  */
-async function getUniqueAttachments(conversationId: string): Promise<AttachmentDetails[]> {
+export async function getUniqueAttachments(conversationId: string): Promise<AttachmentDetails[]> {
     const uniqueAttachments: AttachmentDetails[] = [];
     const hashes = new Set<string>();
 

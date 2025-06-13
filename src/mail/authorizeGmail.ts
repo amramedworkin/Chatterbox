@@ -28,7 +28,27 @@ interface TokenData {
 export async function readTokenData(tokenPath: string): Promise<TokenData> {
     try {
         const content = await fs.readFile(tokenPath, 'utf8');
-        return JSON.parse(content) as TokenData;
+        const data = JSON.parse(content);
+
+        // If the data has tokens at root level, migrate them to the email key
+        if (data.access_token) {
+            const emailKeys = Object.keys(data).filter((key) => key.includes('@'));
+            const email = emailKeys.length > 0 ? emailKeys[0] : 'default';
+            const migratedData: TokenData = {
+                [email]: {
+                    access_token: data.access_token,
+                    refresh_token: data.refresh_token,
+                    scope: data.scope,
+                    token_type: data.token_type,
+                    expiry_date: data.expiry_date,
+                    id_token: data.id_token,
+                },
+            };
+            // Write the migrated data back to the file
+            await writeTokenData(tokenPath, migratedData);
+            return migratedData;
+        }
+        return data as TokenData;
     } catch (err: unknown) {
         const error = err as NodeJS.ErrnoException;
         if (error.code === 'ENOENT') {
@@ -73,7 +93,7 @@ async function getNewToken(oAuth2Client: OAuth2Client, scopes: string[]): Promis
 
     return new Promise((resolve, reject) => {
         rl.question(
-            'Please complete the authorization in your browser and paste the code here: ',
+            '2. Please complete the authorization in your browser and paste the code here: ',
             async (code) => {
                 rl.close();
                 try {
