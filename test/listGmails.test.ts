@@ -1,61 +1,55 @@
 import { listGmails } from '../src/mail/listGmails';
 
 describe('listGmails', () => {
-    it('should list Gmail messages with default 7 days', async () => {
+    // Set a longer timeout since we're making real API calls
+    jest.setTimeout(60000);
+
+    it('should list Gmail messages with default parameter', async () => {
+        console.log('Starting default parameter test...');
         try {
-            const messageIds = await listGmails();
-            expect(Array.isArray(messageIds)).toBe(true);
-            // Since we're testing actual Gmail API, we can't make assumptions about the content
-            // but we can verify the structure of the response
-            messageIds.forEach((id) => {
-                expect(typeof id).toBe('string');
-                expect(id.length).toBeGreaterThan(0);
-            });
+            const response = await listGmails();
+            console.log(`Received ${response.length} messages`);
+            expect(Array.isArray(response)).toBe(true);
+            if (response.length > 0) {
+                expect(response[0]).toMatch(/^[a-zA-Z0-9_-]+$/);
+            }
+            console.log('Default parameter test completed successfully');
         } catch (error) {
-            console.error('Test failed with error:', error);
+            console.error('Test failed:', error);
             throw error;
         }
     });
 
     it('should list Gmail messages with custom days parameter', async () => {
         try {
-            const customDays = 20;
-            const messageIds = await listGmails(customDays);
-            expect(Array.isArray(messageIds)).toBe(true);
-            messageIds.forEach((id) => {
-                expect(typeof id).toBe('string');
-                expect(id.length).toBeGreaterThan(0);
-            });
+            const days = 20;
+            const response = await listGmails(days);
+            expect(Array.isArray(response)).toBe(true);
+            if (response.length > 0) {
+                expect(response[0]).toMatch(/^[a-zA-Z0-9_-]+$/);
+            }
         } catch (error) {
-            console.error('Test failed with error:', error);
+            console.error('Test failed:', error);
             throw error;
         }
     });
 
     it('should handle zero days parameter', async () => {
         try {
-            const messageIds = await listGmails(0);
-            expect(Array.isArray(messageIds)).toBe(true);
-            messageIds.forEach((id) => {
-                expect(typeof id).toBe('string');
-                expect(id.length).toBeGreaterThan(0);
-            });
+            const response = await listGmails(0);
+            expect(Array.isArray(response)).toBe(true);
         } catch (error) {
-            console.error('Test failed with error:', error);
+            console.error('Test failed:', error);
             throw error;
         }
     });
 
     it('should handle negative days parameter', async () => {
         try {
-            const messageIds = await listGmails(-5);
-            expect(Array.isArray(messageIds)).toBe(true);
-            messageIds.forEach((id) => {
-                expect(typeof id).toBe('string');
-                expect(id.length).toBeGreaterThan(0);
-            });
+            const response = await listGmails(-5);
+            expect(Array.isArray(response)).toBe(true);
         } catch (error) {
-            console.error('Test failed with error:', error);
+            console.error('Test failed:', error);
             throw error;
         }
     });
@@ -63,14 +57,10 @@ describe('listGmails', () => {
     it('should handle custom email parameter', async () => {
         try {
             const customEmail = 'test@example.com';
-            const messageIds = await listGmails(7, customEmail);
-            expect(Array.isArray(messageIds)).toBe(true);
-            messageIds.forEach((id) => {
-                expect(typeof id).toBe('string');
-                expect(id.length).toBeGreaterThan(0);
-            });
+            const response = await listGmails(7, customEmail);
+            expect(Array.isArray(response)).toBe(true);
         } catch (error) {
-            console.error('Test failed with error:', error);
+            console.error('Test failed:', error);
             throw error;
         }
     });

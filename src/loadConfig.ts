@@ -2,13 +2,14 @@
 
 import 'dotenv/config';
 import { AppConfig } from './types/config';
+import path from 'path';
 
 let appDefaults: Partial<AppConfig> = {};
 try {
-    // Adjusted path: Go up from 'dist/src' to 'dist', then up to the project root,
-    // where config.json now resides.
+    // Use path.resolve to get the absolute path to config.json in the project root
+    const configPath = path.resolve(__dirname, '../../config.json');
     // eslint-disable-next-line @typescript-eslint/no-require-imports
-    appDefaults = require('../../config.json') as Partial<AppConfig>;
+    appDefaults = require(configPath) as Partial<AppConfig>;
 } catch (error: unknown) {
     console.error(
         "Error loading config.json. Please ensure it exists and is valid JSON and located in the 'root' directory.",
