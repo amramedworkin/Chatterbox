@@ -7,7 +7,6 @@
     "build": "tsc && xcopy src\\html dist\\tokensite /D /I /E /Y",
     "clean": "bin/clean.ps1",
     "format": "prettier --write \"{src,test}/**/*.ts\"",
-    "prepare": "husky install",
     "lint": "node scripts/lintAndCommit.js",
     "lint:all": "eslint \"{src,test}/**/*.{ts,js}\" --cache",
     "lint:fix": "eslint \"{src,test}/**/*.{ts,js}\" --cache --fix",
@@ -24,7 +23,7 @@
     "test:completion": "node dist/test/testOpenAiCompletion.js",
     "test:dialog": "node dist/test/testOpenAiConversation.js --dialog",
     "test:emailAgent": "jest test/emailAgent.test.ts",
-    "test:list:mail": "jest test/listGmails.test.ts --runInBand",
+    "test:list:mail": "jest test/listGmails.test.ts --runInBand --verbose",
     "test:list:attach": "jest test/listAttachments.test.ts --runInBand"
   },
   "lint-staged": {
@@ -52,7 +51,6 @@
     "chalk": "^5.4.1",
     "dotenv": "^16.5.0",
     "googleapis": "^149.0.0",
-    "husky": "^9.1.7",
     "lint-staged": "^16.1.0",
     "mailparser": "^3.7.3",
     "node-imap": "^0.9.6",
@@ -62,7 +60,6 @@
   },
   "devDependencies": {
     "@types/eslint": "^8.56.10",
-    "@types/jest": "^29.5.14",
     "@types/mailparser": "^3.4.4",
     "@types/node": "^20.14.8",
     "@types/prettier": "^3.0.0",
@@ -72,9 +69,6 @@
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-jest": "^28.13.0",
     "eslint-plugin-prettier": "^5.4.1",
-    "jest": "^29.7.0",
-    "prettier": "^3.2.5",
-    "ts-jest": "^29.3.4",
-    "typescript": "^5.5.2"
+    "prettier": "^3.2.5"
   }
 }

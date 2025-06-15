@@ -19,22 +19,6 @@
         {
             "type": "node",
             "request": "launch",
-            "name": "Launch sendTestGmail.js",
-            "skipFiles": [
-                "<node_internals>/**"
-            ],
-            "program": "${workspaceFolder}/test/sendTestGmail.js",
-            "args": [
-                "--attach", "3", // Example arguments
-                // "--id", "123e4567-e89b-12d3-a456-426614174000",
-                // "--sender", "amram.dworkin@gmail.com",
-                // "--to", "awsamram@gmail.com"
-            ],
-            "console": "integratedTerminal"
-        },
-        {
-            "type": "node",
-            "request": "launch",
             "name": "Launch Clean Script (PowerShell Wrapper)",
             "skipFiles": [
                 "<node_internals>/**"
@@ -48,6 +32,102 @@
                 // "--keepinteractions"
             ],
             "console": "integratedTerminal"
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Debug listGmails.test.ts",
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "runtimeExecutable": "jest",
+            "args": [
+                "test/listGmails.test.ts",
+                "--runInBand",
+                "--config", "${workspaceFolder}/jest.config.js"
+            ],
+            "console": "integratedTerminal",
+            "internalConsoleOptions": "neverOpen"
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Debug authGmail.test.ts",
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "runtimeExecutable": "jest",
+            "args": [
+                "test/authGmail.test.ts",
+                "--runInBand",
+                "--config", "${workspaceFolder}/jest.config.js"
+            ],
+            "console": "integratedTerminal",
+            "internalConsoleOptions": "neverOpen"
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Debug listAttachments.test.ts",
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "runtimeExecutable": "jest",
+            "args": [
+                "test/listAttachments.test.ts",
+                "--runInBand",
+                "--config", "${workspaceFolder}/jest.config.js"
+            ],
+            "console": "integratedTerminal",
+            "internalConsoleOptions": "neverOpen"
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Debug runAuth.test.ts",
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "runtimeExecutable": "jest",
+            "args": [
+                "test/runAuth.test.ts",
+                "--runInBand",
+                "--config", "${workspaceFolder}/jest.config.js"
+            ],
+            "console": "integratedTerminal",
+            "internalConsoleOptions": "neverOpen"
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Debug sendGmail.test.ts",
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "runtimeExecutable": "jest",
+            "args": [
+                "test/sendGmail.test.ts",
+                "--runInBand",
+                "--config", "${workspaceFolder}/jest.config.js"
+            ],
+            "console": "integratedTerminal",
+            "internalConsoleOptions": "neverOpen"
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Debug emailAgent.test.ts",
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "runtimeExecutable": "jest",
+            "args": [
+                "test/emailAgent.test.ts",
+                "--runInBand",
+                "--config", "${workspaceFolder}/jest.config.js"
+            ],
+            "console": "integratedTerminal",
+            "internalConsoleOptions": "neverOpen"
         }
     ]
 }

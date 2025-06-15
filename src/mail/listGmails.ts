@@ -25,12 +25,14 @@ export async function listGmails(daysToSearch = 7, userEmail?: string): Promise<
 
     const messageIds: string[] = [];
     let pageToken: string | undefined;
+    const maxResults = 100; // Process in smaller batches
 
     do {
         const res = await gmail.users.messages.list({
             userId: gmailUser,
             q,
             pageToken,
+            maxResults,
         });
 
         if (res.data.messages) {
