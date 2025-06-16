@@ -1,4 +1,4 @@
-// test/testGmailAuth.ts
+// test/authGmail.test.ts
 import { promises as fs } from 'fs';
 import * as readline from 'readline';
 import * as path from 'path';

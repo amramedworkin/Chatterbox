@@ -11,10 +11,7 @@
     "rootDir": "./",
     "types": ["jest", "node"],
     "resolveJsonModule": true,
-    "esModuleInterop": true,
-    "module": "commonjs",
-    "incremental": true,
-    "target": "es2021"
+    "incremental": true
   },
   "include": ["src/**/*.ts", "test/**/*.ts", "src/mail/authorizeGmail.ts"],
   "exclude": ["node_modules"]

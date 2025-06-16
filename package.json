@@ -5,29 +5,29 @@
   "main": "dist/src/pollGmail.js",
   "scripts": {
     "build": "tsc && xcopy src\\html dist\\tokensite /D /I /E /Y",
+    "build:clean": "rimraf dist && npm run build",
+
     "clean": "bin/clean.ps1",
     "format": "prettier --write \"{src,test}/**/*.ts\"",
-    "lint": "node scripts/lintAndCommit.js",
-    "lint:all": "eslint \"{src,test}/**/*.{ts,js}\" --cache",
-    "lint:fix": "eslint \"{src,test}/**/*.{ts,js}\" --cache --fix",
-    "lint:nocache": "eslint \"{src,test}/**/*.{ts,js}\"",
-    "lint:fix:nocache": "eslint \"{src,test}/**/*.{ts,js}\" --fix",
+    
+    "lint": "eslint \"{src,test}/**/*.{ts,js}\" --cache --fix",
+    "lint:nofix": "eslint \"{src,test}/**/*.{ts,js}\" --cache",
+    "lint:nofix:nocache": "eslint \"{src,test}/**/*.{ts,js}\"",
+    "lint:nocache": "eslint \"{src,test}/**/*.{ts,js}\" --fix",
     "mail:poll": "node dist/src/mail/pollGmail.js",
     "mail:list": "npm run test:list:mail && npm run test:list:attach",
-    
-    "test": "npm run test:send && npm run test:auth",
+
     "test:all": "jest",
-    "test:jest:auth": "jest test/gmailAuth.test.ts --runInBand",
-    "test:auth": "node dist/test/runAuth.test.js",
-    "test:send": "node dist/test/testSendGmail.js",
+    "test:auth": "jest test/authGmail.test.ts --runInBand",
+    
+    "test:send": "jest test/sendGmail.test.ts --runInBand",
+    
     "test:completion": "node dist/test/testOpenAiCompletion.js",
     "test:dialog": "node dist/test/testOpenAiConversation.js --dialog",
     "test:emailAgent": "jest test/emailAgent.test.ts",
+    
     "test:list:mail": "jest test/listGmails.test.ts --runInBand --verbose",
     "test:list:attach": "jest test/listAttachments.test.ts --runInBand"
-  },
-  "lint-staged": {
-    "*.{ts,js}": "eslint --cache --fix"
   },
   "keywords": [
     "gmail",
@@ -51,7 +51,6 @@
     "chalk": "^5.4.1",
     "dotenv": "^16.5.0",
     "googleapis": "^149.0.0",
-    "lint-staged": "^16.1.0",
     "mailparser": "^3.7.3",
     "node-imap": "^0.9.6",
     "nodemailer": "^7.0.3",
@@ -60,6 +59,7 @@
   },
   "devDependencies": {
     "@types/eslint": "^8.56.10",
+    "@types/jest": "^29.5.14",
     "@types/mailparser": "^3.4.4",
     "@types/node": "^20.14.8",
     "@types/prettier": "^3.0.0",
@@ -69,6 +69,9 @@
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-jest": "^28.13.0",
     "eslint-plugin-prettier": "^5.4.1",
-    "prettier": "^3.2.5"
+    "jest": "^30.0.0",
+    "prettier": "^3.2.5",
+    "ts-jest": "^29.4.0",
+    "typescript": "^5.8.3"
   }
 }

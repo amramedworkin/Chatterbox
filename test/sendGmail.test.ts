@@ -10,9 +10,8 @@ import chalk from 'chalk';
 // const crypto = require('crypto'); // Removed as it's not used for GUID generation here
 
 // Load configuration from loadConfig.js.
-// Since sendTestGmail.js is in 'test/' and loadConfig.js is in 'src/',
-// we need to go up one level (..) to the project root, then down into 'src/'.
-import config from '../src/loadConfig'; // Assuming loadConfig.js is now loadConfig.ts and exports default
+// During compilation, use the source file. At runtime, it will use the compiled version in dist.
+import config from '../src/loadConfig';
 
 // --- Global Variables (Managed by main function and persistence) ---
 // Default sender email address from config. Overridden by persistence/param.
