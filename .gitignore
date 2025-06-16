@@ -157,7 +157,9 @@ dist
 **/*token.json
 **/credentials.json
 **/*secret.json
+# Ignore all .env files, But do not ignore .env-clean
 .env*
+!.env-clean
 
 # ===============================
 # Backup & Temp Files (Global)
