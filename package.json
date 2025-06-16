@@ -4,7 +4,8 @@
   "description": "A Gmail Poller for LLM Interactions and Testing Utilities",
   "main": "dist/src/pollGmail.js",
   "scripts": {
-    "build": "tsc && xcopy src\\html dist\\tokensite /D /I /E /Y",
+    "build:windows": "tsc && xcopy src\\html dist\\tokensite /D /I /E /Y",
+    "build:mac": "tsc && mkdir -p dist/tokensite && cp -R src/html dist/tokensite",
     "build:clean": "rimraf dist && npm run build",
 
     "clean": "bin/clean.ps1",
