@@ -10,9 +10,7 @@ describe('listGmails', () => {
             const response = await listGmails();
             console.log(`Received ${response.length} messages`);
             expect(Array.isArray(response)).toBe(true);
-            if (response.length > 0) {
-                expect(response[0]).toMatch(/^[a-zA-Z0-9_-]+$/);
-            }
+            expect(response.every((id) => /^[a-zA-Z0-9_-]+$/.test(id))).toBe(true);
             console.log('Default parameter test completed successfully');
         } catch (error) {
             console.error('Test failed:', error);
@@ -25,9 +23,7 @@ describe('listGmails', () => {
             const days = 20;
             const response = await listGmails(days);
             expect(Array.isArray(response)).toBe(true);
-            if (response.length > 0) {
-                expect(response[0]).toMatch(/^[a-zA-Z0-9_-]+$/);
-            }
+            expect(response.every((id) => /^[a-zA-Z0-9_-]+$/.test(id))).toBe(true);
         } catch (error) {
             console.error('Test failed:', error);
             throw error;
@@ -38,6 +34,7 @@ describe('listGmails', () => {
         try {
             const response = await listGmails(0);
             expect(Array.isArray(response)).toBe(true);
+            expect(response.every((id) => /^[a-zA-Z0-9_-]+$/.test(id))).toBe(true);
         } catch (error) {
             console.error('Test failed:', error);
             throw error;
@@ -48,6 +45,7 @@ describe('listGmails', () => {
         try {
             const response = await listGmails(-5);
             expect(Array.isArray(response)).toBe(true);
+            expect(response.every((id) => /^[a-zA-Z0-9_-]+$/.test(id))).toBe(true);
         } catch (error) {
             console.error('Test failed:', error);
             throw error;
@@ -59,6 +57,7 @@ describe('listGmails', () => {
             const customEmail = 'test@example.com';
             const response = await listGmails(7, customEmail);
             expect(Array.isArray(response)).toBe(true);
+            expect(response.every((id) => /^[a-zA-Z0-9_-]+$/.test(id))).toBe(true);
         } catch (error) {
             console.error('Test failed:', error);
             throw error;

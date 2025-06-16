@@ -110,12 +110,26 @@ async function getNewToken(oAuth2Client: OAuth2Client, scopes: string[]): Promis
 }
 
 /**
+ * Removes the token for a specific email from the token file.
+ * @param {string} tokenPath The path to the token file.
+ * @param {string} email The email address whose token should be removed.
+ */
+export async function removeTokenForEmail(tokenPath: string, email: string): Promise<void> {
+    const tokenData: TokenData = await readTokenData(tokenPath);
+    if (tokenData[email]) {
+        delete tokenData[email];
+        await writeTokenData(tokenPath, tokenData);
+    }
+}
+
+/**
  * Authorizes a Gmail user and returns an authenticated Gmail client.
  * @param {string} email The email address of the user.
  * @param {AppConfig} config The application configuration.
+ * @param {boolean} force If true, removes the old token for the email before authorizing (default: false).
  * @returns {Promise<OAuth2Client>} An authenticated OAuth2 client.
  */
-export async function authorizeGmail(email: string, config: AppConfig): Promise<OAuth2Client> {
+export async function authorizeGmail(email: string, config: AppConfig, force: boolean = false): Promise<OAuth2Client> {
     const credentialsPath = config.google.credentialsPath;
     const tokenPath = config.google.pollTokenPath;
     const scopes = config.google.scopes;
@@ -138,6 +152,11 @@ export async function authorizeGmail(email: string, config: AppConfig): Promise<
         client_secret,
         redirect_uris[0]
     ) as OAuth2Client;
+
+    // If force is true, remove the token for this email first
+    if (force) {
+        await removeTokenForEmail(tokenPath, email);
+    }
 
     const tokenData: TokenData = await readTokenData(tokenPath);
 
