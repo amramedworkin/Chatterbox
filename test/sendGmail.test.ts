@@ -1,110 +1,21 @@
-// Import necessary libraries.
-// If you haven't installed them, run:
-// npm install googleapis fs readline dotenv @types/node
-import { google, Auth } from 'googleapis';
-import { promises as fs } from 'fs'; // For promise-based file operations (e.g., readFile, access, mkdir, unlink)
-import * as fsSync from 'fs'; // For synchronous file operations (e.g., readFileSync)
+// test/sendGmail.test.ts
+// Pure TypeScript test using the new sendGmail.ts functionality
+import { promises as fs } from 'fs';
 import path from 'path';
-import readline from 'readline';
-import chalk from 'chalk';
-// const crypto = require('crypto'); // Removed as it's not used for GUID generation here
 
 // Load configuration from loadConfig.js.
-// During compilation, use the source file. At runtime, it will use the compiled version in dist.
 import config from '../src/loadConfig';
+
+// Import the new sendGmail functionality
+import { sendTestEmail } from '../src/mail/sendGmail';
 
 // --- Global Variables (Managed by main function and persistence) ---
 // Default sender email address from config. Overridden by persistence/param.
-let gmailUser: string = config.sendTest.defaultSender;
+let gmailUser: string = config.app.defaultSendGmailUser;
 // Default recipient email address from config. Overridden by persistence/param.
 let currentRecipientEmail: string = config.sendTest.defaultRecipient;
 // Persistent counter for emails sent.
 let sendCount: number = 0;
-
-// --- OAuth 2.0 Client Setup ---
-let oAuth2Client: Auth.OAuth2Client;
-
-/**
- * Reads credentials from a file, then authorizes the client.
- */
-async function authorize(): Promise<Auth.OAuth2Client> {
-    try {
-        // Use config.google.credentialsPath (e.g., "./credentials.json" from project root)
-        const credentialsContent = await fs.readFile(config.google.credentialsPath, 'utf8');
-        // Destructure only client_secret and client_id, as redirect_uris is not used directly here
-        const { client_secret, client_id /*, redirect_uris */ } =
-            JSON.parse(credentialsContent).installed;
-
-        oAuth2Client = new google.auth.OAuth2(
-            client_id,
-            client_secret,
-            config.google.redirectUri // Use redirectUri from config
-        );
-
-        // Check if we have previously stored tokens
-        // Use config.sendTest.tokenPath (e.g., "./data/sendtest_token.json" from project root)
-        if (await fileExists(config.sendTest.tokenPath)) {
-            // Check if token file exists
-            const token = await fs.readFile(config.sendTest.tokenPath, 'utf8'); // Read token file
-            oAuth2Client.setCredentials(JSON.parse(token));
-            console.log(`Using existing tokens for sender: ${gmailUser}.`);
-        } else {
-            // If no tokens, get new ones (first-time authorization)
-            await getNewToken(oAuth2Client);
-        }
-        return oAuth2Client;
-    } catch (err: unknown) {
-        const error = err as NodeJS.ErrnoException & { path?: string };
-        console.error('Error loading client secret file or authorizing:', error);
-        // Specific error message for missing credentials.json
-        if (error.code === 'ENOENT' && error.path === config.google.credentialsPath) {
-            console.error(
-                `CRITICAL ERROR: 'credentials.json' not found at the expected path: ${config.google.credentialsPath}`
-            );
-            console.error(
-                'Please ensure you have downloaded it from Google Cloud Console and placed it in the project root.'
-            );
-        }
-        throw err;
-    }
-}
-
-/**
- * Get and store new token after prompting for user authorization.
- * @param {google.auth.OAuth2} oAuth2Client The OAuth2 client to get token for.
- */
-async function getNewToken(oAuth2Client: Auth.OAuth2Client): Promise<Auth.OAuth2Client> {
-    const authUrl = oAuth2Client.generateAuthUrl({
-        access_type: 'offline', // Request a refresh token
-        scope: config.sendTest.scopes, // Use sendTest specific scopes from config
-    });
-    console.log(chalk.cyan(`Authorize this app for sender "${gmailUser}" by visiting this URL:`));
-    console.log(chalk.cyan(authUrl));
-
-    const rl = readline.createInterface({
-        input: process.stdin,
-        output: process.stdout,
-    });
-
-    return new Promise((resolve, reject) => {
-        rl.question('Enter the code from that page here: ', async (code: string) => {
-            rl.close();
-            try {
-                const { tokens } = await oAuth2Client.getToken(code);
-                oAuth2Client.setCredentials(tokens);
-                // Store the tokens for future use
-                // Ensure parent directory exists before writing token file
-                await fs.mkdir(path.dirname(config.sendTest.tokenPath), { recursive: true });
-                await fs.writeFile(config.sendTest.tokenPath, JSON.stringify(tokens)); // Uses the resolved path from config
-                console.log(`Tokens stored to ${config.sendTest.tokenPath}`);
-                resolve(oAuth2Client);
-            } catch (err) {
-                console.error('Error retrieving access token', err);
-                reject(err);
-            }
-        });
-    });
-}
 
 /**
  * Checks if a file exists asynchronously.
@@ -121,53 +32,13 @@ async function fileExists(filePath: string): Promise<boolean> {
 }
 
 /**
- * Reads the last sent email number from a file.
- * @returns {Promise<number>} The last sent email number, or 0 if not found.
- */
-async function readLastSentEmailNumber(): Promise<number> {
-    try {
-        if (await fileExists(config.sendTest.lastSentEmailNumberPath)) {
-            // Check if file exists
-            return parseInt(await fs.readFile(config.sendTest.lastSentEmailNumberPath, 'utf8'), 10); // Read file
-        }
-    } catch (err) {
-        console.error(
-            `Error reading last sent email number file (${config.sendTest.lastSentEmailNumberPath}):`,
-            err
-        );
-    }
-    return 0; // Default to 0 if file doesn't exist or error
-}
-
-/**
- * Writes the last sent email number to a file.
- * @param {number} number The number to write.
- */
-async function writeLastSentEmailNumber(number: number): Promise<void> {
-    try {
-        // Ensure parent directory exists before writing
-        await fs.mkdir(path.dirname(config.sendTest.lastSentEmailNumberPath), { recursive: true });
-        await fs.writeFile(config.sendTest.lastSentEmailNumberPath, number.toString(), 'utf8');
-        console.log(
-            `Updated last sent email number to: ${number} in ${config.sendTest.lastSentEmailNumberPath}`
-        );
-    } catch (err) {
-        console.error(
-            `Error writing last sent email number file (${config.sendTest.lastSentEmailNumberPath}):`,
-            err
-        );
-    }
-}
-
-/**
  * Reads the persistently stored sender email address.
  * @returns {Promise<string|null>} The sender email, or null if not found.
  */
 async function readSenderEmail(): Promise<string | null> {
     try {
         if (await fileExists(config.sendTest.senderEmailPath)) {
-            // Check if file exists
-            return (await fs.readFile(config.sendTest.senderEmailPath, 'utf8')).trim(); // Read file
+            return (await fs.readFile(config.sendTest.senderEmailPath, 'utf8')).trim();
         }
     } catch (err) {
         console.error(`Error reading sender email file (${config.sendTest.senderEmailPath}):`, err);
@@ -181,7 +52,6 @@ async function readSenderEmail(): Promise<string | null> {
  */
 async function writeSenderEmail(email: string): Promise<void> {
     try {
-        // Ensure parent directory exists before writing
         await fs.mkdir(path.dirname(config.sendTest.senderEmailPath), { recursive: true });
         await fs.writeFile(config.sendTest.senderEmailPath, email, 'utf8');
         console.log(`Sender email persisted to: ${config.sendTest.senderEmailPath}`);
@@ -197,14 +67,10 @@ async function writeSenderEmail(email: string): Promise<void> {
 async function readRecipientEmail(): Promise<string | null> {
     try {
         if (await fileExists(config.sendTest.recipientEmailPath)) {
-            // Check if file exists
-            return (await fs.readFile(config.sendTest.recipientEmailPath, 'utf8')).trim(); // Read file
+            return (await fs.readFile(config.sendTest.recipientEmailPath, 'utf8')).trim();
         }
     } catch (err) {
-        console.error(
-            `Error reading recipient email file (${config.sendTest.recipientEmailPath}):`,
-            err
-        );
+        console.error(`Error reading recipient email file (${config.sendTest.recipientEmailPath}):`, err);
     }
     return null;
 }
@@ -215,216 +81,40 @@ async function readRecipientEmail(): Promise<string | null> {
  */
 async function writeRecipientEmail(email: string): Promise<void> {
     try {
-        // Ensure parent directory exists before writing
         await fs.mkdir(path.dirname(config.sendTest.recipientEmailPath), { recursive: true });
         await fs.writeFile(config.sendTest.recipientEmailPath, email, 'utf8');
         console.log(`Recipient email persisted to: ${config.sendTest.recipientEmailPath}`);
     } catch (err) {
-        console.error(
-            `Error writing recipient email file (${config.sendTest.recipientEmailPath}):`,
-            err
-        );
+        console.error(`Error writing recipient email file (${config.sendTest.recipientEmailPath}):`, err);
     }
 }
 
 /**
- * Reads the persistent send count.
- * @returns {Promise<number>} The persistent send count, or 0 if not found.
+ * Reads the persistent send count from a file.
+ * @returns {Promise<number>} The send count, or 0 if not found.
  */
 async function readSendCount(): Promise<number> {
     try {
         if (await fileExists(config.sendTest.sendCountPath)) {
-            // Check if file exists
-            return parseInt(await fs.readFile(config.sendTest.sendCountPath, 'utf8'), 10); // Read file
+            return parseInt(await fs.readFile(config.sendTest.sendCountPath, 'utf8'), 10);
         }
     } catch (err) {
         console.error(`Error reading send count file (${config.sendTest.sendCountPath}):`, err);
     }
-    return 0; // Default to 0 if file doesn't exist or error
+    return 0;
 }
 
 /**
- * Writes the persistent send count to a file.
+ * Writes the send count to a file.
  * @param {number} count The count to write.
  */
 async function writeSendCount(count: number): Promise<void> {
     try {
-        // Ensure parent directory exists before writing
         await fs.mkdir(path.dirname(config.sendTest.sendCountPath), { recursive: true });
         await fs.writeFile(config.sendTest.sendCountPath, count.toString(), 'utf8');
         console.log(`Send count persisted to: ${config.sendTest.sendCountPath}`);
     } catch (err) {
         console.error(`Error writing send count file (${config.sendTest.sendCountPath}):`, err);
-    }
-}
-
-/**
- * Sends a test email using the Gmail API.
- * @param {google.auth.OAuth2} auth An authorized OAuth2 client.
- * @param {string|null} conversationId The GUID to include in the subject, or null.
- * @param {number} attachCount The number of attachments to include.
- * @param {string} recipientEmail The email address to send the email to.
- */
-async function sendTestEmail(
-    auth: Auth.OAuth2Client,
-    conversationId: string | null,
-    attachCount: number,
-    recipientEmail: string
-): Promise<void> {
-    const gmail = google.gmail({ version: 'v1', auth });
-
-    let sequentialEmailNumber = await readLastSentEmailNumber();
-    sequentialEmailNumber++; // Increment for the new email
-    await writeLastSentEmailNumber(sequentialEmailNumber); // Persist the new number
-
-    const formattedSequentialNumber = sequentialEmailNumber.toString().padStart(4, '0');
-
-    // Construct subject line
-    let subject = `chatterbox`;
-    if (conversationId) {
-        subject += `:${conversationId}`;
-    }
-    subject += ` test title ${formattedSequentialNumber}`;
-
-    // Body text with requested details
-    let bodyText = `Body text ${formattedSequentialNumber}\r\n\r\n`;
-    bodyText += `Conversation ID: ${conversationId || 'null'}\r\n`;
-    bodyText += `Attachment count: ${attachCount}\r\n`; // Initial requested attach count
-
-    const actualAttachments: string[] = []; // To store names of successfully attached files for email body list
-
-    if (attachCount > 0) {
-        // Use config.app.testAttachmentsFolder (e.g., "./test/attachments" from project root)
-        try {
-            // Note: config.app.testAttachmentsFolder is the correct path from loadConfig.js
-            await fs.mkdir(config.sendTest.testAttachmentsFolder, { recursive: true }); // Ensure attachment folder exists
-        } catch (err) {
-            console.error(
-                `Error creating attachment folder: ${config.sendTest.testAttachmentsFolder}`,
-                err
-            );
-            attachCount = 0; // Set to 0 to skip attachment processing if folder fails
-        }
-
-        for (let i = 1; i <= attachCount; i++) {
-            const attachmentFilename = `attachment_${i}.txt`;
-            // Path to attachment file (relative to project root)
-            const attachmentFilePath = path.join(
-                config.sendTest.testAttachmentsFolder, // Use config.sendTest.testAttachmentsFolder
-                attachmentFilename
-            );
-            try {
-                // Check if file exists before trying to read it
-                if (await fileExists(attachmentFilePath)) {
-                    actualAttachments.push(attachmentFilename);
-                    // console.log(`Found attachment: ${attachmentFilename}`); // Removed for cleaner output
-                } else {
-                    console.warn(
-                        `Warning: Attachment file "${attachmentFilename}" not found at "${attachmentFilePath}". Skipping.`
-                    );
-                }
-            } catch (err: unknown) {
-                const error = err as Error;
-                console.warn(
-                    `Warning: Error checking attachment file "${attachmentFilename}":`,
-                    error.message
-                );
-            }
-        }
-    }
-
-    bodyText += `Attachments: ${actualAttachments.length > 0 ? actualAttachments.join(', ') : '<none>'}\r\n`;
-
-    const emailHeaders: string[] = [
-        `To: ${recipientEmail}`, // Use the passed recipient email
-        `From: ${gmailUser}`, // Use the global sender email
-        `Subject: ${subject}`,
-        `Reply-To: ${gmailUser}`,
-        'MIME-Version: 1.0',
-    ];
-
-    const rawEmailContent: string[] = [];
-    const boundary = `----=_Part_${Date.now()}_${Math.random().toString(36).substring(2, 15)}`;
-
-    if (actualAttachments.length > 0) {
-        emailHeaders.push(`Content-Type: multipart/mixed; boundary="${boundary}"`);
-        rawEmailContent.push(...emailHeaders);
-        rawEmailContent.push(''); // Empty line after headers for multipart
-
-        // Add the plain text body part
-        rawEmailContent.push(`--${boundary}`);
-        rawEmailContent.push('Content-Type: text/plain; charset="UTF-8"');
-        rawEmailContent.push('Content-Transfer-Encoding: base64');
-        rawEmailContent.push('');
-        rawEmailContent.push(Buffer.from(bodyText).toString('base64'));
-        rawEmailContent.push('');
-
-        // Add each attachment part
-        for (const filename of actualAttachments) {
-            // Path to attachment file (relative to project root)
-            const attachmentFilePath = path.join(config.sendTest.testAttachmentsFolder, filename); // Use config.sendTest.testAttachmentsFolder
-            try {
-                // Read file synchronously here for simpler assembly of raw email.
-                // For very large attachments, consider streaming or a more complex buffer management.
-                const attachmentData = fsSync.readFileSync(attachmentFilePath); // Use synchronous read here for simpler assembly
-                const attachmentBase64 = attachmentData.toString('base64');
-
-                rawEmailContent.push(`--${boundary}`);
-                rawEmailContent.push(`Content-Type: application/octet-stream; name="${filename}"`);
-                rawEmailContent.push(`Content-Disposition: attachment; filename="${filename}"`);
-                rawEmailContent.push('Content-Transfer-Encoding: base64');
-                rawEmailContent.push('');
-                rawEmailContent.push(attachmentBase64);
-                rawEmailContent.push('');
-                console.log(`Attached file: ${filename}`);
-            } catch (err: unknown) {
-                const error = err as Error;
-                console.error(`Error reading or attaching file "${filename}":`, error.message);
-            }
-        }
-        rawEmailContent.push(`--${boundary}--`); // Closing boundary
-    } else {
-        // No attachments, just a simple plain text email
-        emailHeaders.push('Content-Type: text/plain; charset="UTF-8"');
-        emailHeaders.push('Content-Transfer-Encoding: base64');
-        rawEmailContent.push(...emailHeaders);
-        rawEmailContent.push(''); // Empty line after headers
-        rawEmailContent.push(Buffer.from(bodyText).toString('base64'));
-    }
-
-    const rawEmail = rawEmailContent.join('\n');
-    const encodedMessage = Buffer.from(rawEmail)
-        .toString('base64')
-        .replace(/\+/g, '-')
-        .replace(/\//g, '_')
-        .replace(/=+$/, '');
-
-    try {
-        const response = await gmail.users.messages.send({
-            userId: gmailUser, // Use the global sender email (gmailUser)
-            requestBody: {
-                raw: encodedMessage,
-            },
-        });
-        console.log(`Test email sent successfully! Message ID: ${response.data.id}`);
-        console.log(`Subject: "${subject}"`);
-        console.log(`Body (summary): "${bodyText.split('\r\n')[0]}..."`); // Show first line of body
-        if (actualAttachments.length > 0) {
-            console.log(`Attached ${actualAttachments.length} files.`);
-        } else {
-            console.log('No attachments sent.');
-        }
-    } catch (sendErr: unknown) {
-        const error = sendErr as NodeJS.ErrnoException & { code?: number };
-        console.error('Error sending test email:', error.message);
-        if (error.code === 401) {
-            console.error(
-                'Authentication failed. Ensure your tokens are valid and have `gmail.send` scope.'
-            );
-            console.error(
-                `Please verify that ${config.sendTest.tokenPath} exists and is valid. You might need to delete it and re-authorize.`
-            );
-        }
     }
 }
 
@@ -452,7 +142,7 @@ async function main(): Promise<void> {
             '    --attach <int>          Number of attachments to include (e.g., 0, 1, 2, 3...).'
         );
         console.log(
-            `    --sender <address>      Specify the sender email address. Default: ${config.sendTest.defaultSender}. Changes trigger automatic re-authorization.`
+            `    --sender <address>      Specify the sender email address. Default: ${config.app.defaultSendGmailUser}. Changes trigger automatic re-authorization.`
         );
         console.log(
             `    --to <address>          Specify the recipient email address. Default: ${config.sendTest.defaultRecipient}.`
@@ -538,10 +228,10 @@ async function main(): Promise<void> {
                     `Deleted ${config.sendTest.lastSentEmailNumberPath}. Sequential numbering will restart at 0001.`
                 );
             }
-            if (await fileExists(config.sendTest.tokenPath)) {
-                await fs.unlink(config.sendTest.tokenPath);
+            if (await fileExists(config.google.pollTokenPath)) {
+                await fs.unlink(config.google.pollTokenPath);
                 console.log(
-                    `Deleted ${config.sendTest.tokenPath}. Re-authorization will be required.`
+                    `Deleted ${config.google.pollTokenPath}. Re-authorization will be required.`
                 );
             }
             if (await fileExists(config.sendTest.senderEmailPath)) {
@@ -660,12 +350,11 @@ async function main(): Promise<void> {
     // If sender email changed, force re-authorization by deleting token
     if (forceReauthorization) {
         console.log(
-            'Deleting sendtest_token.json due to sender email change. Re-authorization required.'
+            'Deleting token.json due to sender email change. Re-authorization required.'
         );
         try {
-            if (await fileExists(config.sendTest.tokenPath)) {
-                // Use config path
-                await fs.unlink(config.sendTest.tokenPath);
+            if (await fileExists(config.google.pollTokenPath)) {
+                await fs.unlink(config.google.pollTokenPath);
             }
         } catch (err) {
             console.error('Error deleting token.json:', err);
@@ -673,8 +362,20 @@ async function main(): Promise<void> {
     }
 
     try {
-        const authClient = await authorize();
-        await sendTestEmail(authClient, conversationId, attachCount, currentRecipientEmail);
+        // Use the new sendGmail functionality
+        const result = await sendTestEmail(
+            gmailUser,
+            currentRecipientEmail,
+            conversationId || undefined,
+            attachCount
+        );
+
+        if (result.success) {
+            console.log(`✅ Test email sent successfully! Message ID: ${result.messageId}`);
+        } else {
+            console.error(`❌ Failed to send test email: ${result.error}`);
+            process.exit(1);
+        }
     } catch (err) {
         console.error('Failed to send test email:', err);
         process.exit(1);

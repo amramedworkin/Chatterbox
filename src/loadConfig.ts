@@ -7,7 +7,7 @@ import path from 'path';
 let appDefaults: Partial<AppConfig> = {};
 try {
     // Use path.resolve to get the absolute path to config.json in the project root
-    const configPath = path.resolve(__dirname, '../../config.json');
+    const configPath = path.resolve(process.cwd(), 'config.json');
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     appDefaults = require(configPath) as Partial<AppConfig>;
 } catch (error: unknown) {
@@ -59,6 +59,16 @@ const config: AppConfig = {
         defaultPollGmailUser: getOrDefault(
             'DEFAULT_POLL_GMAIL_USER',
             'app.defaultPollGmailUser',
+            'awsamram@gmail.com'
+        ),
+        defaultSendGmailUser: getOrDefault(
+            'DEFAULT_SEND_GMAIL_USER',
+            'app.defaultSendGmailUser',
+            'amram.dworkin@gmail.com'
+        ),
+        defaultGetGmailUser: getOrDefault(
+            'DEFAULT_GET_GMAIL_USER',
+            'app.defaultGetGmailUser',
             'awsamram@gmail.com'
         ),
     },
@@ -157,11 +167,6 @@ const config: AppConfig = {
             'SENDTEST_SEND_COUNT_PATH',
             'sendTest.sendCountPath',
             './data/sendtest_send_count.txt'
-        ),
-        defaultSender: getOrDefault(
-            'DEFAULT_SENDTEST_SENDER',
-            'sendTest.defaultSender',
-            'amram.dworkin@gmail.com'
         ),
         defaultRecipient: getOrDefault(
             'DEFAULT_SENDTEST_RECIPIENT',

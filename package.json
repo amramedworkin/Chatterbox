@@ -7,7 +7,8 @@
     "build:windows": "tsc && xcopy src\\html dist\\tokensite /D /I /E /Y",
     "build:mac": "tsc && mkdir -p dist/tokensite && cp -R src/html dist/tokensite",
     "build:clean": "rimraf dist && npm run build",
-
+    "build": "npm run build:mac",
+    
     "clean": "bin/clean.ps1",
     "format": "prettier --write \"{src,test}/**/*.ts\"",
     
@@ -15,20 +16,48 @@
     "lint:nofix": "eslint \"{src,test}/**/*.{ts,js}\" --cache",
     "lint:nofix:nocache": "eslint \"{src,test}/**/*.{ts,js}\"",
     "lint:nocache": "eslint \"{src,test}/**/*.{ts,js}\" --fix",
+    
     "mail:poll": "node dist/src/mail/pollGmail.js",
     "mail:list": "npm run test:list:mail && npm run test:list:attach",
+    "mail:authorize": "ts-node src/mail/authorizeAll.ts",
+    "mail:validate": "ts-node test/validateTokens.ts",
+
+    "app:init": "npm run app:init:mail",
+    "app:init:mail": "npm run mail:authorize",
+    "app:setup:env": "bin/setup-env.sh",
 
     "test:all": "jest",
-    "test:auth": "jest test/authGmail.test.ts --runInBand",
-    
-    "test:send": "jest test/sendGmail.test.ts --runInBand",
-    
+    "test:auth": "ts-node test/authorizeGmail.test.ts",
     "test:completion": "node dist/test/testOpenAiCompletion.js",
     "test:dialog": "node dist/test/testOpenAiConversation.js --dialog",
     "test:emailAgent": "jest test/emailAgent.test.ts",
+    "test:list:mail": "ts-node test/listGmails.manual.test.ts",
+    "test:list:attach": "jest test/listAttachments.test.ts --runInBand",
     
-    "test:list:mail": "jest test/listGmails.test.ts --runInBand --verbose",
-    "test:list:attach": "jest test/listAttachments.test.ts --runInBand"
+    "test:send:basic": "ts-node test/sendGmail.test.ts",
+    "test:send:with-id": "ts-node test/sendGmail.test.ts --id 123e4567-e89b-12d3-a456-426614174000",
+    "test:send:with-attachments": "ts-node test/sendGmail.test.ts --attach 2",
+    "test:send:custom-addresses": "ts-node test/sendGmail.test.ts --sender test@example.com --to destination@example.com --attach 1",
+    "test:send:clean": "ts-node test/sendGmail.test.ts --clean",
+    "test:send:list-ids": "ts-node test/sendGmail.test.ts --listids",
+    "test:send:help": "ts-node test/sendGmail.test.ts --help",
+    "test:send:example": "ts-node test/sendGmailExample.ts",
+    
+    "test:get:all": "ts-node test/getGmailTest.ts all",
+    "test:get:ids": "ts-node test/getGmailTest.ts ids",
+    "test:get:chatterbox": "ts-node test/getGmailTest.ts chatterbox",
+    "test:get:conversations": "ts-node test/getGmailTest.ts conversations",
+    "test:get:byid": "ts-node test/getGmailTest.ts byid",
+    "test:get:byids": "ts-node test/getGmailTest.ts byids",
+    "test:get:range": "ts-node test/getGmailTest.ts range",
+    "test:get:chatterboxrange": "ts-node test/getGmailTest.ts chatterboxrange",
+    "test:get:conversationrange": "ts-node test/getGmailTest.ts conversationrange",
+    "test:get:helpers": "ts-node test/getGmailTest.ts helpers",
+    "test:get:example": "ts-node test/getGmailExample.ts",
+    
+    "serve:start": "bin/serve-tokensite.zsh &",
+    "serve:stop": "pkill -f 'http-server.*3000' || pkill -f 'python3.*http.server.*3000'",
+    "serve:restart": "npm run serve:stop && sleep 2 && npm run serve:start"
   },
   "keywords": [
     "gmail",
@@ -49,7 +78,7 @@
     "node": ">=18.0.0"
   },
   "dependencies": {
-    "chalk": "^5.4.1",
+    "chalk": "^4.1.2",
     "dotenv": "^16.5.0",
     "googleapis": "^149.0.0",
     "mailparser": "^3.7.3",

@@ -9,11 +9,16 @@ import { authorizeGmail } from './authorizeGmail';
  *
  * @param daysToSearch Number of days back to search. Defaults to 7.
  * @param userEmail Optional Gmail account to search; defaults to config.app.defaultPollGmailUser
+ * @param existingAuth Optional OAuth2Client for authentication; defaults to null
  * @returns Promise resolving to an array of message IDs
  */
-export async function listGmails(daysToSearch = 7, userEmail?: string): Promise<string[]> {
+export async function listGmails(
+    daysToSearch = 7,
+    userEmail?: string,
+    existingAuth?: OAuth2Client
+): Promise<string[]> {
     const gmailUser = userEmail || config.app.defaultPollGmailUser;
-    const auth: OAuth2Client = await authorizeGmail(gmailUser, config);
+    const auth: OAuth2Client = existingAuth || await authorizeGmail(gmailUser, config);
     const gmail = google.gmail({ version: 'v1', auth });
 
     const queryParts: string[] = ['subject:chatterbox'];

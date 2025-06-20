@@ -7,7 +7,6 @@ import 'dotenv/config';
 
 // Load configuration from loadConfig.ts
 import config from '../loadConfig'; // Changed to import from TS file
-import { authorizeGmail } from './authorizeGmail'; // Corrected relative path
 
 // --- Global Variables (derived from config and potentially command line) ---
 let gmailUser: string = config.app.defaultPollGmailUser; // Initialized from config
@@ -190,32 +189,15 @@ async function main(): Promise<void> {
     }
 
     try {
-        const authClient = await authorizeGmail(gmailUser, config);
-        let runPollingCycleCount = 0; // Initialize run-specific counter
-
-        // Initial poll (will increment runPollingCycleCount to 1)
-        runPollingCycleCount++;
-        await fetchNewEmails(authClient, runPollingCycleCount);
-
-        // Set up interval for subsequent polls
-        const intervalId = setInterval(async () => {
-            runPollingCycleCount++;
-            await fetchNewEmails(authClient, runPollingCycleCount);
-        }, pollInterval);
-
-        // Set up duration timeout if specified
-        if (pollDurationMinutes > 0) {
-            setTimeout(
-                () => {
-                    logWithTimestamp(
-                        `\nPolling duration of ${pollDurationMinutes} minutes reached. Exiting script.`
-                    );
-                    clearInterval(intervalId); // Stop polling
-                    process.exit(0); // Exit the process
-                },
-                pollDurationMinutes * 60 * 1000
-            );
-        }
+        // Note: Authorization should be handled centrally via authorizeAll.ts
+        // This function assumes the user is already authorized
+        logWithTimestamp('❌ Gmail polling requires centralized authorization.');
+        logWithTimestamp('💡 To fix this issue:');
+        logWithTimestamp('   1. Run: npm run mail:authorize');
+        logWithTimestamp('   2. Follow the authorization prompts for each Gmail user');
+        logWithTimestamp('   3. Make sure your credentials.json file is valid');
+        logWithTimestamp('   4. If problems persist, run: npm run mail:authorize --force');
+        process.exit(1);
     } catch (err: unknown) {
         logWithTimestamp('Failed to start poller:', err);
         process.exit(1); // Exit if initial authorization fails

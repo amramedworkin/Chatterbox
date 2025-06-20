@@ -1,7 +1,9 @@
 {
   "app": {
     "interactionsBaseFolder": "../interactions",
-    "defaultPollGmailUser": "awsamram@gmail.com"
+    "defaultPollGmailUser": "awsamram@gmail.com",
+    "defaultSendGmailUser": "amram.dworkin@gmail.com",
+    "defaultGetGmailUser": "awsamram@gmail.com"
   },
   "google": {
     "credentialsPath": "./credentials.json",
@@ -35,7 +37,6 @@
     "senderEmailPath": "./data/sendtest_sender_email.txt",
     "recipientEmailPath": "./data/sendtest_recipient_email.txt",
     "sendCountPath": "./data/sendtest_send_count.txt",
-    "defaultSender": "amram.dworkin@gmail.com",
     "defaultRecipient": "awsamram@gmail.com",
     "scopes": [
       "https://www.googleapis.com/auth/gmail.send"
