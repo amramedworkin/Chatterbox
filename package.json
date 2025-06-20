@@ -19,6 +19,7 @@
     
     "mail:poll": "node dist/src/mail/pollGmail.js",
     "mail:authorize": "ts-node src/mail/authorizeAll.ts",
+    "mail:validate": "ts-node src/mail/authorizeGmail.ts",
 
     "app:init": "npm run app:init:mail",
     "app:init:mail": "npm run mail:authorize",
@@ -26,11 +27,21 @@
 
     "test:all": "jest",
     "test:completion": "node dist/test/testOpenAiCompletion.js",
-    "test:dialog": "node dist/test/testOpenAiConversation.js --dialog",
+    "test:dialog": "ts-node test/dialogAgent.test.ts",
+    "test:dialog:basic": "node dist/src/openai/dialogAgent.js \"What is artificial intelligence?\"",
+    "test:dialog:custom": "node dist/src/openai/dialogAgent.js \"Write a poem\" --instructions=\"You are a creative poet\"",
+    "test:dialog:model": "node dist/src/openai/dialogAgent.js \"Explain quantum computing\" --model=gpt-4o-mini",
+    
+    "console:dialog": "ts-node src/openai/dialogConsole.ts",
+    "console:dialog:build": "node dist/src/openai/dialogConsole.js",
+    
     "test:emailAgent": "jest test/emailAgent.test.ts",
     
-    "test:validate": "ts-node test/validateTokens.ts",
-
+    "test:agent": "ts-node test/askAgent.test.ts",
+    "test:agent:basic": "node dist/src/openai/askAgent.js \"Explain quantum computing\"",
+    "test:agent:native": "node dist/src/openai/askAgent.js \"What is machine learning?\" --format=native",
+    "test:agent:custom": "node dist/src/openai/askAgent.js \"Write a haiku about coding\" --model=gpt-4o-mini",
+    
     "test:send:basic": "ts-node test/sendGmail.test.ts",
     "test:send:with-id": "ts-node test/sendGmail.test.ts --id 123e4567-e89b-12d3-a456-426614174000",
     "test:send:with-attachments": "ts-node test/sendGmail.test.ts --attach 2",
@@ -39,16 +50,20 @@
     "test:send:list-ids": "ts-node test/sendGmail.test.ts --listids",
     "test:send:help": "ts-node test/sendGmail.test.ts --help",
     
-    "test:get:all": "ts-node test/getGmailTest.ts all",
-    "test:get:ids": "ts-node test/getGmailTest.ts ids",
-    "test:get:chatterbox": "ts-node test/getGmailTest.ts chatterbox",
-    "test:get:conversations": "ts-node test/getGmailTest.ts conversations",
-    "test:get:byid": "ts-node test/getGmailTest.ts byid",
-    "test:get:byids": "ts-node test/getGmailTest.ts byids",
-    "test:get:range": "ts-node test/getGmailTest.ts range",
-    "test:get:chatterboxrange": "ts-node test/getGmailTest.ts chatterboxrange",
-    "test:get:conversationrange": "ts-node test/getGmailTest.ts conversationrange",
-    "test:get:helpers": "ts-node test/getGmailTest.ts helpers",
+    "test:get": "jest test/getMail.test.ts --noStackTrace -- all",
+    "test:get:ids": "jest test/getMail.test.ts --noStackTrace -- ids",
+    "test:get:chatterbox": "jest test/getMail.test.ts --noStackTrace -- chatterbox",
+    "test:get:conversations": "jest test/getMail.test.ts --noStackTrace -- conversations",
+    "test:get:byid": "jest test/getMail.test.ts --noStackTrace -- byid",
+    "test:get:byids": "jest test/getMail.test.ts --noStackTrace -- byids",
+    "test:get:range": "jest test/getMail.test.ts --noStackTrace -- range",
+    "test:get:chatterboxrange": "jest test/getMail.test.ts --noStackTrace -- chatterboxrange",
+    "test:get:conversationrange": "jest test/getMail.test.ts --noStackTrace -- conversationrange",
+    "test:get:helpers": "jest test/getMail.test.ts --noStackTrace -- helpers",
+    "test:get:bysender": "jest test/getMail.test.ts --noStackTrace -- bysender",
+    "test:get:chatterboxbysender": "jest test/getMail.test.ts --noStackTrace -- chatterboxbysender",
+    "test:get:rangebysender": "jest test/getMail.test.ts --noStackTrace -- rangebysender",
+    "test:get:chatterboxrangebysender": "jest test/getMail.test.ts --noStackTrace -- chatterboxrangebysender",
     
     "serve:start": "bin/serve-tokensite.zsh &",
     "serve:stop": "pkill -f 'http-server.*3000' || pkill -f 'python3.*http.server.*3000'",

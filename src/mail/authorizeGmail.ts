@@ -458,3 +458,49 @@ export async function validateAndRefreshToken(email: string, config: AppConfig):
 
 // Export the writeTokenData for testing if needed
 export { writeTokenData };
+
+// CLI interface for running validation directly
+if (require.main === module) {
+    import('../loadConfig').then(async (configModule) => {
+        const config = configModule.default;
+        
+        console.log('🔍 Validating Gmail tokens...\n');
+        
+        try {
+            const results = await validateAllGmailTokens(config);
+            
+            console.log('Token Validation Results:');
+            console.log('========================');
+            
+            for (const result of results) {
+                console.log(`\n📧 Email: ${result.email}`);
+                console.log(`   Token exists: ${result.hasToken ? '✅ Yes' : '❌ No'}`);
+                console.log(`   Token valid: ${result.isValid ? '✅ Yes' : '❌ No'}`);
+                
+                if (result.error) {
+                    console.log(`   Error: ${result.error}`);
+                }
+            }
+            
+            // Summary
+            const validTokens = results.filter(r => r.isValid).length;
+            const totalTokens = results.length;
+            
+            console.log(`\n📊 Summary: ${validTokens}/${totalTokens} tokens are valid`);
+            
+            if (validTokens === totalTokens) {
+                console.log('🎉 All tokens are valid and ready to use!');
+            } else {
+                console.log('⚠️  Some tokens need attention. Run: npm run mail:authorize');
+            }
+            
+            process.exit(validTokens === totalTokens ? 0 : 1);
+        } catch (error) {
+            console.error('❌ Validation failed:', error);
+            process.exit(1);
+        }
+    }).catch((error) => {
+        console.error('❌ Failed to load config:', error);
+        process.exit(1);
+    });
+}
