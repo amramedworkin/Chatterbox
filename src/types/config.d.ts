@@ -34,7 +34,6 @@ declare interface SendTestConfig {
     senderEmailPath: string;
     recipientEmailPath: string;
     sendCountPath: string;
-    defaultSender: string;
     defaultRecipient: string;
     scopes: string[];
 }
@@ -48,6 +47,8 @@ declare interface AppConfig {
     app: {
         interactionsBaseFolder: string;
         defaultPollGmailUser: string;
+        defaultSendGmailUser: string;
+        defaultGetGmailUser: string;
     };
     google: GoogleConfig;
     polling: PollingConfig;

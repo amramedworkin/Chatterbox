@@ -7,11 +7,48 @@ import * as readline from 'readline';
 
 // Mock configuration
 const mockConfig: AppConfig = {
-    google: {
-        credentialsPath: path.join(__dirname, 'test-credentials.json'),
-        pollTokenPath: path.join(__dirname, 'test-token.json'),
-        scopes: ['https://www.googleapis.com/auth/gmail.readonly'],
+    app: {
+        interactionsBaseFolder: path.join(__dirname, '../interactions'),
+        defaultPollGmailUser: 'test@example.com',
+        defaultSendGmailUser: 'test@example.com',
+        defaultGetGmailUser: 'test@example.com',
     },
+    google: {
+        credentialsPath: path.join(__dirname, '../credentials.json'),
+        pollTokenPath: path.join(__dirname, '../tokens/poll-token.json'),
+        lastHistoryIdPath: path.join(__dirname, '../tokens/last-history-id.json'),
+        lastPolledEmailPath: path.join(__dirname, '../tokens/last-polled-email.json'),
+        totalPollCyclesPath: path.join(__dirname, '../tokens/total-poll-cycles.json'),
+        scopes: ['https://www.googleapis.com/auth/gmail.readonly'],
+        redirectUri: 'http://localhost:3000/oauth2callback'
+    },
+    polling: {
+        defaultIntervalMinutes: 5,
+        defaultDurationMinutes: 60
+    },
+    flags: {
+        defaultSilent: false
+    },
+    openai: {
+        llmModel: 'gpt-4',
+        organizationId: 'test-org',
+        maxResponseTokens: 1000,
+        apiKey: 'test-key'
+    },
+    sendTest: {
+        testAttachmentsFolder: path.join(__dirname, '../test-attachments'),
+        tokenPath: path.join(__dirname, '../tokens/send-token.json'),
+        lastSentEmailNumberPath: path.join(__dirname, '../tokens/last-sent-email.json'),
+        senderEmailPath: path.join(__dirname, '../tokens/sender-email.json'),
+        recipientEmailPath: path.join(__dirname, '../tokens/recipient-email.json'),
+        sendCountPath: path.join(__dirname, '../tokens/send-count.json'),
+        defaultRecipient: 'recipient@example.com',
+        scopes: ['https://www.googleapis.com/auth/gmail.send']
+    },
+    testOpenAi: {
+        testPrompt: 'Test prompt',
+        dialogPrompts: ['Test dialog prompt']
+    }
 };
 
 // Test email
@@ -19,10 +56,24 @@ const testEmail = 'test@example.com';
 
 // Helper function to clean up test files
 async function cleanupTestFiles() {
-    try {
-        await fs.unlink(mockConfig.google.pollTokenPath);
-    } catch (error) {
-        // Ignore errors if file doesn't exist
+    const filesToClean = [
+        mockConfig.google.pollTokenPath,
+        mockConfig.google.lastHistoryIdPath,
+        mockConfig.google.lastPolledEmailPath,
+        mockConfig.google.totalPollCyclesPath,
+        mockConfig.sendTest.tokenPath,
+        mockConfig.sendTest.lastSentEmailNumberPath,
+        mockConfig.sendTest.senderEmailPath,
+        mockConfig.sendTest.recipientEmailPath,
+        mockConfig.sendTest.sendCountPath
+    ];
+
+    for (const file of filesToClean) {
+        try {
+            await fs.unlink(file);
+        } catch (error) {
+            // Ignore errors if file doesn't exist
+        }
     }
 }
 
@@ -31,8 +82,10 @@ async function runTest(name: string, testFn: () => Promise<void>) {
     try {
         console.log(`Running test: ${name}`);
         await testFn();
+        await cleanupTestFiles(); // Clean up after each test
         console.log(`✅ ${name} passed`);
     } catch (error) {
+        await cleanupTestFiles(); // Clean up even if test fails
         console.error(`❌ ${name} failed:`, error);
         throw error;
     }
