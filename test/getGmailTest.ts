@@ -2,7 +2,6 @@
 // Comprehensive test script for all getGmail functions
 
 import config from '../src/loadConfig';
-import { authorizeGmail } from '../src/mail/authorizeGmail';
 import {
     getAllGmailIds,
     getChatterboxGmailIds,
@@ -19,22 +18,6 @@ import {
     GmailMessage,
     DateRange
 } from '../src/mail/getGmail';
-
-let authClient: any = null;
-
-/**
- * Initialize authorization for testing
- */
-async function initializeAuth(): Promise<void> {
-    console.log('🔐 Initializing Gmail authorization...');
-    try {
-        authClient = await authorizeGmail(config.app.defaultGetGmailUser, config);
-        console.log('✅ Authorization successful');
-    } catch (error) {
-        console.error('❌ Authorization failed:', error);
-        throw error;
-    }
-}
 
 /**
  * Test 1: Get all Gmail IDs in a date range
@@ -53,7 +36,7 @@ async function testGetAllGmailIds(): Promise<void> {
         
         for (const { name, range } of ranges) {
             console.log(`\n📅 Testing: ${name}`);
-            const ids = await getAllGmailIds(range, undefined, authClient);
+            const ids = await getAllGmailIds(range);
             console.log(`   Found ${ids.length} emails`);
             if (ids.length > 0) {
                 console.log(`   First 3 IDs: ${ids.slice(0, 3).join(', ')}`);
@@ -79,7 +62,7 @@ async function testGetChatterboxGmailIds(): Promise<void> {
         
         for (const { name, range } of ranges) {
             console.log(`\n📅 Testing: ${name}`);
-            const ids = await getChatterboxGmailIds(range, undefined, authClient);
+            const ids = await getChatterboxGmailIds(range);
             console.log(`   Found ${ids.length} Chatterbox emails`);
             if (ids.length > 0) {
                 console.log(`   IDs: ${ids.join(', ')}`);
@@ -105,7 +88,7 @@ async function testGetChatterboxConversationGmailIds(): Promise<void> {
         
         for (const { name, range } of ranges) {
             console.log(`\n📅 Testing: ${name}`);
-            const ids = await getChatterboxConversationGmailIds(range, undefined, authClient);
+            const ids = await getChatterboxConversationGmailIds(range);
             console.log(`   Found ${ids.length} Chatterbox conversation emails`);
             if (ids.length > 0) {
                 console.log(`   IDs: ${ids.join(', ')}`);
@@ -124,7 +107,7 @@ async function testGetGmailById(): Promise<void> {
     
     try {
         // First get some IDs to test with
-        const ids = await getAllGmailIds({ startDays: 7 }, undefined, authClient);
+        const ids = await getAllGmailIds({ startDays: 7 });
         
         if (ids.length === 0) {
             console.log('   No emails found to test with');
@@ -134,7 +117,7 @@ async function testGetGmailById(): Promise<void> {
         const testId = ids[0];
         console.log(`\n📧 Testing with ID: ${testId}`);
         
-        const email = await getGmailById(testId, undefined, authClient);
+        const email = await getGmailById(testId);
         console.log(`   Subject: ${getEmailSubject(email)}`);
         console.log(`   From: ${getEmailSender(email)}`);
         console.log(`   Snippet: ${email.snippet || 'No snippet'}`);
@@ -152,7 +135,7 @@ async function testGetGmailsByIds(): Promise<void> {
     
     try {
         // Get some IDs to test with
-        const ids = await getAllGmailIds({ startDays: 7 }, undefined, authClient);
+        const ids = await getAllGmailIds({ startDays: 7 });
         
         if (ids.length === 0) {
             console.log('   No emails found to test with');
@@ -162,7 +145,7 @@ async function testGetGmailsByIds(): Promise<void> {
         const testIds = ids.slice(0, Math.min(3, ids.length));
         console.log(`\n📧 Testing with ${testIds.length} IDs: ${testIds.join(', ')}`);
         
-        const emails = await getGmailsByIds(testIds, undefined, authClient);
+        const emails = await getGmailsByIds(testIds);
         console.log(`   Retrieved ${emails.length} emails`);
         
         emails.forEach((email, index) => {
@@ -187,7 +170,7 @@ async function testGetGmailRange(): Promise<void> {
         
         for (const { name, range } of ranges) {
             console.log(`\n📅 Testing: ${name}`);
-            const emails = await getGmailRange(range, undefined, authClient);
+            const emails = await getGmailRange(range);
             console.log(`   Retrieved ${emails.length} email messages`);
             
             if (emails.length > 0) {
@@ -214,7 +197,7 @@ async function testGetChatterboxGmailRange(): Promise<void> {
         
         for (const { name, range } of ranges) {
             console.log(`\n📅 Testing: ${name}`);
-            const emails = await getChatterboxGmailRange(range, undefined, authClient);
+            const emails = await getChatterboxGmailRange(range);
             console.log(`   Retrieved ${emails.length} Chatterbox email messages`);
             
             emails.forEach((email, index) => {
@@ -242,7 +225,7 @@ async function testGetChatterboxConversationGmailRange(): Promise<void> {
         
         for (const { name, range } of ranges) {
             console.log(`\n📅 Testing: ${name}`);
-            const emails = await getChatterboxConversationGmailRange(range, undefined, authClient);
+            const emails = await getChatterboxConversationGmailRange(range);
             console.log(`   Retrieved ${emails.length} Chatterbox conversation email messages`);
             
             emails.forEach((email, index) => {
@@ -279,10 +262,10 @@ async function testHelperFunctions(): Promise<void> {
         });
         
         // Test email content extraction (if we have emails)
-        const emails = await getAllGmailIds({ startDays: 1 }, undefined, authClient);
+        const emails = await getAllGmailIds({ startDays: 1 });
         if (emails.length > 0) {
             console.log('\n📧 Testing email content extraction:');
-            const email = await getGmailById(emails[0], undefined, authClient);
+            const email = await getGmailById(emails[0]);
             console.log(`   Subject: ${getEmailSubject(email)}`);
             console.log(`   From: ${getEmailSender(email)}`);
             const body = getEmailBody(email);
@@ -298,10 +281,9 @@ async function testHelperFunctions(): Promise<void> {
  */
 async function runAllTests(): Promise<void> {
     console.log('🚀 Starting Gmail Function Tests\n');
+    console.log('Note: This assumes Gmail users are already authorized via npm run mail:authorize\n');
     
     try {
-        await initializeAuth();
-        
         await testGetAllGmailIds();
         await testGetChatterboxGmailIds();
         await testGetChatterboxConversationGmailIds();
@@ -324,10 +306,9 @@ async function runAllTests(): Promise<void> {
  */
 async function runSpecificTest(testName: string): Promise<void> {
     console.log(`🚀 Running specific test: ${testName}\n`);
+    console.log('Note: This assumes Gmail users are already authorized via npm run mail:authorize\n');
     
     try {
-        await initializeAuth();
-        
         switch (testName.toLowerCase()) {
             case 'all':
                 await runAllTests();
