@@ -322,6 +322,7 @@ export async function getChatterboxConversationGmailRange(
  * @returns Conversation ID if found, null otherwise
  */
 export function extractConversationId(subject: string): string | null {
+    // Match chatterbox followed by optional colon and/or spaces, then a UUID
     const chatterboxPattern = /chatterbox\s*:?\s*([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})/i;
     const match = subject.match(chatterboxPattern);
     return match ? match[1] : null;
@@ -386,4 +387,140 @@ export function getEmailBody(message: GmailMessage): string {
     }
     
     return '';
+}
+
+/**
+ * Gets Gmail IDs from a specific sender in a date range
+ * @param senderEmail The sender email address to filter by
+ * @param dateRange Date range parameters (optional)
+ * @param userEmail Gmail user email (optional, defaults to config)
+ * @param existingAuth Existing OAuth2 client (optional)
+ * @returns Promise resolving to array of Gmail message IDs
+ */
+export async function getGmailIdsBySender(
+    senderEmail: string,
+    dateRange: Partial<DateRange> = {},
+    userEmail?: string,
+    existingAuth?: OAuth2Client
+): Promise<string[]> {
+    const gmailUser = userEmail || config.app.defaultGetGmailUser;
+    
+    if (!existingAuth) {
+        throw new Error(`OAuth2Client is required for Gmail user ${gmailUser}. Please ensure Gmail user is authorized via npm run mail:authorize`);
+    }
+    
+    const gmail = google.gmail({ version: 'v1', auth: existingAuth });
+
+    const dateQuery = buildDateRangeQuery(dateRange);
+    const query = `from:${senderEmail} ${dateQuery}`.trim();
+    
+    const messageIds: string[] = [];
+    let pageToken: string | undefined;
+    const maxResults = 100;
+
+    do {
+        const res = await gmail.users.messages.list({
+            userId: gmailUser,
+            q: query,
+            pageToken,
+            maxResults,
+        });
+
+        if (res.data.messages) {
+            for (const msg of res.data.messages) {
+                if (msg.id) {
+                    messageIds.push(msg.id);
+                }
+            }
+        }
+        pageToken = res.data.nextPageToken || undefined;
+    } while (pageToken);
+
+    return messageIds;
+}
+
+/**
+ * Gets Chatterbox Gmail IDs from a specific sender in a date range
+ * @param senderEmail The sender email address to filter by
+ * @param dateRange Date range parameters (optional)
+ * @param userEmail Gmail user email (optional, defaults to config)
+ * @param existingAuth Existing OAuth2 client (optional)
+ * @returns Promise resolving to array of Gmail message IDs
+ */
+export async function getChatterboxGmailIdsBySender(
+    senderEmail: string,
+    dateRange: Partial<DateRange> = {},
+    userEmail?: string,
+    existingAuth?: OAuth2Client
+): Promise<string[]> {
+    const gmailUser = userEmail || config.app.defaultGetGmailUser;
+    
+    if (!existingAuth) {
+        throw new Error(`OAuth2Client is required for Gmail user ${gmailUser}. Please ensure Gmail user is authorized via npm run mail:authorize`);
+    }
+    
+    const gmail = google.gmail({ version: 'v1', auth: existingAuth });
+
+    const dateQuery = buildDateRangeQuery(dateRange);
+    const query = `from:${senderEmail} subject:chatterbox ${dateQuery}`.trim();
+    
+    const messageIds: string[] = [];
+    let pageToken: string | undefined;
+    const maxResults = 100;
+
+    do {
+        const res = await gmail.users.messages.list({
+            userId: gmailUser,
+            q: query,
+            pageToken,
+            maxResults,
+        });
+
+        if (res.data.messages) {
+            for (const msg of res.data.messages) {
+                if (msg.id) {
+                    messageIds.push(msg.id);
+                }
+            }
+        }
+        pageToken = res.data.nextPageToken || undefined;
+    } while (pageToken);
+
+    return messageIds;
+}
+
+/**
+ * Gets Gmail messages from a specific sender in a date range (returns messages, not IDs)
+ * @param senderEmail The sender email address to filter by
+ * @param dateRange Date range parameters (optional)
+ * @param userEmail Gmail user email (optional, defaults to config)
+ * @param existingAuth Existing OAuth2 client (optional)
+ * @returns Promise resolving to array of Gmail message objects
+ */
+export async function getGmailRangeBySender(
+    senderEmail: string,
+    dateRange: Partial<DateRange> = {},
+    userEmail?: string,
+    existingAuth?: OAuth2Client
+): Promise<GmailMessage[]> {
+    const messageIds = await getGmailIdsBySender(senderEmail, dateRange, userEmail, existingAuth);
+    return await getGmailsByIds(messageIds, userEmail, existingAuth);
+}
+
+/**
+ * Gets Chatterbox Gmail messages from a specific sender in a date range (returns messages, not IDs)
+ * @param senderEmail The sender email address to filter by
+ * @param dateRange Date range parameters (optional)
+ * @param userEmail Gmail user email (optional, defaults to config)
+ * @param existingAuth Existing OAuth2 client (optional)
+ * @returns Promise resolving to array of Gmail message objects
+ */
+export async function getChatterboxGmailRangeBySender(
+    senderEmail: string,
+    dateRange: Partial<DateRange> = {},
+    userEmail?: string,
+    existingAuth?: OAuth2Client
+): Promise<GmailMessage[]> {
+    const messageIds = await getChatterboxGmailIdsBySender(senderEmail, dateRange, userEmail, existingAuth);
+    return await getGmailsByIds(messageIds, userEmail, existingAuth);
 } 
