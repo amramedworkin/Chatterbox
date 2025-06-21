@@ -78,11 +78,103 @@ function displayResponse(response: string, usage?: any): void {
 }
 
 /**
- * Display error message
+ * Display expressive error message with detailed guidance
  */
-function displayError(error: string): void {
-    console.log(`\n${chalk.red.bold('❌ Error:')}`);
-    console.log(`${chalk.red(error)}\n`);
+function displayError(error: any): void {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    const errorName = error instanceof Error ? error.name : 'Unknown Error';
+    
+    console.log(`\n${chalk.red.bold('🚨 CONNECTION ERROR DETECTED')}`);
+    console.log(`${chalk.red('═'.repeat(60))}`);
+    
+    // Analyze error type and provide specific guidance
+    if (errorMessage.includes('Connection error') || errorMessage.includes('fetch failed')) {
+        console.log(`${chalk.yellow.bold('🔍 DIAGNOSIS:')} ${chalk.white('Network connectivity issue detected')}`);
+        console.log(`${chalk.yellow.bold('💡 LIKELY CAUSES:')}`);
+        console.log(`   ${chalk.gray('•')} Corporate firewall or proxy blocking OpenAI API`);
+        console.log(`   ${chalk.gray('•')} VPN or network security software interfering`);
+        console.log(`   ${chalk.gray('•')} Internet connection temporarily unavailable`);
+        console.log(`   ${chalk.gray('•')} DNS resolution issues`);
+        console.log(`   ${chalk.gray('•')} SSL/TLS certificate validation problems`);
+        
+        console.log(`\n${chalk.blue.bold('🛠️  TROUBLESHOOTING STEPS:')}`);
+        console.log(`   ${chalk.cyan('1.')} ${chalk.white('Check your internet connection')}`);
+        console.log(`   ${chalk.cyan('2.')} ${chalk.white('Try disabling VPN if active')}`);
+        console.log(`   ${chalk.cyan('3.')} ${chalk.white('Contact your IT department about OpenAI API access')}`);
+        console.log(`   ${chalk.cyan('4.')} ${chalk.white('Try using a different network (mobile hotspot)')}`);
+        console.log(`   ${chalk.cyan('5.')} ${chalk.white('Check if you can access https://api.openai.com in your browser')}`);
+        
+    } else if (errorMessage.includes('API key') || errorMessage.includes('authentication')) {
+        console.log(`${chalk.yellow.bold('🔍 DIAGNOSIS:')} ${chalk.white('Authentication or API key issue')}`);
+        console.log(`${chalk.yellow.bold('💡 LIKELY CAUSES:')}`);
+        console.log(`   ${chalk.gray('•')} Invalid or expired OpenAI API key`);
+        console.log(`   ${chalk.gray('•')} API key not properly configured in .env file`);
+        console.log(`   ${chalk.gray('•')} Insufficient API credits or quota exceeded`);
+        console.log(`   ${chalk.gray('•')} Organization ID mismatch`);
+        
+        console.log(`\n${chalk.blue.bold('🛠️  TROUBLESHOOTING STEPS:')}`);
+        console.log(`   ${chalk.cyan('1.')} ${chalk.white('Verify your OpenAI API key in .env file')}`);
+        console.log(`   ${chalk.cyan('2.')} ${chalk.white('Check your OpenAI account for remaining credits')}`);
+        console.log(`   ${chalk.cyan('3.')} ${chalk.white('Ensure the API key starts with "sk-"')}`);
+        console.log(`   ${chalk.cyan('4.')} ${chalk.white('Try regenerating your API key on OpenAI platform')}`);
+        console.log(`   ${chalk.cyan('5.')} ${chalk.white('Verify organization ID if using team account')}`);
+        
+    } else if (errorMessage.includes('rate limit') || errorMessage.includes('quota')) {
+        console.log(`${chalk.yellow.bold('🔍 DIAGNOSIS:')} ${chalk.white('Rate limiting or quota exceeded')}`);
+        console.log(`${chalk.yellow.bold('💡 LIKELY CAUSES:')}`);
+        console.log(`   ${chalk.gray('•')} OpenAI API rate limit exceeded`);
+        console.log(`   ${chalk.gray('•')} Monthly quota reached`);
+        console.log(`   ${chalk.gray('•')} Too many requests in a short time period`);
+        console.log(`   ${chalk.gray('•')} Account billing issues`);
+        
+        console.log(`\n${chalk.blue.bold('🛠️  TROUBLESHOOTING STEPS:')}`);
+        console.log(`   ${chalk.cyan('1.')} ${chalk.white('Wait a few minutes and try again')}`);
+        console.log(`   ${chalk.cyan('2.')} ${chalk.white('Check your OpenAI billing status')}`);
+        console.log(`   ${chalk.cyan('3.')} ${chalk.white('Upgrade your OpenAI plan if needed')}`);
+        console.log(`   ${chalk.cyan('4.')} ${chalk.white('Reduce request frequency')}`);
+        console.log(`   ${chalk.cyan('5.')} ${chalk.white('Monitor usage in OpenAI dashboard')}`);
+        
+    } else if (errorMessage.includes('model') || errorMessage.includes('gpt-')) {
+        console.log(`${chalk.yellow.bold('🔍 DIAGNOSIS:')} ${chalk.white('Model-related error')}`);
+        console.log(`${chalk.yellow.bold('💡 LIKELY CAUSES:')}`);
+        console.log(`   ${chalk.gray('•')} Specified model not available`);
+        console.log(`   ${chalk.gray('•')} Model name typo or incorrect format`);
+        console.log(`   ${chalk.gray('•')} Model access not enabled for your account`);
+        console.log(`   ${chalk.gray('•')} Model deprecated or no longer available`);
+        
+        console.log(`\n${chalk.blue.bold('🛠️  TROUBLESHOOTING STEPS:')}`);
+        console.log(`   ${chalk.cyan('1.')} ${chalk.white('Try using a different model: /model gpt-4o-mini')}`);
+        console.log(`   ${chalk.cyan('2.')} ${chalk.white('Check available models in OpenAI dashboard')}`);
+        console.log(`   ${chalk.cyan('3.')} ${chalk.white('Verify model name spelling')}`);
+        console.log(`   ${chalk.cyan('4.')} ${chalk.white('Ensure your account has access to the model')}`);
+        console.log(`   ${chalk.cyan('5.')} ${chalk.white('Use /info to see current model setting')}`);
+        
+    } else {
+        console.log(`${chalk.yellow.bold('🔍 DIAGNOSIS:')} ${chalk.white('Unexpected error occurred')}`);
+        console.log(`${chalk.yellow.bold('💡 ERROR DETAILS:')}`);
+        console.log(`   ${chalk.gray('•')} Error Type: ${chalk.red(errorName)}`);
+        console.log(`   ${chalk.gray('•')} Error Message: ${chalk.red(errorMessage)}`);
+        
+        console.log(`\n${chalk.blue.bold('🛠️  GENERAL TROUBLESHOOTING:')}`);
+        console.log(`   ${chalk.cyan('1.')} ${chalk.white('Check your internet connection')}`);
+        console.log(`   ${chalk.cyan('2.')} ${chalk.white('Verify OpenAI API key configuration')}`);
+        console.log(`   ${chalk.cyan('3.')} ${chalk.white('Try restarting the application')}`);
+        console.log(`   ${chalk.cyan('4.')} ${chalk.white('Check OpenAI service status')}`);
+        console.log(`   ${chalk.cyan('5.')} ${chalk.white('Contact support if issue persists')}`);
+    }
+    
+    console.log(`\n${chalk.green.bold('💪 NEXT STEPS:')}`);
+    console.log(`   ${chalk.white('•')} Try your question again in a few moments`);
+    console.log(`   ${chalk.white('•')} Use ${chalk.cyan('/info')} to check your current settings`);
+    console.log(`   ${chalk.white('•')} Use ${chalk.cyan('/model gpt-4o-mini')} to try a different model`);
+    console.log(`   ${chalk.white('•')} Check the troubleshooting steps above`);
+    
+    console.log(`\n${chalk.magenta.bold('📞 NEED HELP?')}`);
+    console.log(`   ${chalk.white('•')} OpenAI Status: ${chalk.cyan('https://status.openai.com')}`);
+    console.log(`   ${chalk.white('•')} OpenAI Documentation: ${chalk.cyan('https://platform.openai.com/docs')}`);
+    console.log(`   ${chalk.white('•')} Chatterbox Issues: ${chalk.cyan('https://github.com/amramedworkin/Chatterbox/issues')}`);
+    
+    console.log(`${chalk.red('═'.repeat(60))}\n`);
 }
 
 /**
@@ -185,7 +277,7 @@ async function processInput(input: string): Promise<void> {
         // Clear loading animation
         process.stdout.write('\r' + ' '.repeat(50) + '\r');
         
-        displayError(error instanceof Error ? error.message : String(error));
+        displayError(error);
     }
 }
 
@@ -228,7 +320,58 @@ function setupGracefulShutdown(): void {
 if (require.main === module) {
     setupGracefulShutdown();
     startConsole().catch((error) => {
-        console.error(`${chalk.red('❌ Fatal error:')} ${error.message}`);
+        console.log(`\n${chalk.red.bold('💥 FATAL STARTUP ERROR')}`);
+        console.log(`${chalk.red('═'.repeat(60))}`);
+        
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        const errorName = error instanceof Error ? error.name : 'Unknown Error';
+        
+        console.log(`${chalk.yellow.bold('🔍 DIAGNOSIS:')} ${chalk.white('Application failed to start')}`);
+        console.log(`${chalk.yellow.bold('💡 ERROR DETAILS:')}`);
+        console.log(`   ${chalk.gray('•')} Error Type: ${chalk.red(errorName)}`);
+        console.log(`   ${chalk.gray('•')} Error Message: ${chalk.red(errorMessage)}`);
+        
+        if (errorMessage.includes('API key') || errorMessage.includes('OPENAI_API_KEY')) {
+            console.log(`\n${chalk.blue.bold('🛠️  IMMEDIATE FIX:')}`);
+            console.log(`   ${chalk.cyan('1.')} ${chalk.white('Create or update your .env file in the project root')}`);
+            console.log(`   ${chalk.cyan('2.')} ${chalk.white('Add your OpenAI API key: OPENAI_API_KEY=sk-your-key-here')}`);
+            console.log(`   ${chalk.cyan('3.')} ${chalk.white('Restart the application')}`);
+            console.log(`\n${chalk.gray('Example .env file:')}`);
+            console.log(`${chalk.cyan('OPENAI_API_KEY=sk-proj-your-actual-key-here')}`);
+            console.log(`${chalk.cyan('OPENAI_ORGANIZATION_ID=org-your-org-id')}`);
+            
+        } else if (errorMessage.includes('config') || errorMessage.includes('config.json')) {
+            console.log(`\n${chalk.blue.bold('🛠️  IMMEDIATE FIX:')}`);
+            console.log(`   ${chalk.cyan('1.')} ${chalk.white('Ensure config.json exists in the project root')}`);
+            console.log(`   ${chalk.cyan('2.')} ${chalk.white('Verify config.json is valid JSON format')}`);
+            console.log(`   ${chalk.cyan('3.')} ${chalk.white('Check file permissions on config.json')}`);
+            
+        } else if (errorMessage.includes('module') || errorMessage.includes('import')) {
+            console.log(`\n${chalk.blue.bold('🛠️  IMMEDIATE FIX:')}`);
+            console.log(`   ${chalk.cyan('1.')} ${chalk.white('Run: npm install')}`);
+            console.log(`   ${chalk.cyan('2.')} ${chalk.white('Run: npm run build')}`);
+            console.log(`   ${chalk.cyan('3.')} ${chalk.white('Try again: npm run console:dialog')}`);
+            
+        } else {
+            console.log(`\n${chalk.blue.bold('🛠️  GENERAL TROUBLESHOOTING:')}`);
+            console.log(`   ${chalk.cyan('1.')} ${chalk.white('Check your .env file configuration')}`);
+            console.log(`   ${chalk.cyan('2.')} ${chalk.white('Ensure all dependencies are installed: npm install')}`);
+            console.log(`   ${chalk.cyan('3.')} ${chalk.white('Build the project: npm run build')}`);
+            console.log(`   ${chalk.cyan('4.')} ${chalk.white('Check Node.js version (requires >= 18.0.0)')}`);
+            console.log(`   ${chalk.cyan('5.')} ${chalk.white('Verify file permissions and access')}`);
+        }
+        
+        console.log(`\n${chalk.green.bold('💪 QUICK START:')}`);
+        console.log(`   ${chalk.white('1.')} ${chalk.cyan('npm install')} - Install dependencies`);
+        console.log(`   ${chalk.white('2.')} ${chalk.cyan('npm run build')} - Build the project`);
+        console.log(`   ${chalk.white('3.')} ${chalk.cyan('npm run console:dialog')} - Start the console`);
+        
+        console.log(`\n${chalk.magenta.bold('📞 NEED HELP?')}`);
+        console.log(`   ${chalk.white('•')} Check the project README for setup instructions`);
+        console.log(`   ${chalk.white('•')} Review error details above for specific guidance`);
+        console.log(`   ${chalk.white('•')} Open an issue on GitHub if problem persists`);
+        
+        console.log(`${chalk.red('═'.repeat(60))}\n`);
         process.exit(1);
     });
 }
