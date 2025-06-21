@@ -2,7 +2,7 @@
   "name": "nodetest",
   "version": "1.0.0",
   "description": "A Gmail Poller for LLM Interactions and Testing Utilities",
-  "main": "dist/src/pollGmail.js",
+  "main": "dist/src/mail/timedPollGmail.js",
   "scripts": {
     "build:windows": "tsc && xcopy src\\html dist\\tokensite /D /I /E /Y",
     "build:mac": "tsc && mkdir -p dist/tokensite && cp -R src/html dist/tokensite",
@@ -17,7 +17,8 @@
     "lint:nofix:nocache": "eslint \"{src,test}/**/*.{ts,js}\"",
     "lint:nocache": "eslint \"{src,test}/**/*.{ts,js}\" --fix",
     
-    "mail:poll": "node dist/src/mail/pollGmail.js",
+    "mail:poll": "node dist/src/mail/timedPollGmail.js",
+    "mail:poll:single": "node dist/src/mail/pollGmail.js",
     "mail:authorize": "ts-node src/mail/authorizeAll.ts",
     "mail:validate": "ts-node src/mail/authorizeGmail.ts",
 
