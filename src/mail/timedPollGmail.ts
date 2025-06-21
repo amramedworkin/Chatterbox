@@ -1,11 +1,20 @@
-// src/mail/pollGmail.ts
-// Single Gmail polling functionality
-import { google } from 'googleapis';
+// src/mail/timedPollGmail.ts
+// Timed Gmail polling functionality
 import { OAuth2Client } from 'google-auth-library';
 import { promises as fs } from 'fs';
 import 'dotenv/config';
 import config from '../loadConfig';
 import { authorizeGmail } from './authorizeGmail';
+import { pollGmail } from './pollGmail';
+
+// --- Global Variables (derived from config and potentially command line) ---
+let gmailUser: string = config.app.defaultPollGmailUser; // Initialized from config
+
+// Polling interval in milliseconds (default from config, can be overridden by --interval)
+let pollInterval: number = config.polling.defaultIntervalMilliseconds as number; // Type assertion after ensuring it's always a number in loadConfig.ts
+
+// Default duration for polling (default from config, can be overridden by --duration)
+let pollDurationMinutes: number = config.polling.defaultDurationMinutes; // Initialized from config
 
 // --- Global Timestamp Formatter ---
 let timestampFormatter: Intl.DateTimeFormat | null = null;
@@ -58,7 +67,7 @@ function determineGmailUser(): string {
     if (emailArgIndex > -1 && process.argv[emailArgIndex + 1]) {
         return process.argv[emailArgIndex + 1];
     }
-    return config.app.defaultPollGmailUser;
+    return gmailUser;
 }
 
 /**
@@ -97,96 +106,44 @@ async function checkAuthorizationAndGetAuth(gmailUser: string): Promise<OAuth2Cl
 }
 
 /**
- * Fetches new emails since the last history ID.
+ * Performs a single polling cycle using the pollGmail function.
  * @param {OAuth2Client} auth The authenticated OAuth2 client.
- * @param {string} gmailUser The Gmail user email.
- * @returns {Promise<{newMessages: string[], newHistoryId: string | null}>} Object containing new message IDs and new history ID.
+ * @param {number} currentPollingCycle The current polling cycle number.
  */
-export async function pollGmail(auth: OAuth2Client, gmailUser: string): Promise<{newMessages: string[], newHistoryId: string | null}> {
-    const gmail = google.gmail({ version: 'v1', auth });
-    const lastHistoryIdPath = config.google.lastHistoryIdPath;
-    const totalPollCyclesPath = config.google.totalPollCyclesPath;
-
-    let lastHistoryId: string | null = null;
-    let totalPollCycles: number = 0;
-
+async function performPollingCycle(auth: OAuth2Client, currentPollingCycle: number): Promise<void> {
     try {
-        lastHistoryId = await fs.readFile(lastHistoryIdPath, 'utf8');
-        totalPollCycles = parseInt((await fs.readFile(totalPollCyclesPath, 'utf8')) || '0');
-    } catch (err: unknown) {
-        const error = err as NodeJS.ErrnoException;
-        if (error.code === 'ENOENT') {
-            logWithTimestamp(`No existing history ID or total poll cycles found. Starting fresh.`);
-        } else {
-            logWithTimestamp(`Error reading history ID or total poll cycles file:`, err);
+        const result = await pollGmail(auth, gmailUser);
+        
+        logWithTimestamp(`Polling cycle ${currentPollingCycle} completed. Found ${result.newMessages.length} new messages.`);
+        
+        if (result.newMessages.length > 0) {
+            logWithTimestamp('New message IDs:', result.newMessages);
+            // Here you would integrate with your LLM interaction logic
+            // For now, just logging the IDs
         }
+        
+    } catch (error) {
+        logWithTimestamp(`Error during polling cycle ${currentPollingCycle}:`, error);
+        // Continue polling even if one cycle fails
     }
-
-    totalPollCycles++; // Increment total cycles for this run
-
-    logWithTimestamp(`--- Single Poll (Total: ${totalPollCycles}) for ${gmailUser} ---`);
-
-    const newMessages: string[] = [];
-    let newHistoryId: string | null = null;
-
-    try {
-        const response = await gmail.users.history.list({
-            userId: gmailUser,
-            startHistoryId: lastHistoryId || undefined,
-            historyTypes: ['messageAdded'],
-        });
-
-        const history = response.data.history;
-        if (history && history.length > 0) {
-            logWithTimestamp(`Found ${history.length} new history entries.`);
-            newHistoryId = response.data.historyId || null;
-
-            // Process new messages
-            for (const entry of history) {
-                if (entry.messagesAdded) {
-                    for (const message of entry.messagesAdded) {
-                        if (message.message?.id) {
-                            const messageId = message.message.id;
-                            logWithTimestamp(`New message ID: ${messageId}`);
-                            newMessages.push(messageId);
-                        }
-                    }
-                }
-            }
-
-            // Save the new history ID for the next poll
-            if (newHistoryId) {
-                await fs.writeFile(lastHistoryIdPath, newHistoryId);
-                logWithTimestamp(`Updated last history ID to: ${newHistoryId}`);
-            }
-        } else {
-            logWithTimestamp('No new messages found.');
-        }
-
-        // Save total poll cycles
-        await fs.writeFile(totalPollCyclesPath, totalPollCycles.toString());
-    } catch (err: unknown) {
-        const error = err as NodeJS.ErrnoException & { code?: number };
-        if (error.code === 404 || error.code === 400) {
-            // Likely an invalid history ID or initial sync
-            logWithTimestamp(
-                'Error fetching Gmail history (possibly invalid history ID or first run). Resetting history ID.'
-            );
-            await fs.unlink(lastHistoryIdPath).catch(() => {}); // Attempt to delete, ignore if not found
-        } else {
-            logWithTimestamp('Error fetching new emails:', err);
-            throw error;
-        }
-    }
-
-    return { newMessages, newHistoryId };
 }
 
 /**
- * Main function for single Gmail poll.
+ * Main function to start the timed Gmail poller.
  */
 async function main(): Promise<void> {
-    const gmailUser = determineGmailUser();
+    gmailUser = determineGmailUser();
+
+    // Command line argument overrides for interval and duration
+    const intervalArgIndex = process.argv.indexOf('--interval');
+    if (intervalArgIndex > -1 && process.argv[intervalArgIndex + 1]) {
+        pollInterval = parseFloat(process.argv[intervalArgIndex + 1]) * 60 * 1000;
+    }
+
+    const durationArgIndex = process.argv.indexOf('--duration');
+    if (durationArgIndex > -1 && process.argv[durationArgIndex + 1]) {
+        pollDurationMinutes = parseFloat(process.argv[durationArgIndex + 1]);
+    }
 
     // Check for a clean command line argument
     if (process.argv.includes('--clean')) {
@@ -211,17 +168,40 @@ async function main(): Promise<void> {
         // Check authorization and get authenticated client
         const auth = await checkAuthorizationAndGetAuth(gmailUser);
         
-        // Perform single poll
-        const result = await pollGmail(auth, gmailUser);
+        logWithTimestamp(`Starting timed Gmail poller for ${gmailUser}`);
+        logWithTimestamp(`Poll interval: ${pollInterval / 1000 / 60} minutes`);
+        logWithTimestamp(`Duration: ${pollDurationMinutes} minutes`);
+        logWithTimestamp(`Total cycles: ${Math.ceil((pollDurationMinutes * 60 * 1000) / pollInterval)}`);
         
-        logWithTimestamp(`Poll completed. Found ${result.newMessages.length} new messages.`);
+        const startTime = Date.now();
+        const endTime = startTime + (pollDurationMinutes * 60 * 1000);
+        let currentPollingCycle = 1;
         
-        if (result.newMessages.length > 0) {
-            logWithTimestamp('New message IDs:', result.newMessages);
-        }
+        // Perform initial poll
+        await performPollingCycle(auth, currentPollingCycle);
+        
+        // Set up interval for subsequent polls
+        const intervalId = setInterval(async () => {
+            currentPollingCycle++;
+            
+            // Check if we've exceeded the duration
+            if (Date.now() >= endTime) {
+                logWithTimestamp('Polling duration reached. Stopping poller.');
+                clearInterval(intervalId);
+                return;
+            }
+            
+            await performPollingCycle(auth, currentPollingCycle);
+        }, pollInterval);
+        
+        // Set up timeout to stop polling after the specified duration
+        setTimeout(() => {
+            logWithTimestamp('Polling duration reached. Stopping poller.');
+            clearInterval(intervalId);
+        }, pollDurationMinutes * 60 * 1000);
         
     } catch (err: unknown) {
-        logWithTimestamp('Failed to poll Gmail:', err);
+        logWithTimestamp('Failed to start poller:', err);
         process.exit(1);
     }
 }
@@ -229,4 +209,4 @@ async function main(): Promise<void> {
 // Only run main if this file is executed directly
 if (require.main === module) {
     main();
-} 
+}
