@@ -50,5 +50,30 @@
       "What did the cat say or do next? Make it even funnier.",
       "Summarize our conversation so far in one sentence."
     ]
+  },
+  "aws": {
+    "region": "us-east-1",
+    "vpc": {
+      "id": "",
+      "cidrBlock": "10.0.0.0/16",
+      "availabilityZones": ["us-east-1a", "us-east-1b"]
+    },
+    "dynamodb": {
+      "stateTableName": "chatterbox-state"
+    },
+    "s3": {
+      "bucketName": "chatterbox-data",
+      "backupBucketName": "chatterbox-backups"
+    },
+    "secretsManager": {
+      "gmailTokensSecretName": "chatterbox/gmail-tokens"
+    },
+    "parameterStore": {
+      "prefix": "/chatterbox"
+    },
+    "cloudwatch": {
+      "logGroupName": "/aws/chatterbox"
+    },
+    "environment": "local"
   }
 }

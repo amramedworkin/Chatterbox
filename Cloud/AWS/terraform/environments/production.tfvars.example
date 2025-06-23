@@ -1,0 +1,27 @@
+# Production Environment Configuration Example
+# Copy this file to production.tfvars and update with your values
+
+environment = "production"
+aws_region = "us-east-1"
+
+# VPC Configuration
+vpc_cidr_block = "10.2.0.0/16"
+availability_zones = ["us-east-1a", "us-east-1b", "us-east-1c"]
+
+# Resource Names (with environment prefix)
+dynamodb_state_table_name = "chatterbox-prod-state"
+s3_bucket_name = "chatterbox-prod-data"
+s3_backup_bucket_name = "chatterbox-prod-backups"
+secrets_gmail_tokens_name = "chatterbox-prod/gmail-tokens"
+parameter_store_prefix = "/chatterbox-prod"
+cloudwatch_log_group_name = "/aws/chatterbox-prod"
+
+# Security and Compliance
+enable_vpc_endpoints = true
+enable_encryption = true
+backup_retention_days = 90
+log_retention_days = 90
+
+# Production-specific settings
+enable_debug_logging = false
+enable_cost_alerts = true 

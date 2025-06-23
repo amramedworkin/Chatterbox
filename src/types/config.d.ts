@@ -43,6 +43,42 @@ declare interface TestOpenAiConfig {
     dialogPrompts: string[];
 }
 
+declare interface AwsConfig {
+    region: string;
+    profile?: string;
+    vpc: {
+        id: string;
+        cidrBlock: string;
+        availabilityZones: string[];
+    };
+    dynamodb: {
+        stateTableName: string;
+        endpoint?: string; // For local development
+    };
+    s3: {
+        bucketName: string;
+        backupBucketName: string;
+        endpoint?: string; // For local development
+    };
+    secretsManager: {
+        gmailTokensSecretName: string;
+        endpoint?: string; // For local development
+    };
+    parameterStore: {
+        prefix: string;
+        endpoint?: string; // For local development
+    };
+    iam: {
+        roleArn?: string;
+        instanceProfileArn?: string;
+    };
+    cloudwatch: {
+        logGroupName: string;
+        endpoint?: string; // For local development
+    };
+    environment: 'local' | 'development' | 'staging' | 'production';
+}
+
 declare interface AppConfig {
     app: {
         interactionsBaseFolder: string;
@@ -56,6 +92,7 @@ declare interface AppConfig {
     openai: OpenAiConfig;
     sendTest: SendTestConfig;
     testOpenAi: TestOpenAiConfig;
+    aws: AwsConfig;
 }
 
 // Export the type if you prefer to import it directly instead of using global declarations
