@@ -61,7 +61,12 @@ resource "aws_iam_policy" "s3_policy" {
           "s3:GetObject",
           "s3:PutObject",
           "s3:DeleteObject",
-          "s3:ListBucket"
+          "s3:ListBucket",
+          "s3:GetBucketLocation",
+          "s3:GetBucketPolicy",
+          "s3:GetBucketVersioning",
+          "s3:GetBucketEncryption",
+          "s3:GetBucketPublicAccessBlock"
         ]
         Resource = [
           var.s3_bucket_arn,

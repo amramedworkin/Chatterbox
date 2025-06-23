@@ -1,3 +1,6 @@
+# Data source to get current AWS account ID
+data "aws_caller_identity" "current" {}
+
 # S3 Bucket for Data Storage
 resource "aws_s3_bucket" "data" {
   bucket = var.bucket_name
@@ -139,6 +142,46 @@ resource "aws_s3_bucket_policy" "data" {
     Version = "2012-10-17"
     Statement = [
       {
+        Sid       = "AllowCliadminAccess"
+        Effect    = "Allow"
+        Principal = {
+          AWS = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:user/cliadmin"
+        }
+        Action = [
+          "s3:GetObject",
+          "s3:PutObject",
+          "s3:DeleteObject",
+          "s3:ListBucket",
+          "s3:GetBucketLocation",
+          "s3:GetBucketPolicy",
+          "s3:GetBucketVersioning"
+        ]
+        Resource = [
+          aws_s3_bucket.data.arn,
+          "${aws_s3_bucket.data.arn}/*"
+        ]
+      },
+      {
+        Sid       = "AllowIAMRoleAccess"
+        Effect    = "Allow"
+        Principal = {
+          AWS = var.iam_role_arn
+        }
+        Action = [
+          "s3:GetObject",
+          "s3:PutObject",
+          "s3:DeleteObject",
+          "s3:ListBucket",
+          "s3:GetBucketLocation",
+          "s3:GetBucketPolicy",
+          "s3:GetBucketVersioning"
+        ]
+        Resource = [
+          aws_s3_bucket.data.arn,
+          "${aws_s3_bucket.data.arn}/*"
+        ]
+      },
+      {
         Sid       = "DenyUnencryptedObjectUploads"
         Effect    = "Deny"
         Principal = "*"
@@ -173,6 +216,46 @@ resource "aws_s3_bucket_policy" "backup" {
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
+      {
+        Sid       = "AllowCliadminAccess"
+        Effect    = "Allow"
+        Principal = {
+          AWS = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:user/cliadmin"
+        }
+        Action = [
+          "s3:GetObject",
+          "s3:PutObject",
+          "s3:DeleteObject",
+          "s3:ListBucket",
+          "s3:GetBucketLocation",
+          "s3:GetBucketPolicy",
+          "s3:GetBucketVersioning"
+        ]
+        Resource = [
+          aws_s3_bucket.backup.arn,
+          "${aws_s3_bucket.backup.arn}/*"
+        ]
+      },
+      {
+        Sid       = "AllowIAMRoleAccess"
+        Effect    = "Allow"
+        Principal = {
+          AWS = var.iam_role_arn
+        }
+        Action = [
+          "s3:GetObject",
+          "s3:PutObject",
+          "s3:DeleteObject",
+          "s3:ListBucket",
+          "s3:GetBucketLocation",
+          "s3:GetBucketPolicy",
+          "s3:GetBucketVersioning"
+        ]
+        Resource = [
+          aws_s3_bucket.backup.arn,
+          "${aws_s3_bucket.backup.arn}/*"
+        ]
+      },
       {
         Sid       = "DenyUnencryptedObjectUploads"
         Effect    = "Deny"

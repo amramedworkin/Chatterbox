@@ -52,6 +52,7 @@ module "s3" {
   environment         = var.environment
   bucket_name         = var.s3_bucket_name
   backup_bucket_name  = var.s3_backup_bucket_name
+  iam_role_arn        = module.iam.role_arn
 }
 
 # Secrets Manager

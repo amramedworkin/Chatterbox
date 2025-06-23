@@ -6,6 +6,9 @@ const { execSync } = require('child_process');
 const chalk = require('chalk');
 const inquirer = require('inquirer');
 
+// Import logging system
+const { logTeardown, logMultiLineTeardown, logInfo, logError } = require('../dist/src/utils/adminLogger');
+
 console.log(chalk.red('🗑️  AWS Infrastructure Teardown for Chatterbox\n'));
 
 // Configuration
@@ -341,14 +344,30 @@ async function main() {
   try {
     // Check prerequisites
     console.log(chalk.blue('🔍 Checking prerequisites...'));
+    logInfo('Checking prerequisites', 'AWS CLI, Terraform, and credentials validation');
     checkPrerequisites();
     console.log(chalk.green('✅ Prerequisites satisfied'));
+    logInfo('Prerequisites satisfied', 'All required tools and credentials are available');
 
     // Show warning
     showWarning();
 
     // Select environments
     const selectedEnvironments = await selectEnvironments();
+
+    // Log teardown initiation
+    const environments = selectedEnvironments.filter(env => env !== 'vpc');
+    const includeVPC = selectedEnvironments.includes('vpc');
+    
+    if (environments.length > 0 && includeVPC) {
+      logMultiLineTeardown('AWS Teardowns INITIATED', 
+        `environments: [${environments.join(', ')}]\nVPC infrastructure included\nNAME: Complete infrastructure teardown\nNOTE: This will destroy all environments and shared VPC infrastructure`);
+    } else if (environments.length > 0) {
+      logMultiLineTeardown('AWS Teardowns INITIATED', 
+        `environments: [${environments.join(', ')}]\nNAME: Environment-only teardown\nNOTE: VPC infrastructure will be preserved`);
+    } else if (includeVPC) {
+      logTeardown('AWS VPC Teardown INITIATED', 'VPC infrastructure only');
+    }
 
     // Confirm teardown
     await confirmTeardown(selectedEnvironments);
@@ -361,21 +380,31 @@ async function main() {
     let totalCount = selectedEnvironments.length;
 
     // Teardown environments
-    const environments = selectedEnvironments.filter(env => env !== 'vpc');
     for (const environment of environments) {
+      logTeardown('AWS Teardown INITIATED', `environment: [${environment}]`);
+      
       if (teardownEnvironment(environment)) {
         successCount++;
+        logTeardown('AWS Teardown COMPLETE', `environment: [${environment}]`);
+      } else {
+        logError('AWS Teardown FAILED', `environment: [${environment}]`);
       }
     }
 
     // Teardown VPC if selected
     if (selectedEnvironments.includes('vpc')) {
+      logTeardown('AWS VPC Teardown INITIATED', 'VPC infrastructure');
+      
       if (teardownVPC()) {
         successCount++;
+        logTeardown('AWS VPC Teardown COMPLETE', 'VPC infrastructure');
+      } else {
+        logError('AWS VPC Teardown FAILED', 'VPC infrastructure');
       }
     }
 
     // Cleanup state files
+    logInfo('Cleaning up state files', `environments: [${environments.join(', ')}]`);
     cleanupStateFiles(selectedEnvironments);
 
     // Summary
@@ -389,14 +418,28 @@ async function main() {
       console.log(chalk.yellow('  • Verify resources are removed in AWS Console'));
       console.log(chalk.yellow('  • Consider removing AWS user if no longer needed'));
       console.log(chalk.yellow('  • Update documentation to reflect current state'));
+      
+      if (environments.length > 0 && includeVPC) {
+        logMultiLineTeardown('AWS Teardowns COMPLETE', 
+          `environments: [${environments.join(', ')}]\nVPC infrastructure included\nNAME: Complete infrastructure teardown successful\nNOTE: All selected environments and VPC infrastructure have been destroyed`);
+      } else if (environments.length > 0) {
+        logMultiLineTeardown('AWS Teardowns COMPLETE', 
+          `environments: [${environments.join(', ')}]\nNAME: Environment-only teardown successful\nNOTE: VPC infrastructure was preserved`);
+      } else if (includeVPC) {
+        logTeardown('AWS VPC Teardown COMPLETE', 'VPC infrastructure only');
+      }
     } else {
       console.log(chalk.red('\n⚠️  Some components failed to destroy.'));
       console.log(chalk.yellow('Please check the AWS Console and manually clean up if needed.'));
+      
+      logError('AWS Teardown PARTIAL FAILURE', 
+        `Successfully destroyed: ${successCount}/${totalCount} components`);
     }
 
   } catch (error) {
     console.error(chalk.red('\n❌ Teardown operation failed:'));
     console.error(chalk.red(error.message));
+    logError('AWS Teardown OPERATION FAILED', error.message);
     process.exit(1);
   }
 }
