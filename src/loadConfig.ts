@@ -191,6 +191,71 @@ const config: AppConfig = {
               ? appDefaults.testOpenAi.dialogPrompts
               : [],
     },
+    aws: {
+        region: getOrDefault('AWS_REGION', 'aws.region', 'us-east-1'),
+        profile: process.env.AWS_PROFILE || appDefaults.aws?.profile,
+        vpc: {
+            id: getOrDefault('AWS_VPC_ID', 'aws.vpc.id', ''),
+            cidrBlock: getOrDefault('AWS_VPC_CIDR', 'aws.vpc.cidrBlock', '10.0.0.0/16'),
+            availabilityZones: process.env.AWS_AVAILABILITY_ZONES
+                ? process.env.AWS_AVAILABILITY_ZONES.split(',')
+                : appDefaults.aws?.vpc?.availabilityZones || ['us-east-1a', 'us-east-1b'],
+        },
+        dynamodb: {
+            stateTableName: getOrDefault(
+                'AWS_DYNAMODB_STATE_TABLE',
+                'aws.dynamodb.stateTableName',
+                'chatterbox-state'
+            ),
+            endpoint: process.env.AWS_DYNAMODB_ENDPOINT || appDefaults.aws?.dynamodb?.endpoint,
+        },
+        s3: {
+            bucketName: getOrDefault(
+                'AWS_S3_BUCKET_NAME',
+                'aws.s3.bucketName',
+                'chatterbox-data'
+            ),
+            backupBucketName: getOrDefault(
+                'AWS_S3_BACKUP_BUCKET_NAME',
+                'aws.s3.backupBucketName',
+                'chatterbox-backups'
+            ),
+            endpoint: process.env.AWS_S3_ENDPOINT || appDefaults.aws?.s3?.endpoint,
+        },
+        secretsManager: {
+            gmailTokensSecretName: getOrDefault(
+                'AWS_SECRETS_GMAIL_TOKENS_NAME',
+                'aws.secretsManager.gmailTokensSecretName',
+                'chatterbox/gmail-tokens'
+            ),
+            endpoint: process.env.AWS_SECRETS_ENDPOINT || appDefaults.aws?.secretsManager?.endpoint,
+        },
+        parameterStore: {
+            prefix: getOrDefault(
+                'AWS_PARAMETER_STORE_PREFIX',
+                'aws.parameterStore.prefix',
+                '/chatterbox'
+            ),
+            endpoint: process.env.AWS_PARAMETER_STORE_ENDPOINT || appDefaults.aws?.parameterStore?.endpoint,
+        },
+        iam: {
+            roleArn: process.env.AWS_IAM_ROLE_ARN || appDefaults.aws?.iam?.roleArn,
+            instanceProfileArn: process.env.AWS_IAM_INSTANCE_PROFILE_ARN || appDefaults.aws?.iam?.instanceProfileArn,
+        },
+        cloudwatch: {
+            logGroupName: getOrDefault(
+                'AWS_CLOUDWATCH_LOG_GROUP',
+                'aws.cloudwatch.logGroupName',
+                '/aws/chatterbox'
+            ),
+            endpoint: process.env.AWS_CLOUDWATCH_ENDPOINT || appDefaults.aws?.cloudwatch?.endpoint,
+        },
+        environment: getOrDefault(
+            'AWS_ENVIRONMENT',
+            'aws.environment',
+            'local'
+        ) as 'local' | 'development' | 'staging' | 'production',
+    },
 };
 
 config.polling.defaultIntervalMilliseconds = config.polling.defaultIntervalMinutes * 60 * 1000;

@@ -1,0 +1,27 @@
+# Development Environment Configuration Example
+# Copy this file to development.tfvars and update with your values
+
+environment = "development"
+aws_region = "us-east-1"
+
+# VPC Configuration
+vpc_cidr_block = "10.0.0.0/16"
+availability_zones = ["us-east-1a", "us-east-1b"]
+
+# Resource Names (with environment prefix)
+dynamodb_state_table_name = "chatterbox-dev-state"
+s3_bucket_name = "chatterbox-dev-data"
+s3_backup_bucket_name = "chatterbox-dev-backups"
+secrets_gmail_tokens_name = "chatterbox-dev/gmail-tokens"
+parameter_store_prefix = "/chatterbox-dev"
+cloudwatch_log_group_name = "/aws/chatterbox-dev"
+
+# Security and Compliance
+enable_vpc_endpoints = true
+enable_encryption = true
+backup_retention_days = 30
+log_retention_days = 30
+
+# Development-specific settings
+enable_debug_logging = true
+enable_cost_alerts = false 
