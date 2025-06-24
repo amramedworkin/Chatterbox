@@ -8,12 +8,13 @@ The scripts are organized into the following logical groups:
 
 1. **Build & Development** - TypeScript compilation and development tools
 2. **Code Quality** - Linting, formatting, and code cleanup
-3. **Mail Operations** - Gmail polling, authorization, and validation
-4. **Application Setup** - Initialization and environment setup
-5. **Local Server** - Token site serving and management
-6. **Local System Management** - Backup, clean, and restore operations
-7. **AWS Infrastructure** - Complete AWS infrastructure management
-8. **Testing** - All test scripts and console tools
+3. **Installation** - Create new installations and initialize systems
+4. **Mail Operations** - Gmail polling, authorization, and validation
+5. **Application Setup** - Initialization and environment setup
+6. **Local Server** - Token site serving and management
+7. **Local System Management** - Backup, clean, and restore operations
+8. **AWS Infrastructure** - Complete AWS infrastructure management
+9. **Testing** - All test scripts and console tools
 
 ## Script Reference Table
 
@@ -31,6 +32,9 @@ The scripts are organized into the following logical groups:
 | Lint | lint:nofix | ESLint without auto-fix | `npm run lint:nofix` | Local |
 | Lint | lint:nofix:nocache | ESLint without cache | `npm run lint:nofix:nocache` | Local |
 | Lint | lint:nocache | ESLint with auto-fix, no cache | `npm run lint:nocache` | Local |
+| **Installation** |
+| Install | install:create | Create new Chatterbox installation | `npm run install:create` | Local |
+| Install | install:init | Initialize system with all components | `npm run install:init` | Local |
 | **Mail Operations** |
 | Mail | mail:poll | Start timed Gmail polling | `npm run mail:poll` | Local |
 | Mail | mail:poll:single | Single Gmail poll operation | `npm run mail:poll:single` | Local |

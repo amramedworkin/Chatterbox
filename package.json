@@ -14,6 +14,8 @@
     "lint:nofix": "eslint \"{src,test}/**/*.{ts,js}\" --cache",
     "lint:nofix:nocache": "eslint \"{src,test}/**/*.{ts,js}\"",
     "lint:nocache": "eslint \"{src,test}/**/*.{ts,js}\" --fix",
+    "install:create": "node scripts/install/create-installation.js",
+    "install:init": "node scripts/install/initialize-system.js",
     "mail:poll": "node dist/src/mail/timedPollGmail.js",
     "mail:poll:single": "node dist/src/mail/pollGmail.js",
     "mail:authorize": "ts-node src/mail/authorizeAll.ts",

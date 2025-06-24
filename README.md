@@ -1,0 +1,152 @@
+# Chatterbox
+
+A comprehensive email automation and AI interaction system that integrates Gmail, OpenAI, and AWS services for intelligent email processing and response generation.
+
+## Overview
+
+Chatterbox is a TypeScript-based application that combines Gmail API integration with OpenAI's language models to create intelligent email processing workflows. The system can run locally or be deployed with full AWS infrastructure for production use.
+
+## Key Features
+
+- **Gmail Integration**: Poll, read, and send emails with OAuth2 authentication
+- **OpenAI Integration**: AI-powered email responses and conversations
+- **AWS Infrastructure**: Optional cloud deployment with VPC, DynamoDB, S3, and more
+- **Environment Management**: Support for development, staging, and production environments
+- **Secrets Management**: Secure credential storage with AWS Secrets Manager
+- **Monitoring & Logging**: Comprehensive logging and monitoring with CloudWatch
+- **Local System Management**: Backup, clean, and restore capabilities
+
+## Quick Start
+
+### Prerequisites
+
+Before setting up Chatterbox, review the complete system requirements:
+
+📋 **[System Requirements Consolidation](SYSTEM_REQUIREMENTS_CONSOLIDATION.md)** - Complete guide to all required and optional components
+
+### Required Components
+
+1. **GCP Account** with Gmail API enabled and OAuth credentials
+2. **Email Addresses** with Gmail access and OAuth authorization
+3. **OpenAI Account** with API key and billing enabled
+4. **Node.js Environment** (v16+) with TypeScript support
+
+### Optional Components
+
+5. **AWS Account** with IAM user and required permissions
+6. **Terraform** for infrastructure deployment
+
+## Installation
+
+1. **Clone the repository**
+   ```bash
+   git clone <repository-url>
+   cd Chatterbox
+   ```
+
+2. **Install dependencies**
+   ```bash
+   npm install
+   ```
+
+3. **Configure credentials**
+   - Copy `tokens/google_credentials.json` from GCP Console
+   - Add OpenAI API key to `.env` file
+   - Configure email addresses in `config.json`
+
+4. **Authorize Gmail accounts**
+   ```bash
+   npm run mail:authorize
+   ```
+
+5. **Test basic functionality**
+   ```bash
+   npm run test:openai
+   npm run mail:poll
+   npm run mail:send:test
+   ```
+
+## Available Scripts
+
+### Core Functionality
+- `npm run mail:authorize` - Authorize Gmail accounts
+- `npm run mail:poll` - Poll for new emails
+- `npm run mail:send:test` - Test email sending
+- `npm run test:openai` - Test OpenAI connection
+
+### AWS Infrastructure (Optional)
+- `npm run aws:setup` - Deploy AWS infrastructure
+- `npm run aws:migrate:secrets` - Migrate secrets to AWS
+- `npm run aws:test:all` - Test all AWS services
+- `npm run aws:teardown` - Remove AWS infrastructure
+
+### Local System Management
+- `npm run backup` - Backup local configuration
+- `npm run clean` - Clean sensitive data
+- `npm run restore` - Restore from backup
+
+### Development
+- `npm run build` - Build TypeScript
+- `npm run test` - Run test suite
+- `npm run lint` - Lint code
+
+## Documentation
+
+### Core Documentation
+- **[System Requirements](SYSTEM_REQUIREMENTS_CONSOLIDATION.md)** - Complete setup requirements
+- **[Scripts Reference](SCRIPTS_README.md)** - All available npm scripts
+- **[Environment Management](ENVIRONMENT_SYSTEM_SUMMARY.md)** - Environment setup guide
+
+### AWS Documentation
+- **[AWS Setup Guide](Cloud/AWS/README.md)** - Complete AWS infrastructure setup
+- **[Architecture Summary](Cloud/AWS/ARCHITECTURE_SUMMARY.md)** - System architecture overview
+- **[Final Product Spec](Cloud/AWS/FINAL_PRODUCT_SPEC.md)** - Complete infrastructure specification
+
+### Local System Management
+- **[Local System Clean](LOCAL_SYSTEM_CLEAN.md)** - Clean system documentation
+- **[Local System Backup](LOCAL_SYSTEM_BACKUP.md)** - Backup system documentation
+
+## Architecture
+
+Chatterbox is built with a modular architecture:
+
+```
+Chatterbox/
+├── src/
+│   ├── mail/           # Gmail integration
+│   ├── openai/         # OpenAI integration
+│   ├── utils/          # Utilities and helpers
+│   └── types/          # TypeScript type definitions
+├── Cloud/AWS/          # AWS infrastructure (Terraform)
+├── scripts/            # Management scripts
+├── tokens/             # OAuth credentials
+└── data/               # Application data
+```
+
+## Security
+
+- **OAuth2 Authentication**: Secure Gmail API access
+- **Environment Variables**: Sensitive data in `.env` files
+- **AWS Secrets Manager**: Optional secure credential storage
+- **IAM Least Privilege**: Minimal required permissions
+- **VPC Isolation**: Network-level security (AWS)
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Run tests and linting
+5. Submit a pull request
+
+## License
+
+[Add your license information here]
+
+## Support
+
+For setup issues, refer to the **[System Requirements Consolidation](SYSTEM_REQUIREMENTS_CONSOLIDATION.md)** document first. For additional help:
+
+- Check the documentation in each component directory
+- Review the AWS setup guide for infrastructure issues
+- Examine the scripts documentation for available commands 
