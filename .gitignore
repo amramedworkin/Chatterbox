@@ -161,6 +161,12 @@ dist
 .env*
 !.env-clean
 
+# Specific sensitive files that should never be committed
+cliadmin_accessKeys.csv
+tokens/
+tokens/gmail_tokens.json
+tokens/google_credentials.json
+
 # ===============================
 # Backup & Temp Files (Global)
 # ===============================
