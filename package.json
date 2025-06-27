@@ -189,6 +189,9 @@
     "log:test": "node -e \"const { logInfo, logBuild, logTeardown, logMultiLineTeardown } = require('./dist/utils/adminLogger'); logInfo('Test log entry', 'Testing logging system'); logBuild('Test build', 'Testing build logging'); logTeardown('Test teardown', 'Testing teardown logging'); logMultiLineTeardown('Test multiline', 'Line 1\\nLine 2\\nLine 3'); console.log('Logging test complete');\"",
     "log:test:full": "node scripts/test-logging.js",
 
+    "config:dump": "node scripts/dump-config.js",
+    "config:show": "npm run config:dump",
+
     "test:all": "jest",
     "test:completion": "node dist/test/testOpenAiCompletion.js",
     "test:dialog": "ts-node test/dialogAgent.test.ts",

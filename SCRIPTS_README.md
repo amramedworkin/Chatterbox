@@ -217,6 +217,9 @@ The scripts are organized into the following logical groups:
 | Test | test:get:chatterboxrangebysender | Test get chatterbox range by sender | `npm run test:get:chatterboxrangebysender` | Local |
 | Console | console:dialog | Interactive dialog console | `npm run console:dialog` | Local |
 | Console | console:dialog:build | Build dialog console | `npm run console:dialog:build` | Local |
+| **Configuration** |
+| Config | config:dump | Dump all configuration variables | `npm run config:dump` | Local |
+| Config | config:show | Show configuration (alias for dump) | `npm run config:show` | Local |
 
 ## Host Types
 
