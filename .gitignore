@@ -166,6 +166,7 @@ cliadmin_accessKeys.csv
 tokens/
 tokens/gmail_tokens.json
 tokens/google_credentials.json
+**/*_credentials.txt
 
 # ===============================
 # Backup & Temp Files (Global)
