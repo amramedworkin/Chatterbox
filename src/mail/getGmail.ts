@@ -524,3 +524,94 @@ export async function getChatterboxGmailRangeBySender(
     const messageIds = await getChatterboxGmailIdsBySender(senderEmail, dateRange, userEmail, existingAuth);
     return await getGmailsByIds(messageIds, userEmail, existingAuth);
 } 
+
+
+/**
+ * Gets the most recent Chatterbox Gmail and returns its unique ID and basic info as a JSON object.
+ * @param userEmail Gmail user email (optional, defaults to config)
+ * @param existingAuth Existing OAuth2 client (required)
+ * @returns Promise resolving to an object: { id, threadId, snippet, subject, sender } or null if none found
+ */
+export async function getLatestChatterboxGmail(
+    userEmail?: string,
+    existingAuth?: OAuth2Client
+): Promise<{ id: string, threadId: string, snippet?: string, subject?: string, sender?: string } | null> {
+    const gmailUser = userEmail || config.app.defaultGetGmailUser;
+    if (!existingAuth) {
+        throw new Error(`OAuth2Client is required for Gmail user ${gmailUser}. Please ensure Gmail user is authorized via npm run mail:authorize`);
+    }
+    const gmail = google.gmail({ version: 'v1', auth: existingAuth });
+
+    // Search for the most recent message with "chatterbox" in the subject
+    const listRes = await gmail.users.messages.list({
+        userId: gmailUser,
+        q: 'subject:chatterbox',
+        maxResults: 1
+    });
+
+    const messages = (listRes.data && listRes.data.messages) ? listRes.data.messages : [];
+    if (messages.length === 0 || !messages[0].id) return null;
+
+    const msgId = messages[0].id;
+    const getRes = await gmail.users.messages.get({
+        userId: gmailUser,
+        id: msgId
+    });
+    const msg = getRes.data;
+
+    // Extract subject and sender
+    let subject = '';
+    let sender = '';
+    if (msg.payload && Array.isArray(msg.payload.headers)) {
+        for (const header of msg.payload.headers) {
+            if (header && header.name && typeof header.name === 'string') {
+                if (header.name.toLowerCase() === 'subject') subject = header.value || '';
+                if (header.name.toLowerCase() === 'from') sender = header.value || '';
+            }
+        }
+    }
+    return {
+        id: msg.id || '',
+        threadId: msg.threadId || '',
+        snippet: msg.snippet || undefined,
+        subject,
+        sender
+    };
+}
+
+/**
+ * Gets the most recent Chatterbox Gmail ID
+ * @param dateRange Date range parameters (optional, defaults to last 7 days)
+ * @param userEmail Gmail user email (optional, defaults to config)
+ * @param existingAuth Existing OAuth2 client (optional)
+ * @returns Promise resolving to the most recent Gmail message ID, or null if none found
+ */
+export async function getMostRecentChatterboxGmailId(
+    dateRange: Partial<DateRange> = { startDays: 7 },
+    userEmail?: string,
+    existingAuth?: OAuth2Client
+): Promise<string | null> {
+    const gmailUser = userEmail || config.app.defaultGetGmailUser;
+    
+    if (!existingAuth) {
+        throw new Error(`OAuth2Client is required for Gmail user ${gmailUser}. Please ensure Gmail user is authorized via npm run mail:authorize`);
+    }
+    
+    const gmail = google.gmail({ version: 'v1', auth: existingAuth });
+
+    const dateQuery = buildDateRangeQuery(dateRange);
+    const query = `subject:chatterbox ${dateQuery}`.trim();
+    
+    // Get only the first (most recent) result
+    const res = await gmail.users.messages.list({
+        userId: gmailUser,
+        q: query,
+        maxResults: 1, // Only get the most recent
+    });
+
+    if (res.data.messages && res.data.messages.length > 0) {
+        return res.data.messages[0].id || null;
+    }
+    
+    return null;
+}

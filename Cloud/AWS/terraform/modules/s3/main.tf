@@ -3,19 +3,27 @@ data "aws_caller_identity" "current" {}
 
 # S3 Bucket for Data Storage
 resource "aws_s3_bucket" "data" {
-  bucket = var.bucket_name
+  bucket = "${var.environment}-${var.bucket_name}"
 
   tags = {
-    Name = "${var.environment}-${var.bucket_name}"
+    Name        = "${var.environment}-${var.bucket_name}"
+    Project     = "Chatterbox"
+    Environment = var.environment
+    Subsystem   = "storage"
+    ManagedBy   = "Terraform"
   }
 }
 
 # S3 Bucket for Backups
 resource "aws_s3_bucket" "backup" {
-  bucket = var.backup_bucket_name
+  bucket = "${var.environment}-${var.backup_bucket_name}"
 
   tags = {
-    Name = "${var.environment}-${var.backup_bucket_name}"
+    Name        = "${var.environment}-${var.backup_bucket_name}"
+    Project     = "Chatterbox"
+    Environment = var.environment
+    Subsystem   = "storage"
+    ManagedBy   = "Terraform"
   }
 }
 
@@ -112,7 +120,7 @@ resource "aws_s3_bucket_lifecycle_configuration" "data" {
     }
 
     expiration {
-      days = 2555  # 7 years
+      days = 2555 # 7 years
     }
   }
 }
@@ -138,7 +146,7 @@ resource "aws_s3_bucket_lifecycle_configuration" "backup" {
     }
 
     expiration {
-      days = 2555  # 7 years
+      days = 2555 # 7 years
     }
   }
 }
@@ -151,8 +159,8 @@ resource "aws_s3_bucket_policy" "data" {
     Version = "2012-10-17"
     Statement = [
       {
-        Sid       = "AllowCliadminAccess"
-        Effect    = "Allow"
+        Sid    = "AllowCliadminAccess"
+        Effect = "Allow"
         Principal = {
           AWS = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:user/cliadmin"
         }
@@ -163,7 +171,8 @@ resource "aws_s3_bucket_policy" "data" {
           "s3:ListBucket",
           "s3:GetBucketLocation",
           "s3:GetBucketPolicy",
-          "s3:GetBucketVersioning"
+          "s3:GetBucketVersioning",
+          "s3:GetBucketEncryption"
         ]
         Resource = [
           aws_s3_bucket.data.arn,
@@ -171,8 +180,8 @@ resource "aws_s3_bucket_policy" "data" {
         ]
       },
       {
-        Sid       = "AllowIAMRoleAccess"
-        Effect    = "Allow"
+        Sid    = "AllowIAMRoleAccess"
+        Effect = "Allow"
         Principal = {
           AWS = var.iam_role_arn
         }
@@ -183,7 +192,8 @@ resource "aws_s3_bucket_policy" "data" {
           "s3:ListBucket",
           "s3:GetBucketLocation",
           "s3:GetBucketPolicy",
-          "s3:GetBucketVersioning"
+          "s3:GetBucketVersioning",
+          "s3:GetBucketEncryption"
         ]
         Resource = [
           aws_s3_bucket.data.arn,
@@ -226,8 +236,8 @@ resource "aws_s3_bucket_policy" "backup" {
     Version = "2012-10-17"
     Statement = [
       {
-        Sid       = "AllowCliadminAccess"
-        Effect    = "Allow"
+        Sid    = "AllowCliadminAccess"
+        Effect = "Allow"
         Principal = {
           AWS = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:user/cliadmin"
         }
@@ -238,7 +248,8 @@ resource "aws_s3_bucket_policy" "backup" {
           "s3:ListBucket",
           "s3:GetBucketLocation",
           "s3:GetBucketPolicy",
-          "s3:GetBucketVersioning"
+          "s3:GetBucketVersioning",
+          "s3:GetBucketEncryption"
         ]
         Resource = [
           aws_s3_bucket.backup.arn,
@@ -246,8 +257,8 @@ resource "aws_s3_bucket_policy" "backup" {
         ]
       },
       {
-        Sid       = "AllowIAMRoleAccess"
-        Effect    = "Allow"
+        Sid    = "AllowIAMRoleAccess"
+        Effect = "Allow"
         Principal = {
           AWS = var.iam_role_arn
         }
@@ -258,7 +269,8 @@ resource "aws_s3_bucket_policy" "backup" {
           "s3:ListBucket",
           "s3:GetBucketLocation",
           "s3:GetBucketPolicy",
-          "s3:GetBucketVersioning"
+          "s3:GetBucketVersioning",
+          "s3:GetBucketEncryption"
         ]
         Resource = [
           aws_s3_bucket.backup.arn,
@@ -267,6 +279,18 @@ resource "aws_s3_bucket_policy" "backup" {
       },
       {
         Sid       = "DenyUnencryptedObjectUploads"
+        Effect    = "Deny"
+        Principal = "*"
+        Action    = "s3:PutObject"
+        Resource  = "${aws_s3_bucket.backup.arn}/*"
+        Condition = {
+          StringNotEquals = {
+            "s3:x-amz-server-side-encryption" = "AES256"
+          }
+        }
+      },
+      {
+        Sid       = "DenyIncorrectEncryptionHeader"
         Effect    = "Deny"
         Principal = "*"
         Action    = "s3:PutObject"

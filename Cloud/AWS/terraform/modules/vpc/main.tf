@@ -5,7 +5,11 @@ resource "aws_vpc" "main" {
   enable_dns_support   = true
 
   tags = {
-    Name = "${var.environment}-chatterbox-vpc"
+    Name        = "${var.environment}-chatterbox-vpc"
+    Project     = "Chatterbox"
+    Environment = var.environment
+    Subsystem   = "networking"
+    ManagedBy   = "Terraform"
   }
 }
 
@@ -14,7 +18,11 @@ resource "aws_internet_gateway" "main" {
   vpc_id = aws_vpc.main.id
 
   tags = {
-    Name = "${var.environment}-chatterbox-igw"
+    Name        = "${var.environment}-chatterbox-igw"
+    Project     = "Chatterbox"
+    Environment = var.environment
+    Subsystem   = "networking"
+    ManagedBy   = "Terraform"
   }
 }
 
@@ -28,7 +36,11 @@ resource "aws_subnet" "public" {
   map_public_ip_on_launch = true
 
   tags = {
-    Name = "${var.environment}-chatterbox-public-${var.availability_zones[count.index]}"
+    Name        = "${var.environment}-chatterbox-public-${var.availability_zones[count.index]}"
+    Project     = "Chatterbox"
+    Environment = var.environment
+    Subsystem   = "networking"
+    ManagedBy   = "Terraform"
   }
 }
 
@@ -40,7 +52,11 @@ resource "aws_subnet" "private" {
   availability_zone = var.availability_zones[count.index]
 
   tags = {
-    Name = "${var.environment}-chatterbox-private-${var.availability_zones[count.index]}"
+    Name        = "${var.environment}-chatterbox-private-${var.availability_zones[count.index]}"
+    Project     = "Chatterbox"
+    Environment = var.environment
+    Subsystem   = "networking"
+    ManagedBy   = "Terraform"
   }
 }
 
@@ -54,7 +70,11 @@ resource "aws_route_table" "public" {
   }
 
   tags = {
-    Name = "${var.environment}-chatterbox-public-rt"
+    Name        = "${var.environment}-chatterbox-public-rt"
+    Project     = "Chatterbox"
+    Environment = var.environment
+    Subsystem   = "networking"
+    ManagedBy   = "Terraform"
   }
 }
 
@@ -71,7 +91,11 @@ resource "aws_eip" "nat" {
   domain = "vpc"
 
   tags = {
-    Name = "${var.environment}-chatterbox-nat-eip-${count.index + 1}"
+    Name        = "${var.environment}-chatterbox-nat-eip-${count.index + 1}"
+    Project     = "Chatterbox"
+    Environment = var.environment
+    Subsystem   = "networking"
+    ManagedBy   = "Terraform"
   }
 }
 
@@ -81,7 +105,11 @@ resource "aws_nat_gateway" "main" {
   subnet_id     = aws_subnet.public[count.index].id
 
   tags = {
-    Name = "${var.environment}-chatterbox-nat-${count.index + 1}"
+    Name        = "${var.environment}-chatterbox-nat-${count.index + 1}"
+    Project     = "Chatterbox"
+    Environment = var.environment
+    Subsystem   = "networking"
+    ManagedBy   = "Terraform"
   }
 
   depends_on = [aws_internet_gateway.main]
@@ -98,7 +126,11 @@ resource "aws_route_table" "private" {
   }
 
   tags = {
-    Name = "${var.environment}-chatterbox-private-rt-${count.index + 1}"
+    Name        = "${var.environment}-chatterbox-private-rt-${count.index + 1}"
+    Project     = "Chatterbox"
+    Environment = var.environment
+    Subsystem   = "networking"
+    ManagedBy   = "Terraform"
   }
 }
 
@@ -118,7 +150,11 @@ resource "aws_vpc_endpoint" "s3" {
   route_table_ids   = aws_route_table.private[*].id
 
   tags = {
-    Name = "${var.environment}-chatterbox-s3-endpoint"
+    Name        = "${var.environment}-chatterbox-s3-endpoint"
+    Project     = "Chatterbox"
+    Environment = var.environment
+    Subsystem   = "networking"
+    ManagedBy   = "Terraform"
   }
 }
 
@@ -130,7 +166,11 @@ resource "aws_vpc_endpoint" "dynamodb" {
   route_table_ids   = aws_route_table.private[*].id
 
   tags = {
-    Name = "${var.environment}-chatterbox-dynamodb-endpoint"
+    Name        = "${var.environment}-chatterbox-dynamodb-endpoint"
+    Project     = "Chatterbox"
+    Environment = var.environment
+    Subsystem   = "networking"
+    ManagedBy   = "Terraform"
   }
 }
 
@@ -143,7 +183,11 @@ resource "aws_vpc_endpoint" "secretsmanager" {
   private_dns_enabled = true
 
   tags = {
-    Name = "${var.environment}-chatterbox-secretsmanager-endpoint"
+    Name        = "${var.environment}-chatterbox-secretsmanager-endpoint"
+    Project     = "Chatterbox"
+    Environment = var.environment
+    Subsystem   = "networking"
+    ManagedBy   = "Terraform"
   }
 }
 
@@ -156,7 +200,11 @@ resource "aws_vpc_endpoint" "ssm" {
   private_dns_enabled = true
 
   tags = {
-    Name = "${var.environment}-chatterbox-ssm-endpoint"
+    Name        = "${var.environment}-chatterbox-ssm-endpoint"
+    Project     = "Chatterbox"
+    Environment = var.environment
+    Subsystem   = "networking"
+    ManagedBy   = "Terraform"
   }
 }
 

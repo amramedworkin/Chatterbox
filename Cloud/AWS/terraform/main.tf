@@ -6,11 +6,11 @@ terraform {
       version = "~> 5.0"
     }
   }
-  
+
   backend "s3" {
-    bucket = "chatterbox-terraform-state-855581761117"
-    key    = "terraform.tfstate"
-    region = "us-east-1"
+    bucket  = "chatterbox-terraform-state-855581761117"
+    key     = "terraform.tfstate"
+    region  = "us-east-1"
     profile = "cliadmin"
   }
 }
@@ -18,20 +18,29 @@ terraform {
 provider "aws" {
   region  = var.aws_region
   profile = "cliadmin"
-  
+
   default_tags {
     tags = {
       Project     = "Chatterbox"
       Environment = var.environment
       ManagedBy   = "Terraform"
+      Owner       = "Chatterbox Team"
+      CostCenter  = "Chatterbox"
     }
   }
+}
+
+# Resource Group for Chatterbox resources
+module "resource_group" {
+  source = "./modules/resource-group"
+
+  environment = var.environment
 }
 
 # VPC and Networking
 module "vpc" {
   source = "./modules/vpc"
-  
+
   environment        = var.environment
   vpc_cidr_block     = var.vpc_cidr_block
   availability_zones = var.availability_zones
@@ -40,7 +49,7 @@ module "vpc" {
 # DynamoDB
 module "dynamodb" {
   source = "./modules/dynamodb"
-  
+
   environment      = var.environment
   state_table_name = var.dynamodb_state_table_name
 }
@@ -76,12 +85,28 @@ module "parameter_store" {
 module "cloudwatch" {
   source = "./modules/cloudwatch"
   
-  environment    = var.environment
-  log_group_name = var.cloudwatch_log_group_name
+  environment        = var.environment
+  log_group_name     = var.cloudwatch_log_group_name
+  log_retention_days = var.log_retention_days
+  aws_region         = var.aws_region
+  dynamodb_table_name = var.dynamodb_state_table_name
+  s3_bucket_name      = var.s3_bucket_name
+  alarm_actions      = []
 }
 
 # IAM
 module "iam" {
+  source = "./modules/iam"
+  
+  environment              = var.environment
+  dynamodb_table_arn       = module.dynamodb.table_arn
+  s3_bucket_arn            = module.s3.bucket_arn
+  s3_backup_bucket_arn     = module.s3.backup_bucket_arn
+  s3_email_archive_bucket_arn = module.s3.email_archive_bucket_arn
+  secrets_arns             = module.secrets_manager.secret_arns
+  parameter_store_arn      = module.parameter_store.parameter_arn
+  cloudwatch_log_group_arn = module.cloudwatch.log_group_arn
+}
 
 # Lambda
 module "lambda" {
@@ -94,32 +119,19 @@ module "lambda" {
   default_gmail_user             = "default@example.com"
   iam_role_arn                   = module.iam.role_arn
   cloudwatch_log_group_arn       = module.cloudwatch.log_group_arn
-}  source = "./modules/iam"
-  
-  environment              = var.environment
-  dynamodb_table_arn       = module.dynamodb.table_arn
-  s3_bucket_arn            = module.s3.bucket_arn
-  s3_backup_bucket_arn     = module.s3.backup_bucket_arn
-  s3_email_archive_bucket_arn = module.s3.email_archive_bucket_arn
-  s3_email_archive_bucket_arn = module.s3.email_archive_bucket_arn
-  secrets_arns             = module.secrets_manager.secret_arns
-  parameter_store_arn      = module.parameter_store.parameter_arn
-  cloudwatch_log_group_arn = module.cloudwatch.log_group_arn
-}
-
-# Lambda
-module "lambda" {
-  source = "./modules/lambda"
-  
-  environment              = var.environment
-  gmail_tokens_secret_name = var.secrets_gmail_tokens_name
-  google_credentials_secret_name = "chatterbox/google-credentials"
-  email_storage_bucket     = var.s3_email_archive_bucket_name
-  iam_role_arn             = module.iam.role_arn
-  cloudwatch_log_group_arn = module.cloudwatch.log_group_arn
 }
 
 # Outputs
+output "resource_group_name" {
+  description = "Chatterbox Resource Group Name"
+  value       = module.resource_group.resource_group_name
+}
+
+output "resource_group_arn" {
+  description = "Chatterbox Resource Group ARN"
+  value       = module.resource_group.resource_group_arn
+}
+
 output "vpc_id" {
   description = "VPC ID"
   value       = module.vpc.vpc_id
@@ -156,6 +168,9 @@ output "cloudwatch_log_group_name" {
 }
 
 output "iam_role_arn" {
+  description = "IAM Role ARN"
+  value       = module.iam.role_arn
+}
 
 output "lambda_function_name" {
   description = "Lambda Function Name"
@@ -170,8 +185,16 @@ output "lambda_function_arn" {
 output "api_gateway_url" {
   description = "API Gateway URL"
   value       = module.lambda.api_gateway_url
-}  description = "IAM Role ARN"
-  value       = module.iam.role_arn
+}
+
+output "api_gateway_id" {
+  description = "API Gateway ID"
+  value       = module.lambda.api_gateway_id
+}
+
+output "lambda_role_arn" {
+  description = "Lambda IAM Role ARN"
+  value       = module.lambda.lambda_role_arn
 }
 
 output "environment" {

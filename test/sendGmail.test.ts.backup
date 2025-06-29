@@ -125,14 +125,13 @@ async function writeSendCount(count: number): Promise<void> {
 function displayEmailDetails(result: any, sender: string, recipient: string, conversationId: string | null, attachCount: number): void {
     console.log(chalk.green.bold("\n📧 Email Sent Successfully! 📧"));
     console.log(chalk.cyan("═".repeat(60)));
-    console.log(chalk.yellow.bold("📅 Sent Date:"), chalk.white(new Date().toLocaleString('en-US', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit', timeZoneName: 'short' })));
     console.log(chalk.yellow.bold("📨 Message ID:"), chalk.white(result.messageId));
     console.log(chalk.yellow.bold("📝 Subject:"), chalk.white(`chatterbox test title${conversationId ? `:${conversationId}` : ""} ${(sendCount).toString().padStart(4, "0")}`));
     console.log(chalk.yellow.bold("👤 From:"), chalk.white(sender));
     console.log(chalk.yellow.bold("👥 To:"), chalk.white(recipient));
     console.log(chalk.yellow.bold("📄 Body:"));
     console.log(chalk.gray("─".repeat(40)));
-    console.log(chalk.white(`What is the definition of quantum froth?  Does it exist?  How did we find it or are we still looking to verify its existence?\n\nConversation ID: ${conversationId || "null"}\nAttachment count: ${attachCount}`));
+    console.log(chalk.white(`Body text\n\nConversation ID: ${conversationId || "null"}\nAttachment count: ${attachCount}`));
     console.log(chalk.gray("─".repeat(40)));
     
     if (attachCount > 0) {

@@ -8,29 +8,37 @@
     "build:mac": "tsc && mkdir -p dist/tokensite && cp -R src/html dist/tokensite",
     "build:clean": "rimraf dist && npm run build",
     "build": "npm run build:mac",
+
     "clean": "bin/clean.ps1",
     "format": "prettier --write \"{src,test}/**/*.ts\"",
+    
     "lint": "eslint \"{src,test}/**/*.{ts,js}\" --cache --fix",
     "lint:nofix": "eslint \"{src,test}/**/*.{ts,js}\" --cache",
     "lint:nofix:nocache": "eslint \"{src,test}/**/*.{ts,js}\"",
     "lint:nocache": "eslint \"{src,test}/**/*.{ts,js}\" --fix",
+    
     "install:create": "node scripts/install/create-installation.js",
     "install:init": "node scripts/install/initialize-system.js",
+    
     "mail:poll": "node dist/src/mail/timedPollGmail.js",
     "mail:poll:single": "node dist/src/mail/pollGmail.js",
     "mail:authorize": "ts-node src/mail/authorizeAll.ts",
     "mail:validate": "ts-node src/mail/authorizeGmail.ts",
+    
     "app:init": "npm run app:init:mail",
     "app:init:mail": "npm run mail:authorize",
     "app:setup:env": "bin/setup-env.sh",
+    
     "serve:start": "bin/serve-tokensite.zsh &",
     "serve:stop": "pkill -f 'http-server.*3000' || pkill -f 'python3.*http.server.*3000'",
     "serve:restart": "npm run serve:stop && sleep 2 && npm run serve:start",
+    
     "backup:local": "node scripts/backup-local-system.js",
     "backup:local:force": "node scripts/backup-local-system.js --force",
     "backup:local:custom": "node scripts/backup-local-system.js --backup-dir ./backups/custom",
     "backup:local:with-name": "node scripts/backup-local-system.js --name",
     "backup:local:with-notes": "node scripts/backup-local-system.js --notes",
+    
     "clean:local": "node scripts/clean-local-system.js",
     "clean:local:force": "node scripts/clean-local-system.js --force",
     "clean:local:wipe": "node scripts/clean-local-system.js --wipe",
@@ -38,9 +46,11 @@
     "clean:local:backup": "node scripts/clean-local-system.js --backup-dir ./backups/custom",
     "clean:local:with-name": "node scripts/clean-local-system.js --name",
     "clean:local:with-notes": "node scripts/clean-local-system.js --notes",
+    
     "restore:local": "node scripts/restore-local-system.js",
     "restore:local:force": "node scripts/restore-local-system.js --force",
     "restore:local:custom": "node scripts/restore-local-system.js ./backups/custom",
+    
     "aws:check-prerequisites": "node scripts/aws/check-prerequisites.js",
     "aws:setup-user": "node scripts/aws/setup-user.js",
     "aws:configure": "node scripts/aws/configure-aws.js",
@@ -67,14 +77,17 @@
     "aws:untaint": "cd Cloud/AWS/terraform && terraform untaint",
     "aws:console": "cd Cloud/AWS/terraform && terraform console",
     "aws:graph": "cd Cloud/AWS/terraform && terraform graph",
+    
     "aws:workspace:list": "cd Cloud/AWS/terraform && terraform workspace list",
     "aws:workspace:new": "cd Cloud/AWS/terraform && terraform workspace new",
     "aws:workspace:select": "cd Cloud/AWS/terraform && terraform workspace select",
     "aws:workspace:delete": "cd Cloud/AWS/terraform && terraform workspace delete",
+    
     "aws:setup": "npm run aws:check-prerequisites && npm run aws:setup-backend && npm run aws:init && npm run aws:validate && npm run aws:format",
     "aws:deploy": "npm run aws:validate && npm run aws:format && npm run aws:plan && npm run aws:plan:summary",
     "aws:deploy:auto": "npm run aws:validate && npm run aws:format && npm run aws:plan && npm run aws:apply:auto",
     "aws:validate:infrastructure": "node scripts/aws/validate-infrastructure.js",
+    
     "aws:test:resources": "node scripts/aws/test-resources.js",
     "aws:test:vpc": "node scripts/aws/test-vpc.js",
     "aws:test:dynamodb": "node scripts/aws/test-dynamodb.js",
@@ -86,58 +99,64 @@
     "aws:test:all": "npm run aws:test:vpc && npm run aws:test:dynamodb && npm run aws:test:s3 && npm run aws:test:secrets && npm run aws:test:parameters && npm run aws:test:iam && npm run aws:test:cloudwatch",
     "aws:lambda:build": "node scripts/aws/build-lambda.js",
     "aws:lambda:deploy": "npm run aws:lambda:build && npm run aws:deploy:auto",
-    "aws:lambda:test": "node scripts/aws/test-lambda.js",    "aws:cleanup": "node scripts/aws/cleanup.js",
+    "aws:lambda:test": "node scripts/aws/test-lambda.js",    
+    "aws:cleanup": "node scripts/aws/cleanup.js",
     "aws:cleanup:user": "node scripts/aws/cleanup-user.js",
     "aws:cleanup:bucket": "node scripts/aws/cleanup-bucket.js",
-    "aws:teardown": "node scripts/aws-teardown.js",
+    
+    "aws:teardown": "node Cloud/AWS/scripts/aws-manager.js teardown",
+    
     "aws:migrate:secrets": "node scripts/aws/migrate-secrets.js",
     "aws:smart-migrate": "node scripts/aws/smart-migrate-secrets.js",
     "aws:update:secret": "node scripts/aws/update-secret.js",
     "aws:rotate:secrets": "node scripts/aws/rotate-secrets.js",
     "aws:secrets:status": "node scripts/aws/rotate-secrets.js --status",
+    
     "aws:env:deploy": "node scripts/aws/manage-environments.js deploy",
     "aws:env:destroy": "node scripts/aws/manage-environments.js destroy",
     "aws:env:list": "node scripts/aws/manage-environments.js list",
     "aws:env:status": "node scripts/aws/manage-environments.js status",
-    "aws:env:deploy:dev": "node scripts/aws/manage-environments.js deploy development",
-    "aws:env:deploy:staging": "node scripts/aws/manage-environments.js deploy staging",
-    "aws:env:deploy:prod": "node scripts/aws/manage-environments.js deploy production",
-    "aws:env:destroy:dev": "node scripts/aws/manage-environments.js destroy development",
-    "aws:env:destroy:staging": "node scripts/aws/manage-environments.js destroy staging",
-    "aws:env:destroy:prod": "node scripts/aws/manage-environments.js destroy production",
+    
     "aws:migrate:secrets:env": "node scripts/aws/migrate-secrets-env.js",
-    "aws:migrate:secrets:env:dev": "node scripts/aws/migrate-secrets-env.js development",
-    "aws:migrate:secrets:env:staging": "node scripts/aws/migrate-secrets-env.js staging",
-    "aws:migrate:secrets:env:prod": "node scripts/aws/migrate-secrets-env.js production",
+    
     "aws:admin:create-group": "node scripts/aws/create-admin-group.js",
     "aws:admin:add-user": "node scripts/aws/add-admin-user.js",
     "aws:admin:test-user": "node scripts/aws/test-admin-permissions.js",
     "aws:admin:setup": "npm run aws:admin:create-group && npm run aws:admin:add-user",
+    
     "aws:setup-system": "node scripts/aws/setup-chatterbox-system.js",
     "aws:cleanup-system": "node scripts/aws/cleanup-chatterbox-system.js",
     "aws:system:setup": "npm run aws:setup-system",
     "aws:system:cleanup": "npm run aws:cleanup-system",
+    
     "aws:logs:enable": "export TF_LOG=DEBUG && export TF_LOG_PATH=terraform.log",
     "aws:logs:disable": "unset TF_LOG && unset TF_LOG_PATH",
     "aws:logs:show": "cd Cloud/AWS/terraform && tail -f terraform.log",
     "aws:logs:clear": "cd Cloud/AWS/terraform && rm -f terraform.log",
+    
     "aws:debug:plan": "npm run aws:logs:enable && npm run aws:plan && npm run aws:logs:disable",
     "aws:debug:apply": "npm run aws:logs:enable && npm run aws:apply && npm run aws:logs:disable",
+    
     "aws:cost:estimate": "node scripts/aws/cost-estimate.js",
     "aws:cost:analyze": "node scripts/aws/cost-analyze.js",
+    
     "aws:security:audit": "node scripts/aws/security-audit.js",
     "aws:security:scan": "node scripts/aws/security-scan.js",
+    
     "aws:backup:create": "node scripts/aws/backup-create.js",
     "aws:backup:restore": "node scripts/aws/backup-restore.js",
     "aws:backup:list": "node scripts/aws/backup-list.js",
+    
     "aws:monitor:setup": "node scripts/aws/monitor-setup.js",
     "aws:monitor:dashboard": "node scripts/aws/monitor-dashboard.js",
     "aws:monitor:alarms": "node scripts/aws/monitor-alarms.js",
+    
     "aws:update:variables": "node scripts/aws/update-variables.js",
     "aws:update:backend": "node scripts/aws/update-backend.js",
     "aws:update:modules": "node scripts/aws/update-modules.js",
     "aws:docs:generate": "node scripts/aws/generate-docs.js",
     "aws:docs:validate": "node scripts/aws/validate-docs.js",
+    
     "aws:ci:setup": "npm run aws:check-prerequisites && npm run aws:setup-backend && npm run aws:init",
     "aws:ci:validate": "npm run aws:validate && npm run aws:format:check",
     "aws:ci:plan": "npm run aws:plan",
@@ -146,12 +165,72 @@
     "aws:lambda:build": "node scripts/aws/build-lambda.js",
     "aws:lambda:deploy": "npm run aws:lambda:build && npm run aws:deploy:auto",
     "aws:lambda:test": "node scripts/aws/test-lambda.js",    "aws:ci:cleanup": "npm run aws:destroy:auto",
+    
+    "aws:build:lambda": "node scripts/aws/build-lambda.js",
+    "aws:deploy:lambda": "npm run aws:build:lambda && npm run aws:deploy:auto",
+    "aws:test:lambda": "node scripts/aws/test-lambda.js",
+    "aws:setup:lambda-env": "node scripts/aws/setup-lambda-env.js",
+    
+    "aws:build": "node Cloud/AWS/scripts/aws-manager.js build",
+    "aws:check": "node Cloud/AWS/scripts/aws-manager.js check",
+    "aws:backup": "node Cloud/AWS/scripts/aws-manager.js backup",
+    "aws:restore": "node Cloud/AWS/scripts/aws-manager.js restore",
+    "aws:migrate": "node Cloud/AWS/scripts/aws-manager.js migrate",
+    "aws:status": "node Cloud/AWS/scripts/aws-manager.js status",
+    "aws:logs": "node Cloud/AWS/scripts/aws-manager.js logs",
+    "aws:test": "node Cloud/AWS/scripts/aws-manager.js test",
+    "aws:help": "node Cloud/AWS/scripts/aws-manager.js",
+    
+    "aws:build:dev": "node Cloud/AWS/scripts/aws-manager.js build development",
+    "aws:build:staging": "node Cloud/AWS/scripts/aws-manager.js build staging",
+    "aws:build:prod": "node Cloud/AWS/scripts/aws-manager.js build production",
+    
+    "aws:teardown:dev": "node Cloud/AWS/scripts/aws-manager.js teardown development",
+    "aws:teardown:staging": "node Cloud/AWS/scripts/aws-manager.js teardown staging",
+    "aws:teardown:prod": "node Cloud/AWS/scripts/aws-manager.js teardown production",
+    
+    "aws:check:dev": "node Cloud/AWS/scripts/aws-manager.js check development",
+    "aws:check:staging": "node Cloud/AWS/scripts/aws-manager.js check staging",
+    "aws:check:prod": "node Cloud/AWS/scripts/aws-manager.js check production",
+    
+    "aws:backup:dev": "node Cloud/AWS/scripts/aws-manager.js backup development",
+    "aws:backup:staging": "node Cloud/AWS/scripts/aws-manager.js backup staging",
+    "aws:backup:prod": "node Cloud/AWS/scripts/aws-manager.js backup production",
+    
+    "aws:restore:dev": "node Cloud/AWS/scripts/aws-manager.js restore development",
+    "aws:restore:staging": "node Cloud/AWS/scripts/aws-manager.js restore staging",
+    "aws:restore:prod": "node Cloud/AWS/scripts/aws-manager.js restore production",
+    
+    "aws:migrate:dev-to-staging": "node Cloud/AWS/scripts/aws-manager.js migrate development staging",
+    "aws:migrate:staging-to-prod": "node Cloud/AWS/scripts/aws-manager.js migrate staging production",
+    
+    "aws:logs:dev": "node Cloud/AWS/scripts/aws-manager.js logs development",
+    "aws:logs:staging": "node Cloud/AWS/scripts/aws-manager.js logs staging",
+    "aws:logs:prod": "node Cloud/AWS/scripts/aws-manager.js logs production",
+    
+    "aws:test:dev": "node Cloud/AWS/scripts/aws-manager.js test development",
+    "aws:test:staging": "node Cloud/AWS/scripts/aws-manager.js test staging",
+    "aws:test:prod": "node Cloud/AWS/scripts/aws-manager.js test production",
+    
+    "aws:env:deploy:dev": "node scripts/aws/manage-environments.js deploy development",
+    "aws:env:deploy:staging": "node scripts/aws/manage-environments.js deploy staging",
+    "aws:env:deploy:prod": "node scripts/aws/manage-environments.js deploy production",
+    
+    "aws:env:destroy:dev": "node scripts/aws/manage-environments.js destroy development",
+    "aws:env:destroy:staging": "node scripts/aws/manage-environments.js destroy staging",
+    "aws:env:destroy:prod": "node scripts/aws/manage-environments.js destroy production",
+    
+    "aws:migrate:secrets:env:dev": "node scripts/aws/migrate-secrets-env.js development",
+    "aws:migrate:secrets:env:staging": "node scripts/aws/migrate-secrets-env.js staging",
+    "aws:migrate:secrets:env:prod": "node scripts/aws/migrate-secrets-env.js production",
+    
     "aws:dev:setup": "npm run aws:setup",
     "aws:dev:deploy": "npm run aws:deploy",
     "aws:dev:test": "npm run aws:test:all",
     "aws:lambda:build": "node scripts/aws/build-lambda.js",
     "aws:lambda:deploy": "npm run aws:lambda:build && npm run aws:deploy:auto",
     "aws:lambda:test": "node scripts/aws/test-lambda.js",    "aws:dev:cleanup": "npm run aws:cleanup",
+    
     "aws:prod:setup": "npm run aws:setup",
     "aws:prod:deploy": "npm run aws:deploy:auto",
     "aws:prod:validate": "npm run aws:validate:infrastructure",
@@ -159,25 +238,42 @@
     "aws:prod:backup": "npm run aws:backup:create",
     "aws:prod:security": "npm run aws:security:audit",
     "aws:prod:cost": "npm run aws:cost:analyze",
+    
+    "aws:teardown:complete": "./Cloud/AWS/scripts/teardown-chatterbox.zsh",
+    "aws:teardown:complete:force": "./Cloud/AWS/scripts/teardown-chatterbox.zsh --force",
+    
+    "aws:inventory": "./Cloud/AWS/scripts/list-all-resources.zsh",
+    "aws:list-resources": "./Cloud/AWS/scripts/list-all-resources.zsh",
+    "aws:explorer": "./Cloud/AWS/scripts/aws-resource-explorer-simple.zsh",
+    "aws:explore": "./Cloud/AWS/scripts/aws-resource-explorer-simple.zsh",
+    "aws:explorer:complete": "./Cloud/AWS/scripts/aws-resource-explorer-complete.zsh",
+    "aws:explore:complete": "./Cloud/AWS/scripts/aws-resource-explorer-complete.zsh",
+    
     "log:monitor": "node scripts/monitor-admin-log.js",
     "log:monitor:tail": "node scripts/monitor-admin-log.js --tail",
     "log:monitor:all": "node scripts/monitor-admin-log.js --all",
     "log:monitor:lines": "node scripts/monitor-admin-log.js --lines",
     "log:test": "node -e \"const { logInfo, logBuild, logTeardown, logMultiLineTeardown } = require('./dist/utils/adminLogger'); logInfo('Test log entry', 'Testing logging system'); logBuild('Test build', 'Testing build logging'); logTeardown('Test teardown', 'Testing teardown logging'); logMultiLineTeardown('Test multiline', 'Line 1\\nLine 2\\nLine 3'); console.log('Logging test complete');\"",
     "log:test:full": "node scripts/test-logging.js",
+    "config:dump": "node scripts/dump-config.js",
+    "config:show": "npm run config:dump",
+    
     "test:all": "jest",
     "test:completion": "node dist/test/testOpenAiCompletion.js",
+    
     "test:dialog": "ts-node test/dialogAgent.test.ts",
     "test:dialog:basic": "node dist/src/openai/dialogAgent.js \"What is artificial intelligence?\"",
     "test:dialog:custom": "node dist/src/openai/dialogAgent.js \"Write a poem\" --instructions=\"You are a creative poet\"",
     "test:dialog:model": "node dist/src/openai/dialogAgent.js \"Explain quantum computing\" --model=gpt-4o-mini",
     "console:dialog": "ts-node src/openai/dialogConsole.ts",
     "console:dialog:build": "node dist/src/openai/dialogConsole.js",
+    
     "test:emailAgent": "jest test/emailAgent.test.ts",
     "test:agent": "ts-node test/askAgent.test.ts",
     "test:agent:basic": "node dist/src/openai/askAgent.js \"Explain quantum computing\"",
     "test:agent:native": "node dist/src/openai/askAgent.js \"What is machine learning?\" --format=native",
     "test:agent:custom": "node dist/src/openai/askAgent.js \"Write a haiku about coding\" --model=gpt-4o-mini",
+    
     "test:send:basic": "ts-node test/sendGmail.test.ts",
     "test:send:with-id": "ts-node test/sendGmail.test.ts --id 123e4567-e89b-12d3-a456-426614174000",
     "test:send:with-attachments": "ts-node test/sendGmail.test.ts --attach 2",
@@ -185,6 +281,10 @@
     "test:send:clean": "ts-node test/sendGmail.test.ts --clean",
     "test:send:list-ids": "ts-node test/sendGmail.test.ts --listids",
     "test:send:help": "ts-node test/sendGmail.test.ts --help",
+    
+    "test:lambda:integration": "ts-node test/lambdaIntegration.test.ts",
+    "test:latest:chatterbox": "ts-node test/getLatestChatterbox.test.ts",
+    
     "test:get": "jest test/getMail.test.ts --noStackTrace -- all",
     "test:get:ids": "jest test/getMail.test.ts --noStackTrace -- ids",
     "test:get:chatterbox": "jest test/getMail.test.ts --noStackTrace -- chatterbox",
@@ -227,10 +327,12 @@
     "@aws-sdk/client-cloudwatch-logs": "^3.835.0",
     "@aws-sdk/client-dynamodb": "^3.835.0",
     "@aws-sdk/client-iam": "^3.830.0",
+    "@aws-sdk/client-lambda": "^3.839.0",
     "@aws-sdk/client-s3": "^3.835.0",
     "@aws-sdk/client-secrets-manager": "^3.0.0",
     "@aws-sdk/client-ssm": "^3.830.0",
     "@aws-sdk/client-sts": "^3.835.0",
+    "aws-sdk": "^2.1692.0",
     "chalk": "^4.1.2",
     "dotenv": "^16.5.0",
     "googleapis": "^149.0.0",
@@ -242,7 +344,6 @@
     "openai": "^5.1.0"
   },
   "devDependencies": {
-    "@types/aws-lambda": "^8.10.150",
     "@types/eslint": "^8.56.10",
     "@types/jest": "^29.5.14",
     "@types/mailparser": "^3.4.4",

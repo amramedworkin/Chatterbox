@@ -16,7 +16,11 @@ resource "aws_iam_role" "chatterbox_role" {
   })
 
   tags = {
-    Name = "${var.environment}-chatterbox-role"
+    Name        = "${var.environment}-chatterbox-role"
+    Project     = "Chatterbox"
+    Environment = var.environment
+    Subsystem   = "core"
+    ManagedBy   = "Terraform"
   }
 }
 
@@ -45,6 +49,14 @@ resource "aws_iam_policy" "dynamodb_policy" {
       }
     ]
   })
+
+  tags = {
+    Name        = "${var.environment}-chatterbox-dynamodb-policy"
+    Project     = "Chatterbox"
+    Environment = var.environment
+    Subsystem   = "database"
+    ManagedBy   = "Terraform"
+  }
 }
 
 # IAM Policy for S3 Access
@@ -80,6 +92,14 @@ resource "aws_iam_policy" "s3_policy" {
       }
     ]
   })
+
+  tags = {
+    Name        = "${var.environment}-chatterbox-s3-policy"
+    Project     = "Chatterbox"
+    Environment = var.environment
+    Subsystem   = "storage"
+    ManagedBy   = "Terraform"
+  }
 }
 
 # IAM Policy for Secrets Manager Access
@@ -101,6 +121,14 @@ resource "aws_iam_policy" "secrets_policy" {
       }
     ]
   })
+
+  tags = {
+    Name        = "${var.environment}-chatterbox-secrets-policy"
+    Project     = "Chatterbox"
+    Environment = var.environment
+    Subsystem   = "security"
+    ManagedBy   = "Terraform"
+  }
 }
 
 # IAM Policy for Parameter Store Access
@@ -122,6 +150,14 @@ resource "aws_iam_policy" "parameter_store_policy" {
       }
     ]
   })
+
+  tags = {
+    Name        = "${var.environment}-chatterbox-parameter-store-policy"
+    Project     = "Chatterbox"
+    Environment = var.environment
+    Subsystem   = "configuration"
+    ManagedBy   = "Terraform"
+  }
 }
 
 # IAM Policy for CloudWatch Logs
@@ -145,6 +181,14 @@ resource "aws_iam_policy" "cloudwatch_policy" {
       }
     ]
   })
+
+  tags = {
+    Name        = "${var.environment}-chatterbox-cloudwatch-policy"
+    Project     = "Chatterbox"
+    Environment = var.environment
+    Subsystem   = "monitoring"
+    ManagedBy   = "Terraform"
+  }
 }
 
 # Attach policies to role
@@ -177,4 +221,12 @@ resource "aws_iam_role_policy_attachment" "cloudwatch_attachment" {
 resource "aws_iam_instance_profile" "chatterbox_profile" {
   name = "${var.environment}-chatterbox-profile"
   role = aws_iam_role.chatterbox_role.name
+
+  tags = {
+    Name        = "${var.environment}-chatterbox-profile"
+    Project     = "Chatterbox"
+    Environment = var.environment
+    Subsystem   = "core"
+    ManagedBy   = "Terraform"
+  }
 } 

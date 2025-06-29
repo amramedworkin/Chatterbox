@@ -4,7 +4,11 @@ resource "aws_cloudwatch_log_group" "main" {
   retention_in_days = var.log_retention_days
 
   tags = {
-    Name = "${var.environment}-${var.log_group_name}"
+    Name        = "${var.environment}-chatterbox-logs"
+    Project     = "Chatterbox"
+    Environment = var.environment
+    Subsystem   = "monitoring"
+    ManagedBy   = "Terraform"
   }
 }
 
@@ -54,7 +58,7 @@ resource "aws_cloudwatch_dashboard" "main" {
 
 # CloudWatch Alarms
 resource "aws_cloudwatch_metric_alarm" "dynamodb_errors" {
-  alarm_name          = "${var.environment}-dynamodb-errors"
+  alarm_name          = "${var.environment}-chatterbox-dynamodb-errors"
   comparison_operator = "GreaterThanThreshold"
   evaluation_periods  = "2"
   metric_name         = "Errors"
@@ -68,10 +72,18 @@ resource "aws_cloudwatch_metric_alarm" "dynamodb_errors" {
   dimensions = {
     TableName = var.dynamodb_table_name
   }
+
+  tags = {
+    Name        = "${var.environment}-chatterbox-dynamodb-errors"
+    Project     = "Chatterbox"
+    Environment = var.environment
+    Subsystem   = "monitoring"
+    ManagedBy   = "Terraform"
+  }
 }
 
 resource "aws_cloudwatch_metric_alarm" "s3_errors" {
-  alarm_name          = "${var.environment}-s3-errors"
+  alarm_name          = "${var.environment}-chatterbox-s3-errors"
   comparison_operator = "GreaterThanThreshold"
   evaluation_periods  = "2"
   metric_name         = "Errors"
@@ -84,5 +96,13 @@ resource "aws_cloudwatch_metric_alarm" "s3_errors" {
 
   dimensions = {
     BucketName = var.s3_bucket_name
+  }
+
+  tags = {
+    Name        = "${var.environment}-chatterbox-s3-errors"
+    Project     = "Chatterbox"
+    Environment = var.environment
+    Subsystem   = "monitoring"
+    ManagedBy   = "Terraform"
   }
 } 
