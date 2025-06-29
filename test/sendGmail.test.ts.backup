@@ -1,0 +1,419 @@
+// test/sendGmail.test.ts
+// Pure TypeScript test using the new sendGmail.ts functionality
+import { promises as fs } from 'fs';
+import path from 'path';
+import chalk from 'chalk';
+// Load configuration from loadConfig.js.
+import config from '../src/loadConfig';
+
+// Import the new sendGmail functionality
+import { sendTestEmail } from '../src/mail/sendGmail';
+import { authorizeGmail } from '../src/mail/authorizeGmail';
+// --- Global Variables (Managed by main function and persistence) ---
+// Default sender email address from config. Overridden by persistence/param.
+let gmailUser: string = config.app.defaultSendGmailUser;
+// Default recipient email address from config. Overridden by persistence/param.
+let currentRecipientEmail: string = config.sendTest.defaultRecipient;
+// Persistent counter for emails sent.
+let sendCount: number = 0;
+
+/**
+ * Checks if a file exists asynchronously.
+ * @param {string} filePath The path to the file.
+ * @returns {Promise<boolean>} True if file exists, false otherwise.
+ */
+async function fileExists(filePath: string): Promise<boolean> {
+    try {
+        await fs.access(filePath);
+        return true;
+    } catch {
+        return false;
+    }
+}
+
+/**
+ * Reads the persistently stored sender email address.
+ * @returns {Promise<string|null>} The sender email, or null if not found.
+ */
+async function readSenderEmail(): Promise<string | null> {
+    try {
+        if (await fileExists(config.sendTest.senderEmailPath)) {
+            return (await fs.readFile(config.sendTest.senderEmailPath, 'utf8')).trim();
+        }
+    } catch (err) {
+        console.error(`Error reading sender email file (${config.sendTest.senderEmailPath}):`, err);
+    }
+    return null;
+}
+
+/**
+ * Writes the sender email address to a file.
+ * @param {string} email The email address to write.
+ */
+async function writeSenderEmail(email: string): Promise<void> {
+    try {
+        await fs.mkdir(path.dirname(config.sendTest.senderEmailPath), { recursive: true });
+        await fs.writeFile(config.sendTest.senderEmailPath, email, 'utf8');
+        console.log(`Sender email persisted to: ${config.sendTest.senderEmailPath}`);
+    } catch (err) {
+        console.error(`Error writing sender email file (${config.sendTest.senderEmailPath}):`, err);
+    }
+}
+
+/**
+ * Reads the persistently stored recipient email address.
+ * @returns {Promise<string|null>} The recipient email, or null if not found.
+ */
+async function readRecipientEmail(): Promise<string | null> {
+    try {
+        if (await fileExists(config.sendTest.recipientEmailPath)) {
+            return (await fs.readFile(config.sendTest.recipientEmailPath, 'utf8')).trim();
+        }
+    } catch (err) {
+        console.error(`Error reading recipient email file (${config.sendTest.recipientEmailPath}):`, err);
+    }
+    return null;
+}
+
+/**
+ * Writes the recipient email address to a file.
+ * @param {string} email The email address to write.
+ */
+async function writeRecipientEmail(email: string): Promise<void> {
+    try {
+        await fs.mkdir(path.dirname(config.sendTest.recipientEmailPath), { recursive: true });
+        await fs.writeFile(config.sendTest.recipientEmailPath, email, 'utf8');
+        console.log(`Recipient email persisted to: ${config.sendTest.recipientEmailPath}`);
+    } catch (err) {
+        console.error(`Error writing recipient email file (${config.sendTest.recipientEmailPath}):`, err);
+    }
+}
+
+/**
+ * Reads the persistent send count from a file.
+ * @returns {Promise<number>} The send count, or 0 if not found.
+ */
+async function readSendCount(): Promise<number> {
+    try {
+        if (await fileExists(config.sendTest.sendCountPath)) {
+            return parseInt(await fs.readFile(config.sendTest.sendCountPath, 'utf8'), 10);
+        }
+    } catch (err) {
+        console.error(`Error reading send count file (${config.sendTest.sendCountPath}):`, err);
+    }
+    return 0;
+}
+
+/**
+ * Writes the send count to a file.
+ * @param {number} count The count to write.
+ */
+async function writeSendCount(count: number): Promise<void> {
+    try {
+        await fs.mkdir(path.dirname(config.sendTest.sendCountPath), { recursive: true });
+        await fs.writeFile(config.sendTest.sendCountPath, count.toString(), 'utf8');
+        console.log(`Send count persisted to: ${config.sendTest.sendCountPath}`);
+    } catch (err) {
+        console.error(`Error writing send count file (${config.sendTest.sendCountPath}):`, err);
+    }
+}
+
+
+// Function to display email details attractively
+
+// Function to display email details attractively
+function displayEmailDetails(result: any, sender: string, recipient: string, conversationId: string | null, attachCount: number): void {
+    console.log(chalk.green.bold("\n📧 Email Sent Successfully! 📧"));
+    console.log(chalk.cyan("═".repeat(60)));
+    console.log(chalk.yellow.bold("📨 Message ID:"), chalk.white(result.messageId));
+    console.log(chalk.yellow.bold("📝 Subject:"), chalk.white(`chatterbox test title${conversationId ? `:${conversationId}` : ""} ${(sendCount).toString().padStart(4, "0")}`));
+    console.log(chalk.yellow.bold("👤 From:"), chalk.white(sender));
+    console.log(chalk.yellow.bold("👥 To:"), chalk.white(recipient));
+    console.log(chalk.yellow.bold("📄 Body:"));
+    console.log(chalk.gray("─".repeat(40)));
+    console.log(chalk.white(`Body text\n\nConversation ID: ${conversationId || "null"}\nAttachment count: ${attachCount}`));
+    console.log(chalk.gray("─".repeat(40)));
+    
+    if (attachCount > 0) {
+        console.log(chalk.yellow.bold("📎 Attachments:"));
+        for (let i = 1; i <= attachCount; i++) {
+            const attachmentName = `attachment_${i}.txt`;
+            console.log(chalk.blue(`  ${i}. ${attachmentName}`), chalk.gray("(test file)"));
+        }
+    } else {
+        console.log(chalk.yellow.bold("📎 Attachments:"), chalk.gray("None"));
+    }
+    
+    console.log(chalk.cyan("═".repeat(60)));
+    console.log(chalk.green.bold("✅ Email sent successfully!"));
+}
+async function main(): Promise<void> {
+    // Parse command-line arguments
+    const args: string[] = process.argv.slice(2);
+    const scriptName = path.basename(process.argv[1]);
+
+    // Function to display help message
+    const showHelp = (): void => {
+        console.log(`\nUsage: node ${scriptName} [options]`);
+        console.log('\nOptions:');
+        console.log('    --help, --?             Display this help message and exit.');
+        console.log(
+            '    --clean                 Reset sequential email numbering to 0000 and clear persisted sender/recipient. Deletes related files. Requires re-authorization.'
+        );
+        console.log(
+            '    --listids               List existing conversation IDs and generate sample commands.'
+        );
+        console.log(
+            '    --id <guid>             Specify a conversation ID (GUID) to include in the subject.'
+        );
+        console.log(
+            '    --attach <int>          Number of attachments to include (e.g., 0, 1, 2, 3...).'
+        );
+        console.log(
+            `    --sender <address>      Specify the sender email address. Default: ${config.app.defaultSendGmailUser}. Changes trigger automatic re-authorization.`
+        );
+        console.log(
+            `    --to <address>          Specify the recipient email address. Default: ${config.sendTest.defaultRecipient}.`
+        );
+        console.log('\nExamples:');
+        console.log(`    node ${scriptName}`);
+        console.log(`    node ${scriptName} --id 123e4567-e89b-12d3-a456-426614174000`);
+        console.log(`    node ${scriptName} --attach 2`);
+        console.log(`    node ${scriptName} --clean`);
+        console.log(`    node ${scriptName} --listids`);
+        console.log(
+            `    node ${scriptName} --sender test@example.com --to destination@example.com --attach 1`
+        );
+        process.exit(0);
+    };
+
+    // Check for help flag first
+    if (args.includes('--help') || args.includes('--?')) {
+        showHelp();
+    }
+
+    // Handle --listids flag (requires access to INTERACTIONS_BASE_FOLDER which is in config)
+    if (args.includes('--listids')) {
+        console.log(`\nListing conversation folders in: ${config.app.interactionsBaseFolder}`);
+        try {
+            const conversationDirs = await fs.readdir(config.app.interactionsBaseFolder, {
+                withFileTypes: true,
+            });
+            let foundFolders = false;
+
+            for (const dirent of conversationDirs) {
+                if (dirent.isDirectory()) {
+                    foundFolders = true;
+                    const listedConversationId = dirent.name; // Declare with a new variable name
+                    const conversationPath = path.join(
+                        config.app.interactionsBaseFolder,
+                        listedConversationId // Use the declared variable
+                    );
+                    let subfolderCount = 0;
+
+                    try {
+                        const subfolders = await fs.readdir(conversationPath, {
+                            withFileTypes: true,
+                        });
+                        subfolderCount = subfolders.filter(
+                            (subDirent) => subDirent.isDirectory() && /^\d{3}$/.test(subDirent.name)
+                        ).length;
+                    } catch (readSubDirErr: unknown) {
+                        // Ignore error if subfolder cannot be read (e.g., permissions)
+                        const error = readSubDirErr as Error;
+                        console.warn(
+                            `    Warning: Could not read subfolders for ${listedConversationId}: ${error.message}`
+                        );
+                    }
+                    console.log(
+                        `conversationId: ${listedConversationId}, sub-folder count=[${subfolderCount}], command= node ${scriptName} --id ${listedConversationId} --attach 0`
+                    );
+                }
+            }
+            if (!foundFolders) {
+                console.log('No conversation folders found.');
+            }
+        } catch (err: unknown) {
+            const error = err as NodeJS.ErrnoException;
+            if (error.code === 'ENOENT') {
+                console.log(
+                    `Interactions folder (${config.app.interactionsBaseFolder}) not found. No conversation folders to list.`
+                );
+            } else {
+                console.error('Error listing conversation folders:', error.message);
+            }
+        }
+        process.exit(0); // Exit after listing
+    }
+
+    // Handle --clean flag
+    if (args.includes('--clean')) {
+        console.log('Detected --clean flag. Deleting persistence files...');
+        try {
+            if (await fileExists(config.sendTest.lastSentEmailNumberPath)) {
+                await fs.unlink(config.sendTest.lastSentEmailNumberPath);
+                console.log(
+                    `Deleted ${config.sendTest.lastSentEmailNumberPath}. Sequential numbering will restart at 0001.`
+                );
+            }
+            if (await fileExists(config.google.pollTokenPath)) {
+                await fs.unlink(config.google.pollTokenPath);
+                console.log(
+                    `Deleted ${config.google.pollTokenPath}. Re-authorization will be required.`
+                );
+            }
+            if (await fileExists(config.sendTest.senderEmailPath)) {
+                await fs.unlink(config.sendTest.senderEmailPath);
+                console.log(
+                    `Deleted ${config.sendTest.senderEmailPath}. Sender will revert to default or --sender value.`
+                );
+            }
+            if (await fileExists(config.sendTest.recipientEmailPath)) {
+                await fs.unlink(config.sendTest.recipientEmailPath);
+                console.log(
+                    `Deleted ${config.sendTest.recipientEmailPath}. Recipient will revert to default or --to value.`
+                );
+            }
+            if (await fileExists(config.sendTest.sendCountPath)) {
+                await fs.unlink(config.sendTest.sendCountPath);
+                console.log(
+                    `Deleted ${config.sendTest.sendCountPath}. Send count will restart at 0.`
+                );
+            }
+        } catch (err) {
+            console.error('Error during clean operation:', err);
+            process.exit(1);
+        }
+        process.exit(0); // Exit after cleaning
+    }
+
+    // Initialize these based on defaults from config, they will be overridden by persistence/params
+    // gmailUser and currentRecipientEmail are already global and initialized from config at top
+
+    // --- Persistence and Parameter Handling for Sender, Recipient, and Send Count ---
+
+    // Read persisted sender email first
+    const persistedSender = await readSenderEmail();
+    if (persistedSender) {
+        gmailUser = persistedSender; // Update global gmailUser
+    }
+
+    // Parse --sender parameter
+    let forceReauthorization = false;
+    const senderFlagIndex = args.indexOf('--sender');
+    if (senderFlagIndex > -1 && args[senderFlagIndex + 1]) {
+        const newSender = args[senderFlagIndex + 1].toLowerCase();
+        if (newSender !== gmailUser) {
+            // Check if new sender is different from current/persisted
+            console.log(
+                `Sender email changed from "${gmailUser}" to "${newSender}". This requires re-authorization.`
+            );
+            gmailUser = newSender; // Update global gmailUser
+            forceReauthorization = true;
+        }
+    }
+    await writeSenderEmail(gmailUser); // Persist the final sender email
+
+    // Read persisted recipient email
+    const persistedRecipient = await readRecipientEmail();
+    if (persistedRecipient) {
+        currentRecipientEmail = persistedRecipient; // Update global currentRecipientEmail
+    }
+
+    // Parse --to parameter
+    const toFlagIndex = args.indexOf('--to');
+    if (toFlagIndex > -1 && args[toFlagIndex + 1]) {
+        currentRecipientEmail = args[toFlagIndex + 1].toLowerCase(); // Update global currentRecipientEmail
+    }
+    await writeRecipientEmail(currentRecipientEmail); // Persist the final recipient email
+
+    // Read persistent send count
+    sendCount = await readSendCount();
+    sendCount++; // Increment for this run
+    await writeSendCount(sendCount); // Persist the new count
+
+    // --- Logging initial parameters and counts ---
+    console.log(`FROM: ${gmailUser}`);
+    console.log(`TO: ${currentRecipientEmail}`);
+    console.log(`Send Count: ${sendCount}`);
+
+    // Declare conversationId and attachCount here, before they are used.
+    let conversationId: string | null = null; // Initialize to null
+    let attachCount: number = 0; // Initialize to 0
+
+    // Parse --id
+    const idFlagIndex = args.indexOf('--id');
+    if (idFlagIndex > -1 && args[idFlagIndex + 1]) {
+        conversationId = args[idFlagIndex + 1];
+        // Basic validation for GUID format (optional but good practice)
+        if (
+            !/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(
+                conversationId
+            )
+        ) {
+            console.warn(
+                `Warning: Provided --id "${conversationId}" does not appear to be a standard GUID format.`
+            );
+        }
+    } else {
+        conversationId = null; // Ensure it's explicitly null if no --id
+    }
+
+    // Parse --attach
+    const attachFlagIndex = args.indexOf('--attach');
+    if (attachFlagIndex > -1 && args[attachFlagIndex + 1]) {
+        const value = parseInt(args[attachFlagIndex + 1], 10);
+        if (!isNaN(value) && value >= 0) {
+            // Allow 0 attachments
+            attachCount = value;
+        } else {
+            console.warn(
+                `Invalid --attach value: ${args[attachFlagIndex + 1]}. No attachments will be included.`
+            );
+        }
+    }
+
+    console.log(`--attach count: ${attachCount}`);
+
+    // If sender email changed, force re-authorization by deleting token
+    if (forceReauthorization) {
+        console.log(
+            'Deleting token.json due to sender email change. Re-authorization required.'
+        );
+        try {
+            if (await fileExists(config.google.pollTokenPath)) {
+                await fs.unlink(config.google.pollTokenPath);
+            }
+        } catch (err) {
+            console.error('Error deleting token.json:', err);
+        }
+    }
+
+    try {
+        // Get authorization client for the sender email
+        console.log(`🔐 Getting authorization for: ${gmailUser}`);
+        const authClient = await authorizeGmail(gmailUser, config);
+        console.log(`✅ Authorization successful for: ${gmailUser}`);
+
+        // Use the new sendGmail functionality
+        const result = await sendTestEmail(
+            gmailUser,
+            currentRecipientEmail,
+            conversationId || undefined,
+            attachCount,
+            authClient
+        );
+
+        if (result.success) {
+            displayEmailDetails(result, gmailUser, currentRecipientEmail, conversationId, attachCount);
+        } else {
+            console.error(`❌ Failed to send test email: ${result.error}`);
+            process.exit(1);
+        }
+    } catch (err) {
+        console.error('Failed to send test email:', err);
+        process.exit(1);
+    }
+}
+
+main();

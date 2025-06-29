@@ -22,7 +22,7 @@ Chatterbox is a TypeScript-based application that combines Gmail API integration
 
 Before setting up Chatterbox, review the complete system requirements:
 
-📋 **[System Requirements Consolidation](SYSTEM_REQUIREMENTS_CONSOLIDATION.md)** - Complete guide to all required and optional components
+📋 **[System Requirements Consolidation](docs/SYSTEM_REQUIREMENTS_CONSOLIDATION.md)** - Complete guide to all required and optional components
 
 ### Required Components
 
@@ -93,9 +93,9 @@ Before setting up Chatterbox, review the complete system requirements:
 ## Documentation
 
 ### Core Documentation
-- **[System Requirements](SYSTEM_REQUIREMENTS_CONSOLIDATION.md)** - Complete setup requirements
-- **[Scripts Reference](SCRIPTS_README.md)** - All available npm scripts
-- **[Environment Management](ENVIRONMENT_SYSTEM_SUMMARY.md)** - Environment setup guide
+- **[System Requirements](docs/SYSTEM_REQUIREMENTS_CONSOLIDATION.md)** - Complete setup requirements
+- **[Scripts Reference](docs/SCRIPTS_README.md)** - All available npm scripts
+- **[Environment Management](docs/ENVIRONMENT_SYSTEM_SUMMARY.md)** - Environment setup guide
 
 ### AWS Documentation
 - **[AWS Setup Guide](Cloud/AWS/README.md)** - Complete AWS infrastructure setup
@@ -103,8 +103,8 @@ Before setting up Chatterbox, review the complete system requirements:
 - **[Final Product Spec](Cloud/AWS/FINAL_PRODUCT_SPEC.md)** - Complete infrastructure specification
 
 ### Local System Management
-- **[Local System Clean](LOCAL_SYSTEM_CLEAN.md)** - Clean system documentation
-- **[Local System Backup](LOCAL_SYSTEM_BACKUP.md)** - Backup system documentation
+- **[Local System Clean](docs/LOCAL_SYSTEM_CLEAN.md)** - Clean system documentation
+- **[Local System Backup](docs/LOCAL_SYSTEM_BACKUP.md)** - Backup system documentation
 
 ## Architecture
 
@@ -143,10 +143,37 @@ Chatterbox/
 
 [Add your license information here]
 
-## Support
 
-For setup issues, refer to the **[System Requirements Consolidation](SYSTEM_REQUIREMENTS_CONSOLIDATION.md)** document first. For additional help:
+## Documentation Index
 
-- Check the documentation in each component directory
-- Review the AWS setup guide for infrastructure issues
-- Examine the scripts documentation for available commands 
+| ID | Document | Description |
+|----|----------|-------------|
+| 1 | [Environment System Summary](docs/ENVIRONMENT_SYSTEM_SUMMARY.md) | Overview of environment management and system architecture |
+| 2 | [Installation Guide](docs/INSTALLATION_GUIDE.md) | Step-by-step installation and setup instructions |
+| 3 | [Lambda Setup Summary](docs/LAMBDA_SETUP_SUMMARY.md) | AWS Lambda function setup and configuration guide |
+| 4 | [Local System Backup Summary](docs/LOCAL_SYSTEM_BACKUP_SUMMARY.md) | Summary of local system backup procedures and capabilities |
+| 5 | [Local System Backup](docs/LOCAL_SYSTEM_BACKUP.md) | Complete guide to backing up local system configuration and data |
+| 6 | [Local System Clean Summary](docs/LOCAL_SYSTEM_CLEAN_SUMMARY.md) | Summary of local system cleaning procedures and capabilities |
+| 7 | [Local System Clean](docs/LOCAL_SYSTEM_CLEAN.md) | Complete guide to cleaning sensitive data and resetting local system |
+| 8 | [Scripts README](docs/SCRIPTS_README.md) | Comprehensive reference for all available npm scripts and commands |
+| 9 | [System Orchestration Guide](docs/SYSTEM_ORCHESTRATION_GUIDE.md) | Guide to orchestrating and managing the complete system |
+| 10 | [System Requirements Consolidation](docs/SYSTEM_REQUIREMENTS_CONSOLIDATION.md) | Complete guide to all required and optional system components |
+| 11 | [Interactions README](docs/interactions/README.md) | Documentation for user interactions and interface components |
+| 12 | [Azure Cloud Setup](docs/Cloud/Azure/README.md) | Microsoft Azure cloud infrastructure setup and configuration |
+| 13 | [GCP Setup Guide](docs/Cloud/GCP/GCP_SETUP_README.md) | Google Cloud Platform setup and configuration guide |
+| 14 | [AWS Lambda README](docs/Cloud/AWS/LAMBDA_README.md) | AWS Lambda function documentation and usage guide |
+| 15 | [AWS Final Product Specification](docs/Cloud/AWS/FINAL_PRODUCT_SPEC.md) | Complete AWS infrastructure product specification |
+| 16 | [AWS Buildout Improvements](docs/Cloud/AWS/AWS_BUILDOUT_IMPROVEMENTS.md) | Improvements and enhancements to AWS infrastructure buildout |
+| 17 | [AWS Secrets Migration](docs/Cloud/AWS/SECRETS_MIGRATION.md) | Guide for migrating secrets to AWS Secrets Manager |
+| 18 | [AWS Complete Teardown Guide](docs/Cloud/AWS/COMPLETE_TEARDOWN_GUIDE.md) | Comprehensive guide for completely removing AWS infrastructure |
+| 19 | [AWS Teardown](docs/Cloud/AWS/AWS_TEARDOWN.md) | AWS infrastructure teardown procedures and scripts |
+| 20 | [AWS Architecture Summary](docs/Cloud/AWS/ARCHITECTURE_SUMMARY.md) | Overview of AWS infrastructure architecture and components |
+| 21 | [AWS README](docs/Cloud/AWS/README.md) | Main AWS infrastructure documentation and setup guide |
+| 22 | [AWS Environment Management](docs/Cloud/AWS/ENVIRONMENT_MANAGEMENT.md) | Guide for managing multiple AWS environments (dev/staging/prod) |
+| 23 | [AWS Consolidation Summary](docs/Cloud/AWS/CONSOLIDATION_SUMMARY.md) | Summary of AWS infrastructure consolidation efforts |
+| 24 | [AWS Consolidated README](docs/Cloud/AWS/CONSOLIDATED_AWS_README.md) | Consolidated AWS documentation and management guide |
+| 25 | [Scripts Dump Config](docs/scripts/dump-config.md) | Documentation for configuration dumping scripts and utilities |
+| 26 | [Mail Module README](docs/src/mail/README.md) | Gmail integration module documentation and API reference |
+| 27 | [OpenAI Dialog Console](docs/src/openai/dialogConsole.md) | Console-based dialog interface for OpenAI interactions |
+| 28 | [OpenAI Dialog Agent](docs/src/openai/dialogAgent.md) | AI dialog agent implementation and configuration guide |
+| 29 | [OpenAI Module README](docs/src/openai/README.md) | OpenAI integration module documentation and usage guide |

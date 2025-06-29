@@ -216,3 +216,6 @@ override.tf.json
 # Ignore CLI configuration files
 .terraformrc
 terraform.rc
+
+# Ingnore the inventory files
+**/aws-resource-inventory*.*

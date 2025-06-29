@@ -3,6 +3,7 @@ import { promises as fs } from 'fs';
 import * as fsSync from 'fs';
 import path from 'path';
 import { OAuth2Client } from 'googleapis-common';
+import chalk from 'chalk';
 
 import config from '../loadConfig';
 
@@ -21,6 +22,13 @@ export interface SendEmailResult {
     success: boolean;
     messageId?: string;
     error?: string;
+    subject?: string;
+    body?: string;
+    attachments?: Array<{
+        name: string;
+        size: number;
+        path: string;
+    }>;
 }
 
 /**
@@ -215,6 +223,9 @@ export async function sendEmail(
         return {
             success: true,
             messageId: response.data.id || undefined,
+            subject,
+            body: bodyText,
+            attachments: actualAttachments.length > 0 ? actualAttachments.map(filename => ({ name: filename, size: 0, path: filename })) : undefined,
         };
     } catch (err: unknown) {
         const error = err as NodeJS.ErrnoException & { code?: number };
@@ -232,6 +243,9 @@ export async function sendEmail(
         return {
             success: false,
             error: error.message,
+            subject: '',
+            body: '',
+            attachments: undefined,
         };
     }
 }
@@ -278,7 +292,7 @@ export async function sendTestEmail(
     }
 
     const subject = `chatterbox test title`;
-    const body = `Body text\r\n\r\nConversation ID: ${conversationId || 'null'}\r\nAttachment count: ${attachCount}`;
+    const body = `What is the definition of quantum froth?  Does it exist?  How did we find it or are we still looking to verify its existence?\r\n\r\nConversation ID: ${conversationId || 'null'}\r\nAttachment count: ${attachCount}`;
 
     return sendEmail(senderEmail, {
         to: recipientEmail,

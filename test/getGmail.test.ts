@@ -19,6 +19,7 @@ import {
     GmailMessage,
     DateRange
 } from '../src/mail/getGmail';
+import { getEmailSentDateString, getEmailReceivedDateString } from '../src/mail/dateUtils';
 import { authorizeGmail } from '../src/mail/authorizeGmail';
 
 describe('Gmail Get Functions', () => {
@@ -156,6 +157,8 @@ describe('Gmail Get Functions', () => {
             expect(email).toHaveProperty('threadId');
             expect(email).toHaveProperty('labelIds');
             expect(Array.isArray(email.labelIds)).toBe(true);
+            console.log(`   📅 Sent Date: ${getEmailSentDateString(email)}`);
+            console.log(`   📅 Received Date: ${getEmailReceivedDateString(email)}`);
             
             console.log(`   Subject: ${getEmailSubject(email)}`);
             console.log(`   From: ${getEmailSender(email)}`);

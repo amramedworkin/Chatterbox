@@ -1,0 +1,13 @@
+{
+  "name": "chatterbox-email-reader-lambda",
+  "version": "1.0.0",
+  "description": "AWS Lambda function for reading Gmail messages",
+  "main": "index.js",
+  "dependencies": {
+    "@aws-sdk/client-secrets-manager": "^3.0.0",
+    "googleapis": "^128.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+} 

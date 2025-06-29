@@ -8,7 +8,7 @@ variable "environment" {
   description = "Environment (local, development, staging, production)"
   type        = string
   default     = "development"
-  
+
   validation {
     condition     = contains(["local", "development", "staging", "production"], var.environment)
     error_message = "Environment must be one of: local, development, staging, production."
@@ -30,25 +30,25 @@ variable "availability_zones" {
 variable "dynamodb_state_table_name" {
   description = "Name of DynamoDB table for state storage"
   type        = string
-  default     = "chatterbox-state"
+  default     = "chatterbox-state-table"
 }
 
 variable "s3_bucket_name" {
   description = "Name of S3 bucket for data storage"
   type        = string
-  default     = "chatterbox-data"
+  default     = "chatterbox-data-bucket"
 }
 
 variable "s3_backup_bucket_name" {
   description = "Name of S3 bucket for backups"
   type        = string
-  default     = "chatterbox-backups"
+  default     = "chatterbox-backup-bucket"
 }
 
 variable "secrets_gmail_tokens_name" {
   description = "Name of Secrets Manager secret for Gmail tokens"
   type        = string
-  default     = "chatterbox/gmail-tokens"
+  default     = "chatterbox-gmail-tokens"
 }
 
 variable "parameter_store_prefix" {

@@ -1,0 +1,429 @@
+@startuml Development Environment
+!theme plain
+title Chatterbox AWS Infrastructure - Development Environment
+
+package "Development Environment" {
+    package "VPC (10.0.0.0/16)" {
+        package "Public Subnets" {
+            node "Public Subnet A\n(10.0.1.0/24)" as pub_subnet_a
+            node "Public Subnet B\n(10.0.2.0/24)" as pub_subnet_b
+        }
+        
+        package "Private Subnets" {
+            node "Private Subnet A\n(10.0.10.0/24)" as priv_subnet_a
+            node "Private Subnet B\n(10.0.11.0/24)" as priv_subnet_b
+        }
+        
+        node "Internet Gateway" as igw
+        node "NAT Gateway A" as nat_a
+        node "NAT Gateway B" as nat_b
+        
+        node "VPC Endpoints" as vpc_endpoints {
+            node "S3 Endpoint" as s3_endpoint
+            node "DynamoDB Endpoint" as dynamodb_endpoint
+            node "Secrets Manager Endpoint" as secrets_endpoint
+            node "SSM Endpoint" as ssm_endpoint
+        }
+    }
+    
+    package "Compute & API" {
+        node "Lambda Function\n(development-chatterbox-email-reader)" as lambda_dev
+        node "API Gateway\n(HTTP API)" as api_gateway_dev
+    }
+    
+    package "Data Storage" {
+        database "DynamoDB\n(chatterbox-dev-state)" as dynamodb_dev
+        database "S3 Data Bucket\n(chatterbox-dev-data)" as s3_data_dev
+        database "S3 Backup Bucket\n(chatterbox-dev-backups)" as s3_backup_dev
+    }
+    
+    package "Security & Configuration" {
+        database "Secrets Manager" as secrets_dev {
+            node "Gmail Tokens\n(chatterbox-dev/gmail-tokens)" as gmail_secret_dev
+            node "Google Credentials\n(chatterbox-dev/google-credentials)" as google_secret_dev
+            node "OpenAI API Key\n(chatterbox-dev/openai-api-key)" as openai_secret_dev
+        }
+        
+        database "Parameter Store" as params_dev {
+            node "App Config\n(/chatterbox-dev/app-config)" as app_param_dev
+            node "Google Config\n(/chatterbox-dev/google-config)" as google_param_dev
+            node "OpenAI Config\n(/chatterbox-dev/openai-config)" as openai_param_dev
+            node "Polling Config\n(/chatterbox-dev/polling-config)" as polling_param_dev
+        }
+    }
+    
+    package "Monitoring" {
+        node "CloudWatch" as cloudwatch_dev {
+            node "Log Groups" as logs_dev
+            node "Dashboards" as dashboard_dev
+            node "Alarms" as alarms_dev
+        }
+    }
+    
+    package "IAM" {
+        node "IAM Roles" as iam_dev {
+            node "Lambda Execution Role\n(development-chatterbox-lambda-role)" as lambda_role_dev
+            node "Main Application Role\n(development-chatterbox-role)" as app_role_dev
+        }
+    }
+}
+
+' Connections
+internet --> igw
+igw --> pub_subnet_a
+igw --> pub_subnet_b
+pub_subnet_a --> nat_a
+pub_subnet_b --> nat_b
+nat_a --> priv_subnet_a
+nat_b --> priv_subnet_b
+
+lambda_dev --> priv_subnet_a
+api_gateway_dev --> lambda_dev
+
+lambda_dev --> dynamodb_dev
+lambda_dev --> s3_data_dev
+lambda_dev --> s3_backup_dev
+lambda_dev --> secrets_dev
+lambda_dev --> params_dev
+
+lambda_dev --> cloudwatch_dev
+lambda_dev --> iam_dev
+
+@enduml
+
+@startuml Staging Environment
+!theme plain
+title Chatterbox AWS Infrastructure - Staging Environment
+
+package "Staging Environment" {
+    package "VPC (10.1.0.0/16)" {
+        package "Public Subnets" {
+            node "Public Subnet A\n(10.1.1.0/24)" as pub_subnet_a
+            node "Public Subnet B\n(10.1.2.0/24)" as pub_subnet_b
+        }
+        
+        package "Private Subnets" {
+            node "Private Subnet A\n(10.1.10.0/24)" as priv_subnet_a
+            node "Private Subnet B\n(10.1.11.0/24)" as priv_subnet_b
+        }
+        
+        node "Internet Gateway" as igw
+        node "NAT Gateway A" as nat_a
+        node "NAT Gateway B" as nat_b
+        
+        node "VPC Endpoints" as vpc_endpoints {
+            node "S3 Endpoint" as s3_endpoint
+            node "DynamoDB Endpoint" as dynamodb_endpoint
+            node "Secrets Manager Endpoint" as secrets_endpoint
+            node "SSM Endpoint" as ssm_endpoint
+        }
+    }
+    
+    package "Compute & API" {
+        node "Lambda Function\n(staging-chatterbox-email-reader)" as lambda_staging
+        node "API Gateway\n(HTTP API)" as api_gateway_staging
+    }
+    
+    package "Data Storage" {
+        database "DynamoDB\n(chatterbox-staging-state)" as dynamodb_staging
+        database "S3 Data Bucket\n(chatterbox-staging-data)" as s3_data_staging
+        database "S3 Backup Bucket\n(chatterbox-staging-backups)" as s3_backup_staging
+    }
+    
+    package "Security & Configuration" {
+        database "Secrets Manager" as secrets_staging {
+            node "Gmail Tokens\n(chatterbox-staging/gmail-tokens)" as gmail_secret_staging
+            node "Google Credentials\n(chatterbox-staging/google-credentials)" as google_secret_staging
+            node "OpenAI API Key\n(chatterbox-staging/openai-api-key)" as openai_secret_staging
+        }
+        
+        database "Parameter Store" as params_staging {
+            node "App Config\n(/chatterbox-staging/app-config)" as app_param_staging
+            node "Google Config\n(/chatterbox-staging/google-config)" as google_param_staging
+            node "OpenAI Config\n(/chatterbox-staging/openai-config)" as openai_param_staging
+            node "Polling Config\n(/chatterbox-staging/polling-config)" as polling_param_staging
+        }
+    }
+    
+    package "Monitoring" {
+        node "CloudWatch" as cloudwatch_staging {
+            node "Log Groups" as logs_staging
+            node "Dashboards" as dashboard_staging
+            node "Alarms" as alarms_staging
+        }
+    }
+    
+    package "IAM" {
+        node "IAM Roles" as iam_staging {
+            node "Lambda Execution Role\n(staging-chatterbox-lambda-role)" as lambda_role_staging
+            node "Main Application Role\n(staging-chatterbox-role)" as app_role_staging
+        }
+    }
+}
+
+' Connections
+internet --> igw
+igw --> pub_subnet_a
+igw --> pub_subnet_b
+pub_subnet_a --> nat_a
+pub_subnet_b --> nat_b
+nat_a --> priv_subnet_a
+nat_b --> priv_subnet_b
+
+lambda_staging --> priv_subnet_a
+api_gateway_staging --> lambda_staging
+
+lambda_staging --> dynamodb_staging
+lambda_staging --> s3_data_staging
+lambda_staging --> s3_backup_staging
+lambda_staging --> secrets_staging
+lambda_staging --> params_staging
+
+lambda_staging --> cloudwatch_staging
+lambda_staging --> iam_staging
+
+@enduml
+
+@startuml Production Environment
+!theme plain
+title Chatterbox AWS Infrastructure - Production Environment
+
+package "Production Environment" {
+    package "VPC (10.2.0.0/16)" {
+        package "Public Subnets" {
+            node "Public Subnet A\n(10.2.1.0/24)" as pub_subnet_a
+            node "Public Subnet B\n(10.2.2.0/24)" as pub_subnet_b
+        }
+        
+        package "Private Subnets" {
+            node "Private Subnet A\n(10.2.10.0/24)" as priv_subnet_a
+            node "Private Subnet B\n(10.2.11.0/24)" as priv_subnet_b
+        }
+        
+        node "Internet Gateway" as igw
+        node "NAT Gateway A" as nat_a
+        node "NAT Gateway B" as nat_b
+        
+        node "VPC Endpoints" as vpc_endpoints {
+            node "S3 Endpoint" as s3_endpoint
+            node "DynamoDB Endpoint" as dynamodb_endpoint
+            node "Secrets Manager Endpoint" as secrets_endpoint
+            node "SSM Endpoint" as ssm_endpoint
+        }
+    }
+    
+    package "Compute & API" {
+        node "Lambda Function\n(production-chatterbox-email-reader)" as lambda_prod
+        node "API Gateway\n(HTTP API)" as api_gateway_prod
+    }
+    
+    package "Data Storage" {
+        database "DynamoDB\n(chatterbox-prod-state)" as dynamodb_prod
+        database "S3 Data Bucket\n(chatterbox-prod-data)" as s3_data_prod
+        database "S3 Backup Bucket\n(chatterbox-prod-backups)" as s3_backup_prod
+    }
+    
+    package "Security & Configuration" {
+        database "Secrets Manager" as secrets_prod {
+            node "Gmail Tokens\n(chatterbox-prod/gmail-tokens)" as gmail_secret_prod
+            node "Google Credentials\n(chatterbox-prod/google-credentials)" as google_secret_prod
+            node "OpenAI API Key\n(chatterbox-prod/openai-api-key)" as openai_secret_prod
+        }
+        
+        database "Parameter Store" as params_prod {
+            node "App Config\n(/chatterbox-prod/app-config)" as app_param_prod
+            node "Google Config\n(/chatterbox-prod/google-config)" as google_param_prod
+            node "OpenAI Config\n(/chatterbox-prod/openai-config)" as openai_param_prod
+            node "Polling Config\n(/chatterbox-prod/polling-config)" as polling_param_prod
+        }
+    }
+    
+    package "Monitoring" {
+        node "CloudWatch" as cloudwatch_prod {
+            node "Log Groups" as logs_prod
+            node "Dashboards" as dashboard_prod
+            node "Alarms" as alarms_prod
+        }
+    }
+    
+    package "IAM" {
+        node "IAM Roles" as iam_prod {
+            node "Lambda Execution Role\n(production-chatterbox-lambda-role)" as lambda_role_prod
+            node "Main Application Role\n(production-chatterbox-role)" as app_role_prod
+        }
+    }
+}
+
+' Connections
+internet --> igw
+igw --> pub_subnet_a
+igw --> pub_subnet_b
+pub_subnet_a --> nat_a
+pub_subnet_b --> nat_b
+nat_a --> priv_subnet_a
+nat_b --> priv_subnet_b
+
+lambda_prod --> priv_subnet_a
+api_gateway_prod --> lambda_prod
+
+lambda_prod --> dynamodb_prod
+lambda_prod --> s3_data_prod
+lambda_prod --> s3_backup_prod
+lambda_prod --> secrets_prod
+lambda_prod --> params_prod
+
+lambda_prod --> cloudwatch_prod
+lambda_prod --> iam_prod
+
+@enduml
+
+@startuml Consolidated Environments
+!theme plain
+title Chatterbox AWS Infrastructure - Consolidated Environment Management
+
+package "AWS Manager (Consolidated Control)" {
+    node "AWS Manager Script\n(aws-manager.js)" as aws_manager {
+        node "Build Commands" as build_cmds
+        node "Teardown Commands" as teardown_cmds
+        node "Check Commands" as check_cmds
+        node "Backup/Restore" as backup_cmds
+        node "Migration" as migrate_cmds
+    }
+}
+
+package "Terraform State Management" {
+    database "S3 Backend\n(chatterbox-terraform-state)" as terraform_backend
+    node "Environment Configs" as env_configs {
+        node "development.tfvars" as dev_config
+        node "staging.tfvars" as staging_config
+        node "production.tfvars" as prod_config
+    }
+}
+
+package "Development Environment" {
+    node "VPC (10.0.0.0/16)" as dev_vpc
+    node "Lambda (dev)" as dev_lambda
+    node "DynamoDB (dev)" as dev_dynamodb
+    node "S3 (dev)" as dev_s3
+    node "Secrets (dev)" as dev_secrets
+    node "Parameters (dev)" as dev_params
+}
+
+package "Staging Environment" {
+    node "VPC (10.1.0.0/16)" as staging_vpc
+    node "Lambda (staging)" as staging_lambda
+    node "DynamoDB (staging)" as staging_dynamodb
+    node "S3 (staging)" as staging_s3
+    node "Secrets (staging)" as staging_secrets
+    node "Parameters (staging)" as staging_params
+}
+
+package "Production Environment" {
+    node "VPC (10.2.0.0/16)" as prod_vpc
+    node "Lambda (prod)" as prod_lambda
+    node "DynamoDB (prod)" as prod_dynamodb
+    node "S3 (prod)" as prod_s3
+    node "Secrets (prod)" as prod_secrets
+    node "Parameters (prod)" as prod_params
+}
+
+package "Shared Components" {
+    node "Terraform Modules" as terraform_modules {
+        node "VPC Module" as vpc_module
+        node "Lambda Module" as lambda_module
+        node "DynamoDB Module" as dynamodb_module
+        node "S3 Module" as s3_module
+        node "Secrets Module" as secrets_module
+        node "Parameters Module" as params_module
+        node "CloudWatch Module" as cloudwatch_module
+        node "IAM Module" as iam_module
+    }
+}
+
+package "IAM Management" {
+    node "AWS Users" as aws_users {
+        node "cliadmin" as cliadmin_user
+    }
+    node "AWS Groups" as aws_groups {
+        node "chatterbox" as chatterbox_group
+    }
+}
+
+package "Backup & Recovery" {
+    database "Backup Storage\n(Cloud/AWS/backups)" as backup_storage
+    node "Backup Scripts" as backup_scripts
+    node "Restore Scripts" as restore_scripts
+}
+
+' Connections - Management Flow
+aws_manager --> terraform_backend
+aws_manager --> env_configs
+env_configs --> dev_config
+env_configs --> staging_config
+env_configs --> prod_config
+
+' Connections - Environment Deployment
+terraform_backend --> dev_vpc
+terraform_backend --> staging_vpc
+terraform_backend --> prod_vpc
+
+dev_config --> dev_lambda
+dev_config --> dev_dynamodb
+dev_config --> dev_s3
+dev_config --> dev_secrets
+dev_config --> dev_params
+
+staging_config --> staging_lambda
+staging_config --> staging_dynamodb
+staging_config --> staging_s3
+staging_config --> staging_secrets
+staging_config --> staging_params
+
+prod_config --> prod_lambda
+prod_config --> prod_dynamodb
+prod_config --> prod_s3
+prod_config --> prod_secrets
+prod_config --> prod_params
+
+' Connections - Shared Components
+terraform_modules --> dev_vpc
+terraform_modules --> staging_vpc
+terraform_modules --> prod_vpc
+
+terraform_modules --> dev_lambda
+terraform_modules --> staging_lambda
+terraform_modules --> prod_lambda
+
+terraform_modules --> dev_dynamodb
+terraform_modules --> staging_dynamodb
+terraform_modules --> prod_dynamodb
+
+terraform_modules --> dev_s3
+terraform_modules --> staging_s3
+terraform_modules --> prod_s3
+
+terraform_modules --> dev_secrets
+terraform_modules --> staging_secrets
+terraform_modules --> prod_secrets
+
+terraform_modules --> dev_params
+terraform_modules --> staging_params
+terraform_modules --> prod_params
+
+' Connections - IAM
+aws_manager --> aws_users
+aws_manager --> aws_groups
+cliadmin_user --> chatterbox_group
+
+' Connections - Backup
+aws_manager --> backup_storage
+backup_storage --> backup_scripts
+backup_storage --> restore_scripts
+
+' Migration Paths
+dev_secrets -.-> staging_secrets : Migration
+staging_secrets -.-> prod_secrets : Migration
+dev_params -.-> staging_params : Migration
+staging_params -.-> prod_params : Migration
+
+@enduml 

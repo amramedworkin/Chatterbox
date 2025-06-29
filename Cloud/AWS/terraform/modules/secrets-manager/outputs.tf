@@ -30,7 +30,7 @@ output "google_credentials_secret_arn" {
 
 output "secret_arns" {
   description = "List of all Secrets Manager ARNs"
-  value       = [
+  value = [
     aws_secretsmanager_secret.gmail_tokens.arn,
     aws_secretsmanager_secret.openai_api_key.arn,
     aws_secretsmanager_secret.google_credentials.arn

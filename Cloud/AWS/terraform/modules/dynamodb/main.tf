@@ -1,9 +1,9 @@
 # DynamoDB Table for State Storage
 resource "aws_dynamodb_table" "state" {
-  name           = var.state_table_name
-  billing_mode   = "PAY_PER_REQUEST"
-  hash_key       = "id"
-  stream_enabled = true
+  name             = "${var.environment}-${var.state_table_name}"
+  billing_mode     = "PAY_PER_REQUEST"
+  hash_key         = "id"
+  stream_enabled   = true
   stream_view_type = "NEW_AND_OLD_IMAGES"
 
   attribute {
@@ -46,7 +46,11 @@ resource "aws_dynamodb_table" "state" {
   }
 
   tags = {
-    Name = "${var.environment}-${var.state_table_name}"
+    Name        = "${var.environment}-${var.state_table_name}"
+    Project     = "Chatterbox"
+    Environment = var.environment
+    Subsystem   = "database"
+    ManagedBy   = "Terraform"
   }
 }
 
@@ -71,7 +75,7 @@ resource "aws_appautoscaling_target" "dynamodb_table_write_target" {
 
 # CloudWatch Alarms for DynamoDB
 resource "aws_cloudwatch_metric_alarm" "dynamodb_read_throttles" {
-  alarm_name          = "${var.environment}-${var.state_table_name}-read-throttles"
+  alarm_name          = "${var.environment}-chatterbox-dynamodb-read-throttles"
   comparison_operator = "GreaterThanThreshold"
   evaluation_periods  = "2"
   metric_name         = "ReadThrottleEvents"
@@ -85,10 +89,18 @@ resource "aws_cloudwatch_metric_alarm" "dynamodb_read_throttles" {
   dimensions = {
     TableName = aws_dynamodb_table.state.name
   }
+
+  tags = {
+    Name        = "${var.environment}-chatterbox-dynamodb-read-throttles"
+    Project     = "Chatterbox"
+    Environment = var.environment
+    Subsystem   = "monitoring"
+    ManagedBy   = "Terraform"
+  }
 }
 
 resource "aws_cloudwatch_metric_alarm" "dynamodb_write_throttles" {
-  alarm_name          = "${var.environment}-${var.state_table_name}-write-throttles"
+  alarm_name          = "${var.environment}-chatterbox-dynamodb-write-throttles"
   comparison_operator = "GreaterThanThreshold"
   evaluation_periods  = "2"
   metric_name         = "WriteThrottleEvents"
@@ -101,5 +113,13 @@ resource "aws_cloudwatch_metric_alarm" "dynamodb_write_throttles" {
 
   dimensions = {
     TableName = aws_dynamodb_table.state.name
+  }
+
+  tags = {
+    Name        = "${var.environment}-chatterbox-dynamodb-write-throttles"
+    Project     = "Chatterbox"
+    Environment = var.environment
+    Subsystem   = "monitoring"
+    ManagedBy   = "Terraform"
   }
 } 
