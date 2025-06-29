@@ -1,0 +1,76 @@
+AWS Resource Inventory - Sat Jun 28 03:03:49 EDT 2025
+Profile: cliadmin
+Region: us-east-1
+==========================================
+S3 Buckets:
+-----------
+No S3 buckets found
+
+DynamoDB Tables:
+---------------
+No DynamoDB tables found
+
+Lambda Functions:
+-----------------
+No Lambda functions found
+
+API Gateway APIs:
+-----------------
+No API Gateway APIs found
+
+Secrets Manager Secrets:
+----------------------
+No Secrets Manager secrets found
+
+SSM Parameters:
+--------------
+No SSM parameters found
+
+IAM Roles:
+---------
+Role: AWSReservedSSO_AdministratorAccess_6b505393a200d34a	AWSReservedSSO_PowerUserAccess_646eea8888cb381b	AWSServiceRoleForAPIGateway	AWSServiceRoleForOrganizations	AWSServiceRoleForResourceExplorer	AWSServiceRoleForSSO	AWSServiceRoleForSupport	AWSServiceRoleForTrustedAdvisor	development-chatterbox-lambda-role	development-chatterbox-role
+  Resource Group: N/A
+  Created: N/A
+
+
+IAM Users:
+---------
+User: chatteradmin	cliadmin	clipower
+  Resource Group: N/A
+  Created: N/A
+
+
+IAM Groups:
+----------
+Group: AdminAccess	chatteradmingrp	PowerUser
+  Resource Group: N/A
+  Created: N/A
+
+
+CloudWatch Log Groups:
+--------------------
+Log Group: /aws/chatterbox	/aws/lambda/development-chatterbox-email-reader
+  Resource Group: N/A
+  Created: N/A
+
+
+CloudWatch Alarms:
+-----------------
+Alarm: development-chatterbox-state-read-throttles	development-chatterbox-state-write-throttles	development-secrets-manager-errors
+  Resource Group: N/A
+  Created: None
+
+
+VPC Resources:
+-------------
+VPC: vpc-713ad115	vpc-0bbefd82febefcbe3
+  Resource Group: N/A
+  State: N/A
+
+
+Resource Groups:
+---------------
+No Resource Groups found
+
+==========================================
+Inventory completed at: Sat Jun 28 03:04:24 EDT 2025

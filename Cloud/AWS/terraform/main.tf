@@ -49,10 +49,11 @@ module "dynamodb" {
 module "s3" {
   source = "./modules/s3"
   
-  environment         = var.environment
-  bucket_name         = var.s3_bucket_name
-  backup_bucket_name  = var.s3_backup_bucket_name
-  iam_role_arn        = module.iam.role_arn
+  environment              = var.environment
+  bucket_name              = var.s3_bucket_name
+  backup_bucket_name       = var.s3_backup_bucket_name
+  email_archive_bucket_name = var.s3_email_archive_bucket_name
+  iam_role_arn             = module.iam.role_arn
 }
 
 # Secrets Manager
@@ -81,14 +82,40 @@ module "cloudwatch" {
 
 # IAM
 module "iam" {
-  source = "./modules/iam"
+
+# Lambda
+module "lambda" {
+  source = "./modules/lambda"
+  
+  environment                    = var.environment
+  gmail_tokens_secret_name       = var.secrets_gmail_tokens_name
+  google_credentials_secret_name = "chatterbox/google-credentials"
+  email_storage_bucket           = var.s3_email_archive_bucket_name
+  default_gmail_user             = "default@example.com"
+  iam_role_arn                   = module.iam.role_arn
+  cloudwatch_log_group_arn       = module.cloudwatch.log_group_arn
+}  source = "./modules/iam"
   
   environment              = var.environment
   dynamodb_table_arn       = module.dynamodb.table_arn
   s3_bucket_arn            = module.s3.bucket_arn
   s3_backup_bucket_arn     = module.s3.backup_bucket_arn
+  s3_email_archive_bucket_arn = module.s3.email_archive_bucket_arn
+  s3_email_archive_bucket_arn = module.s3.email_archive_bucket_arn
   secrets_arns             = module.secrets_manager.secret_arns
   parameter_store_arn      = module.parameter_store.parameter_arn
+  cloudwatch_log_group_arn = module.cloudwatch.log_group_arn
+}
+
+# Lambda
+module "lambda" {
+  source = "./modules/lambda"
+  
+  environment              = var.environment
+  gmail_tokens_secret_name = var.secrets_gmail_tokens_name
+  google_credentials_secret_name = "chatterbox/google-credentials"
+  email_storage_bucket     = var.s3_email_archive_bucket_name
+  iam_role_arn             = module.iam.role_arn
   cloudwatch_log_group_arn = module.cloudwatch.log_group_arn
 }
 
@@ -129,7 +156,21 @@ output "cloudwatch_log_group_name" {
 }
 
 output "iam_role_arn" {
-  description = "IAM Role ARN"
+
+output "lambda_function_name" {
+  description = "Lambda Function Name"
+  value       = module.lambda.function_name
+}
+
+output "lambda_function_arn" {
+  description = "Lambda Function ARN"
+  value       = module.lambda.function_arn
+}
+
+output "api_gateway_url" {
+  description = "API Gateway URL"
+  value       = module.lambda.api_gateway_url
+}  description = "IAM Role ARN"
   value       = module.iam.role_arn
 }
 

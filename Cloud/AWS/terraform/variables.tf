@@ -40,9 +40,19 @@ variable "s3_bucket_name" {
 }
 
 variable "s3_backup_bucket_name" {
-  description = "Name of S3 bucket for backups"
+variable "s3_email_archive_bucket_name" {
+  description = "Name of S3 bucket for email archive storage"
+  type        = string
+  default     = "chatterbox-email-archive"
+}  description = "Name of S3 bucket for backups"
   type        = string
   default     = "chatterbox-backups"
+}
+
+variable "s3_email_archive_bucket_name" {
+  description = "Name of S3 bucket for email archive storage"
+  type        = string
+  default     = "chatterbox-email-archive"
 }
 
 variable "secrets_gmail_tokens_name" {

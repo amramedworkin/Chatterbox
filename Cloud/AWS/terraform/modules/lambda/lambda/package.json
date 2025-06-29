@@ -1,0 +1,20 @@
+{
+  "name": "chatterbox-lambda",
+  "version": "1.0.0",
+  "description": "Lambda function for pulling latest Chatterbox email",
+  "main": "pullLatestChatterboxEmail.js",
+  "scripts": {
+    "build": "tsc",
+    "package": "npm run build && zip -r ../lambda.zip ."
+  },
+  "dependencies": {
+    "@aws-sdk/client-secrets-manager": "^3.0.0",
+    "@aws-sdk/client-s3": "^3.0.0",
+    "googleapis": "^120.0.0"
+  },
+  "devDependencies": {
+    "@types/aws-lambda": "^8.10.0",
+    "@types/node": "^18.0.0",
+    "typescript": "^4.9.0"
+  }
+}

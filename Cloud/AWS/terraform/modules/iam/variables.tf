@@ -16,7 +16,11 @@ variable "s3_bucket_arn" {
 }
 
 variable "s3_backup_bucket_arn" {
-  description = "S3 backup bucket ARN"
+variable "s3_email_archive_bucket_arn" {
+  description = "S3 email archive bucket ARN"
+  type        = string
+  default     = ""
+}  description = "S3 backup bucket ARN"
   type        = string
   default     = ""
 }

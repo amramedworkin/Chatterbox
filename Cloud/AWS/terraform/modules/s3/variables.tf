@@ -13,6 +13,11 @@ variable "backup_bucket_name" {
   type        = string
 }
 
+variable "email_archive_bucket_name" {
+  description = "Name of the S3 bucket for email archive storage"
+  type        = string
+}
+
 variable "iam_role_arn" {
   description = "ARN of the IAM role for Chatterbox application"
   type        = string

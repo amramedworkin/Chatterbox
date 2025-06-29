@@ -9,7 +9,7 @@ resource "aws_iam_role" "chatterbox_role" {
         Action = "sts:AssumeRole"
         Effect = "Allow"
         Principal = {
-          Service = "ec2.amazonaws.com"
+          Service = "lambda.amazonaws.com"
         }
       }
     ]
@@ -72,6 +72,9 @@ resource "aws_iam_policy" "s3_policy" {
           var.s3_bucket_arn,
           "${var.s3_bucket_arn}/*",
           var.s3_backup_bucket_arn,
+          "${var.s3_backup_bucket_arn}/*",
+          var.s3_email_archive_bucket_arn,
+          "${var.s3_email_archive_bucket_arn}/*"
           "${var.s3_backup_bucket_arn}/*"
         ]
       }
