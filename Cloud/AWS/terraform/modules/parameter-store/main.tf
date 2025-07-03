@@ -12,6 +12,7 @@ resource "aws_ssm_parameter" "app_config" {
     defaultSendGmailUser   = "amram.dworkin@gmail.com"
     defaultGetGmailUser    = "awsamram@gmail.com"
   })
+  overwrite = true
 
   tags = {
     Name        = "${var.environment}-chatterbox-app-config"
@@ -29,6 +30,7 @@ resource "aws_ssm_parameter" "polling_config" {
     defaultIntervalMinutes = 2.0
     defaultDurationMinutes = 60
   })
+  overwrite = true
 
   tags = {
     Name        = "${var.environment}-chatterbox-polling-config"

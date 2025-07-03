@@ -30,7 +30,6 @@ async function testAskAgent() {
         console.log('---\n');
 
         console.log('All tests completed successfully!');
-
     } catch (error) {
         console.error('Test failed:', error);
         process.exit(1);
@@ -42,4 +41,4 @@ if (require.main === module) {
     testAskAgent();
 }
 
-export { testAskAgent }; 
+export { testAskAgent };

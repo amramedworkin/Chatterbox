@@ -9,13 +9,13 @@ export function getEmailSentDate(message: GmailMessage): Date | null {
     if (!message.internalDate) {
         return null;
     }
-    
+
     // Gmail internalDate is in milliseconds since epoch
     const timestamp = parseInt(message.internalDate, 10);
     if (isNaN(timestamp)) {
         return null;
     }
-    
+
     return new Date(timestamp);
 }
 
@@ -43,7 +43,7 @@ export function formatEmailDate(date: Date): string {
         hour: '2-digit',
         minute: '2-digit',
         second: '2-digit',
-        timeZoneName: 'short'
+        timeZoneName: 'short',
     });
 }
 
@@ -65,4 +65,4 @@ export function getEmailSentDateString(message: GmailMessage): string {
 export function getEmailReceivedDateString(message: GmailMessage): string {
     const date = getEmailReceivedDate(message);
     return date ? formatEmailDate(date) : 'Unknown';
-} 
+}

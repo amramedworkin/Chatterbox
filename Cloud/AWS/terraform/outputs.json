@@ -1,0 +1,62 @@
+{
+  "api_gateway_id": {
+    "sensitive": false,
+    "type": "string",
+    "value": "03vnctju1i"
+  },
+  "cloudwatch_log_group_name": {
+    "sensitive": false,
+    "type": "string",
+    "value": "/aws/chatterbox"
+  },
+  "dynamodb_table_name": {
+    "sensitive": false,
+    "type": "string",
+    "value": "development-chatterbox-state-table"
+  },
+  "environment": {
+    "sensitive": false,
+    "type": "string",
+    "value": "development"
+  },
+  "iam_role_arn": {
+    "sensitive": false,
+    "type": "string",
+    "value": "arn:aws:iam::855581761117:role/development-chatterbox-role"
+  },
+  "lambda_function_name": {
+    "sensitive": false,
+    "type": "string",
+    "value": "development-pull-latest-chatterbox-email"
+  },
+  "parameter_store_prefix": {
+    "sensitive": false,
+    "type": "string",
+    "value": "/chatterbox"
+  },
+  "resource_group_name": {
+    "sensitive": false,
+    "type": "string",
+    "value": "development-chatterbox-resources"
+  },
+  "s3_backup_bucket_name": {
+    "sensitive": false,
+    "type": "string",
+    "value": "development-chatterbox-backup-bucket"
+  },
+  "s3_bucket_name": {
+    "sensitive": false,
+    "type": "string",
+    "value": "development-chatterbox-data-bucket"
+  },
+  "secrets_gmail_tokens_name": {
+    "sensitive": false,
+    "type": "string",
+    "value": "development-chatterbox-gmail-tokens"
+  },
+  "vpc_id": {
+    "sensitive": false,
+    "type": "string",
+    "value": "vpc-0c4550346d696e6bd"
+  }
+}

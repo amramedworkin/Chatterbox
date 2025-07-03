@@ -71,19 +71,19 @@ async function checkAuthorizationAndGetAuth(gmailUser: string): Promise<OAuth2Cl
         // Try to authorize the user
         const auth = await authorizeGmail(gmailUser, config);
         return auth;
-    } catch (error) {
+    } catch {
         logWithTimestamp('❌ Authorization failed for Gmail polling.');
         logWithTimestamp('💡 To fix this issue:');
         logWithTimestamp('   1. Run: npm run mail:authorize');
         logWithTimestamp('   2. Follow the authorization prompts for each Gmail user');
-        logWithTimestamp('   3. Make sure your credentials.json file is valid');
+        logWithTimestamp('   3. Make sure your google_credentials.json file is valid');
         logWithTimestamp('   4. If problems persist, run: npm run mail:authorize --force');
         logWithTimestamp('   5. Ensure you have the correct Gmail scopes configured');
         logWithTimestamp('   6. Check that your Google Cloud project has Gmail API enabled');
         logWithTimestamp('');
         logWithTimestamp('🔧 Additional troubleshooting:');
         logWithTimestamp('   • Verify your .env file contains valid configuration');
-        logWithTimestamp('   • Check that credentials.json is in the correct location');
+        logWithTimestamp('   • Check that google_credentials.json is in the correct location');
         logWithTimestamp('   • Ensure your Google account has 2FA enabled if required');
         logWithTimestamp('   • Try running the authorization process in a different browser');
         logWithTimestamp('');
@@ -91,9 +91,37 @@ async function checkAuthorizationAndGetAuth(gmailUser: string): Promise<OAuth2Cl
         logWithTimestamp('   • Check the project README for setup instructions');
         logWithTimestamp('   • Review Google Cloud Console for API settings');
         logWithTimestamp('   • Open an issue on GitHub if problem persists');
-        
+
         throw new Error(`Authorization failed for ${gmailUser}. Please run authorization first.`);
     }
+}
+
+/**
+ * Checks if an email is a Chatterbox email based on sender or subject.
+ * @param {any} message The Gmail message object.
+ * @returns {boolean} True if it's a Chatterbox email.
+ */
+function isChatterboxEmail(message: any): boolean {
+    const headers = message.payload?.headers || [];
+    const subject = headers.find((h: any) => h.name === 'Subject')?.value || '';
+    const from = headers.find((h: any) => h.name === 'From')?.value || '';
+
+    // Check if subject contains "Chatterbox"
+    if (subject.toLowerCase().includes('chatterbox')) {
+        return true;
+    }
+
+    // Check if from address contains "chatterbox" or known Chatterbox addresses
+    const fromLower = from.toLowerCase();
+    if (
+        fromLower.includes('chatterbox') ||
+        fromLower.includes('amram.dworkin@gmail.com') ||
+        fromLower.includes('awsamram@gmail.com')
+    ) {
+        return true;
+    }
+
+    return false;
 }
 
 /**
@@ -102,7 +130,10 @@ async function checkAuthorizationAndGetAuth(gmailUser: string): Promise<OAuth2Cl
  * @param {string} gmailUser The Gmail user email.
  * @returns {Promise<{newMessages: string[], newHistoryId: string | null}>} Object containing new message IDs and new history ID.
  */
-export async function pollGmail(auth: OAuth2Client, gmailUser: string): Promise<{newMessages: string[], newHistoryId: string | null}> {
+export async function pollGmail(
+    auth: OAuth2Client,
+    gmailUser: string
+): Promise<{ newMessages: string[]; newHistoryId: string | null }> {
     const gmail = google.gmail({ version: 'v1', auth });
     const lastHistoryIdPath = config.google.lastHistoryIdPath;
     const totalPollCyclesPath = config.google.totalPollCyclesPath;
@@ -129,55 +160,115 @@ export async function pollGmail(auth: OAuth2Client, gmailUser: string): Promise<
     const newMessages: string[] = [];
     let newHistoryId: string | null = null;
 
-    try {
-        const response = await gmail.users.history.list({
-            userId: gmailUser,
-            startHistoryId: lastHistoryId || undefined,
-            historyTypes: ['messageAdded'],
-        });
+    // If no history ID, search for recent emails instead of using History API
+    if (!lastHistoryId) {
+        logWithTimestamp('No history ID found. Searching for recent emails...');
 
-        const history = response.data.history;
-        if (history && history.length > 0) {
-            logWithTimestamp(`Found ${history.length} new history entries.`);
-            newHistoryId = response.data.historyId || null;
+        try {
+            // Search for emails from the last 24 hours
+            const yesterday = new Date();
+            yesterday.setDate(yesterday.getDate() - 1);
+            const searchQuery = `after:${yesterday.toISOString().split('T')[0]}`;
 
-            // Process new messages
-            for (const entry of history) {
-                if (entry.messagesAdded) {
-                    for (const message of entry.messagesAdded) {
-                        if (message.message?.id) {
-                            const messageId = message.message.id;
-                            logWithTimestamp(`New message ID: ${messageId}`);
-                            newMessages.push(messageId);
+            logWithTimestamp(`Searching for emails with query: ${searchQuery}`);
+
+            const searchResponse = await gmail.users.messages.list({
+                userId: gmailUser,
+                q: searchQuery,
+                maxResults: 50,
+            });
+
+            const messages = searchResponse.data.messages || [];
+            logWithTimestamp(
+                `Found ${messages.length} recent messages. Checking for Chatterbox emails...`
+            );
+
+            let chatterboxCount = 0;
+            for (const messageRef of messages) {
+                if (messageRef.id) {
+                    try {
+                        const messageResponse = await gmail.users.messages.get({
+                            userId: gmailUser,
+                            id: messageRef.id,
+                            format: 'metadata',
+                            metadataHeaders: ['Subject', 'From', 'Date'],
+                        });
+
+                        if (isChatterboxEmail(messageResponse.data)) {
+                            logWithTimestamp(`Found Chatterbox email: ${messageRef.id}`);
+                            newMessages.push(messageRef.id);
+                            chatterboxCount++;
                         }
+                    } catch (error) {
+                        logWithTimestamp(`Error fetching message ${messageRef.id}:`, error);
                     }
                 }
             }
 
-            // Save the new history ID for the next poll
-            if (newHistoryId) {
-                await fs.writeFile(lastHistoryIdPath, newHistoryId);
-                logWithTimestamp(`Updated last history ID to: ${newHistoryId}`);
-            }
-        } else {
-            logWithTimestamp('No new messages found.');
-        }
+            logWithTimestamp(`Found ${chatterboxCount} Chatterbox emails in recent messages.`);
 
-        // Save total poll cycles
-        await fs.writeFile(totalPollCyclesPath, totalPollCycles.toString());
-    } catch (err: unknown) {
-        const error = err as NodeJS.ErrnoException & { code?: number };
-        if (error.code === 404 || error.code === 400) {
-            // Likely an invalid history ID or initial sync
-            logWithTimestamp(
-                'Error fetching Gmail history (possibly invalid history ID or first run). Resetting history ID.'
-            );
-            await fs.unlink(lastHistoryIdPath).catch(() => {}); // Attempt to delete, ignore if not found
-        } else {
-            logWithTimestamp('Error fetching new emails:', err);
-            throw error;
+            // Get current history ID for future polls
+            const profileResponse = await gmail.users.getProfile({ userId: gmailUser });
+            if (profileResponse.data.historyId) {
+                newHistoryId = profileResponse.data.historyId;
+                await fs.writeFile(lastHistoryIdPath, newHistoryId);
+                logWithTimestamp(`Set initial history ID to: ${newHistoryId}`);
+            }
+        } catch {
+            logWithTimestamp('Error searching for recent emails');
+        }
+    } else {
+        // Use History API for incremental polling
+        try {
+            const response = await gmail.users.history.list({
+                userId: gmailUser,
+                startHistoryId: lastHistoryId,
+                historyTypes: ['messageAdded'],
+            });
+
+            const history = response.data.history;
+            if (history && history.length > 0) {
+                logWithTimestamp(`Found ${history.length} new history entries.`);
+                newHistoryId = response.data.historyId || null;
+
+                // Process new messages
+                for (const entry of history) {
+                    if (entry.messagesAdded) {
+                        for (const message of entry.messagesAdded) {
+                            if (message.message?.id) {
+                                const messageId = message.message.id;
+                                logWithTimestamp(`New message ID: ${messageId}`);
+                                newMessages.push(messageId);
+                            }
+                        }
+                    }
+                }
+
+                // Save the new history ID for the next poll
+                if (newHistoryId) {
+                    await fs.writeFile(lastHistoryIdPath, newHistoryId);
+                    logWithTimestamp(`Updated last history ID to: ${newHistoryId}`);
+                }
+            } else {
+                logWithTimestamp('No new messages found.');
+            }
+        } catch (err: unknown) {
+            const error = err as NodeJS.ErrnoException & { code?: number };
+            if (error.code === 404 || error.code === 400) {
+                // Likely an invalid history ID or initial sync
+                logWithTimestamp(
+                    'Error fetching Gmail history (possibly invalid history ID or first run). Resetting history ID.'
+                );
+                await fs.unlink(lastHistoryIdPath).catch(() => {}); // Attempt to delete, ignore if not found
+            } else {
+                logWithTimestamp('Error fetching new emails:', err);
+                throw error;
+            }
         }
     }
+
+    // Save total poll cycles
+    await fs.writeFile(totalPollCyclesPath, totalPollCycles.toString());
 
     return { newMessages, newHistoryId };
 }
@@ -192,7 +283,7 @@ async function main(): Promise<void> {
     if (process.argv.includes('--clean')) {
         logWithTimestamp('Cleaning up previous authorization and state...');
         try {
-            // Delete token.json and last_history_id.txt for the current user
+            // Delete google_tokens.json and last_history_id.txt for the current user
             await fs.unlink(config.google.pollTokenPath).catch(() => {});
             await fs.unlink(config.google.lastHistoryIdPath).catch(() => {});
             await fs.unlink(config.google.totalPollCyclesPath).catch(() => {});
@@ -210,16 +301,15 @@ async function main(): Promise<void> {
     try {
         // Check authorization and get authenticated client
         const auth = await checkAuthorizationAndGetAuth(gmailUser);
-        
+
         // Perform single poll
         const result = await pollGmail(auth, gmailUser);
-        
+
         logWithTimestamp(`Poll completed. Found ${result.newMessages.length} new messages.`);
-        
+
         if (result.newMessages.length > 0) {
             logWithTimestamp('New message IDs:', result.newMessages);
         }
-        
     } catch (err: unknown) {
         logWithTimestamp('Failed to poll Gmail:', err);
         process.exit(1);
@@ -229,4 +319,4 @@ async function main(): Promise<void> {
 // Only run main if this file is executed directly
 if (require.main === module) {
     main();
-} 
+}

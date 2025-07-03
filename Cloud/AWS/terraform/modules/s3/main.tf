@@ -334,8 +334,8 @@ resource "aws_s3_bucket_policy" "email_archive" {
     Version = "2012-10-17"
     Statement = [
       {
-        Sid       = "AllowCliadminAccess"
-        Effect    = "Allow"
+        Sid    = "AllowCliadminAccess"
+        Effect = "Allow"
         Principal = {
           AWS = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:user/cliadmin"
         }
@@ -353,98 +353,8 @@ resource "aws_s3_bucket_policy" "email_archive" {
         ]
       },
       {
-        Sid       = "AllowIAMRoleAccess"
-        Effect    = "Allow"
-        Principal = {
-          AWS = var.iam_role_arn
-        }
-        Action = [
-          "s3:GetObject",
-          "s3:PutObject",
-          "s3:DeleteObject",
-          "s3:ListBucket",
-          "s3:GetBucketLocation",
-          "s3:GetBucketPolicy"
-        ]
-        Resource = [
-          aws_s3_bucket.email_archive.arn,
-          "${aws_s3_bucket.email_archive.arn}/*"
-        ]
-      },
-      {
-        Sid       = "DenyUnencryptedObjectUploads"
-        Effect    = "Deny"
-        Principal = "*"
-        Action    = "s3:PutObject"
-        Resource  = "${aws_s3_bucket.email_archive.arn}/*"
-        Condition = {
-          StringNotEquals = {
-            "s3:x-amz-server-side-encryption" = "AES256"
-          }
-        }
-      }
-    ]
-  })
-} 
-# S3 Bucket for Email Archive Storage (no versioning)
-resource "aws_s3_bucket" "email_archive" {
-  bucket = var.email_archive_bucket_name
-
-  tags = {
-    Name = "${var.environment}-${var.email_archive_bucket_name}"
-  }
-}
-
-# S3 Bucket Server-Side Encryption for Email Archive
-resource "aws_s3_bucket_server_side_encryption_configuration" "email_archive" {
-  bucket = aws_s3_bucket.email_archive.id
-
-  rule {
-    apply_server_side_encryption_by_default {
-      sse_algorithm = "AES256"
-    }
-  }
-}
-
-# S3 Bucket Public Access Block for Email Archive
-resource "aws_s3_bucket_public_access_block" "email_archive" {
-  bucket = aws_s3_bucket.email_archive.id
-
-  block_public_acls       = true
-  block_public_policy     = true
-  ignore_public_acls      = true
-  restrict_public_buckets = true
-}
-
-# S3 Bucket Policy for Email Archive
-resource "aws_s3_bucket_policy" "email_archive" {
-  bucket = aws_s3_bucket.email_archive.id
-
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Sid       = "AllowCliadminAccess"
-        Effect    = "Allow"
-        Principal = {
-          AWS = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:user/cliadmin"
-        }
-        Action = [
-          "s3:GetObject",
-          "s3:PutObject",
-          "s3:DeleteObject",
-          "s3:ListBucket",
-          "s3:GetBucketLocation",
-          "s3:GetBucketPolicy"
-        ]
-        Resource = [
-          aws_s3_bucket.email_archive.arn,
-          "${aws_s3_bucket.email_archive.arn}/*"
-        ]
-      },
-      {
-        Sid       = "AllowIAMRoleAccess"
-        Effect    = "Allow"
+        Sid    = "AllowIAMRoleAccess"
+        Effect = "Allow"
         Principal = {
           AWS = var.iam_role_arn
         }
@@ -476,3 +386,4 @@ resource "aws_s3_bucket_policy" "email_archive" {
     ]
   })
 }
+

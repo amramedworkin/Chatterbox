@@ -1,9 +1,8 @@
-import { google, Auth } from 'googleapis';
+import { google } from 'googleapis';
 import { promises as fs } from 'fs';
 import * as fsSync from 'fs';
 import path from 'path';
 import { OAuth2Client } from 'googleapis-common';
-import chalk from 'chalk';
 
 import config from '../loadConfig';
 
@@ -97,11 +96,13 @@ export async function sendEmail(
     try {
         // Note: Authorization should be handled centrally via authorizeAll.ts
         // This function assumes the user is already authorized
-        
+
         if (!authClient) {
-            throw new Error('OAuth2Client is required. Please ensure Gmail user is authorized via npm run mail:authorize');
+            throw new Error(
+                'OAuth2Client is required. Please ensure Gmail user is authorized via npm run mail:authorize'
+            );
         }
-        
+
         const gmail = google.gmail({ version: 'v1', auth: authClient });
 
         // Increment and persist the sequential email number
@@ -136,7 +137,10 @@ export async function sendEmail(
                         console.warn(`Warning: Attachment file not found: ${attachmentPath}`);
                     }
                 } catch (err) {
-                    console.warn(`Warning: Error checking attachment file "${attachmentPath}":`, err);
+                    console.warn(
+                        `Warning: Error checking attachment file "${attachmentPath}":`,
+                        err
+                    );
                 }
             }
         }
@@ -172,13 +176,15 @@ export async function sendEmail(
             for (let i = 0; i < actualAttachments.length; i++) {
                 const filename = actualAttachments[i];
                 const attachmentPath = options.attachments![i];
-                
+
                 try {
                     const attachmentData = fsSync.readFileSync(attachmentPath);
                     const attachmentBase64 = attachmentData.toString('base64');
 
                     rawEmailContent.push(`--${boundary}`);
-                    rawEmailContent.push(`Content-Type: application/octet-stream; name="${filename}"`);
+                    rawEmailContent.push(
+                        `Content-Type: application/octet-stream; name="${filename}"`
+                    );
                     rawEmailContent.push(`Content-Disposition: attachment; filename="${filename}"`);
                     rawEmailContent.push('Content-Transfer-Encoding: base64');
                     rawEmailContent.push('');
@@ -225,18 +231,25 @@ export async function sendEmail(
             messageId: response.data.id || undefined,
             subject,
             body: bodyText,
-            attachments: actualAttachments.length > 0 ? actualAttachments.map(filename => ({ name: filename, size: 0, path: filename })) : undefined,
+            attachments:
+                actualAttachments.length > 0
+                    ? actualAttachments.map((filename) => ({
+                          name: filename,
+                          size: 0,
+                          path: filename,
+                      }))
+                    : undefined,
         };
     } catch (err: unknown) {
         const error = err as NodeJS.ErrnoException & { code?: number };
         console.error('Error sending email:', error.message);
-        
+
         if (error.code === 401) {
             console.error('❌ Authentication failed. Gmail user is not properly authorized.');
             console.error('💡 To fix this issue:');
             console.error('   1. Run: npm run mail:authorize');
             console.error('   2. Follow the authorization prompts for each Gmail user');
-            console.error('   3. Make sure your credentials.json file is valid');
+            console.error('   3. Make sure your google_credentials.json file is valid');
             console.error('   4. If problems persist, run: npm run mail:authorize --force');
         }
 
@@ -283,7 +296,10 @@ export async function sendTestEmail(
     const attachments: string[] = [];
     for (let i = 1; i <= attachCount; i++) {
         const attachmentFilename = `attachment_${i}.txt`;
-        const attachmentFilePath = path.join(config.sendTest.testAttachmentsFolder, attachmentFilename);
+        const attachmentFilePath = path.join(
+            config.sendTest.testAttachmentsFolder,
+            attachmentFilename
+        );
         if (await fileExists(attachmentFilePath)) {
             attachments.push(attachmentFilePath);
         } else {
@@ -294,11 +310,15 @@ export async function sendTestEmail(
     const subject = `chatterbox test title`;
     const body = `What is the definition of quantum froth?  Does it exist?  How did we find it or are we still looking to verify its existence?\r\n\r\nConversation ID: ${conversationId || 'null'}\r\nAttachment count: ${attachCount}`;
 
-    return sendEmail(senderEmail, {
-        to: recipientEmail,
-        subject,
-        body,
-        conversationId,
-        attachments: attachments.length > 0 ? attachments : undefined,
-    }, authClient);
-} 
+    return sendEmail(
+        senderEmail,
+        {
+            to: recipientEmail,
+            subject,
+            body,
+            conversationId,
+            attachments: attachments.length > 0 ? attachments : undefined,
+        },
+        authClient
+    );
+}

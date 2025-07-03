@@ -13,10 +13,15 @@ output "invoke_arn" {
   value       = aws_lambda_function.pull_latest_chatterbox_email.invoke_arn
 }
 
-output "api_gateway_url" {
-  description = "URL of the API Gateway endpoint"
-  value       = "${aws_api_gateway_deployment.chatterbox_deployment.invoke_url}/pull-latest-email"
+output "lambda_role_arn" {
+  description = "ARN of the Lambda IAM role"
+  value       = var.iam_role_arn
 }
+
+# output "api_gateway_url" {
+#   description = "URL of the API Gateway endpoint"
+#   value       = "${aws_api_gateway_stage.chatterbox_stage.invoke_url}/pull-latest-email"
+# }
 
 output "api_gateway_id" {
   description = "ID of the API Gateway REST API"

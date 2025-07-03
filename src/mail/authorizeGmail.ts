@@ -80,7 +80,7 @@ async function getNewToken(oAuth2Client: OAuth2Client, scopes: string[]): Promis
     const authUrl = oAuth2Client.generateAuthUrl({
         access_type: 'offline',
         scope: scopes,
-        prompt: 'consent' // Force consent screen to ensure refresh token
+        prompt: 'consent', // Force consent screen to ensure refresh token
     });
 
     // Display the URL so the user can copy/paste it into a browser manually
@@ -99,18 +99,22 @@ async function getNewToken(oAuth2Client: OAuth2Client, scopes: string[]): Promis
                 rl.close();
                 try {
                     const { tokens } = await oAuth2Client.getToken(code);
-                    
+
                     // Log what we received for debugging
                     console.log('Received tokens from Google:');
                     console.log(`  - Access token: ${tokens.access_token ? 'Present' : 'Missing'}`);
-                    console.log(`  - Refresh token: ${tokens.refresh_token ? 'Present' : 'Missing'}`);
+                    console.log(
+                        `  - Refresh token: ${tokens.refresh_token ? 'Present' : 'Missing'}`
+                    );
                     console.log(`  - Token type: ${tokens.token_type || 'Not specified'}`);
                     console.log(`  - Expiry date: ${tokens.expiry_date || 'Not specified'}`);
-                    
+
                     if (!tokens.refresh_token) {
-                        console.warn('⚠️  No refresh token received from Google. This may cause issues with token renewal.');
+                        console.warn(
+                            '⚠️  No refresh token received from Google. This may cause issues with token renewal.'
+                        );
                     }
-                    
+
                     oAuth2Client.setCredentials(tokens);
                     resolve();
                 } catch (err: unknown) {
@@ -142,7 +146,11 @@ export async function removeTokenForEmail(tokenPath: string, email: string): Pro
  * @param {boolean} force If true, removes the old token for the email before authorizing (default: false).
  * @returns {Promise<OAuth2Client>} An authenticated OAuth2 client.
  */
-export async function authorizeGmail(email: string, config: AppConfig, force: boolean = false): Promise<OAuth2Client> {
+export async function authorizeGmail(
+    email: string,
+    config: AppConfig,
+    force: boolean = false
+): Promise<OAuth2Client> {
     const credentialsPath = config.google.credentialsPath;
     const tokenPath = config.google.pollTokenPath;
     const scopes = config.google.scopes;
@@ -153,12 +161,12 @@ export async function authorizeGmail(email: string, config: AppConfig, force: bo
     } catch (err: unknown) {
         const error = err as Error;
         throw new Error(
-            `Error loading client secret file from ${credentialsPath}: ${error.message}. Please ensure credentials.json is present.`
+            `Error loading client secret file from ${credentialsPath}: ${error.message}. Please ensure google_credentials.json is present.`
         );
     }
 
     const credentials = JSON.parse(credentialsContent);
-    const { client_secret, client_id, redirect_uris } = credentials.installed || credentials.web;
+    const { client_secret, client_id } = credentials.installed || credentials.web;
 
     const oAuth2Client = new google.auth.OAuth2(
         client_id,
@@ -175,13 +183,13 @@ export async function authorizeGmail(email: string, config: AppConfig, force: bo
 
     if (tokenData[email]) {
         oAuth2Client.setCredentials(tokenData[email]);
-        
+
         // Check if we have a refresh token
         if (!tokenData[email].refresh_token) {
             console.warn(`No refresh token found for ${email}. Re-authorization required.`);
             console.warn('Attempting to re-authorize from scratch.');
             await getNewToken(oAuth2Client, scopes);
-            
+
             // Save the new tokens with all fields
             const newTokens = oAuth2Client.credentials;
             console.log('Saving new tokens with fields:');
@@ -189,12 +197,12 @@ export async function authorizeGmail(email: string, config: AppConfig, force: bo
             console.log(`  - Refresh token: ${newTokens.refresh_token ? 'Present' : 'Missing'}`);
             console.log(`  - Token type: ${newTokens.token_type || 'Not specified'}`);
             console.log(`  - Expiry date: ${newTokens.expiry_date || 'Not specified'}`);
-            
+
             tokenData[email] = newTokens as TokenData[string];
             await writeTokenData(tokenPath, tokenData);
             return oAuth2Client;
         }
-        
+
         try {
             // Attempt to refresh the token. If it's invalid or expired, refreshAccessToken will throw an error.
             const { credentials: refreshedTokens } = await oAuth2Client.refreshAccessToken();
@@ -207,11 +215,11 @@ export async function authorizeGmail(email: string, config: AppConfig, force: bo
             console.log('Token refreshed successfully.');
         } catch (err) {
             // If refresh fails, it means the token is expired or invalid, so re-authorize
-            const errorMsg = (err instanceof Error) ? err.message : String(err);
+            const errorMsg = err instanceof Error ? err.message : String(err);
             console.warn('Failed to refresh access token, or token was invalid:', errorMsg);
             console.warn('Attempting to re-authorize from scratch.');
             await getNewToken(oAuth2Client, scopes);
-            
+
             // Save the new tokens with all fields
             const newTokens = oAuth2Client.credentials;
             console.log('Saving new tokens with fields:');
@@ -219,13 +227,13 @@ export async function authorizeGmail(email: string, config: AppConfig, force: bo
             console.log(`  - Refresh token: ${newTokens.refresh_token ? 'Present' : 'Missing'}`);
             console.log(`  - Token type: ${newTokens.token_type || 'Not specified'}`);
             console.log(`  - Expiry date: ${newTokens.expiry_date || 'Not specified'}`);
-            
+
             tokenData[email] = newTokens as TokenData[string];
             await writeTokenData(tokenPath, tokenData);
         }
     } else {
         await getNewToken(oAuth2Client, scopes);
-        
+
         // Save the new tokens with all fields
         const newTokens = oAuth2Client.credentials;
         console.log('Saving new tokens with fields:');
@@ -233,7 +241,7 @@ export async function authorizeGmail(email: string, config: AppConfig, force: bo
         console.log(`  - Refresh token: ${newTokens.refresh_token ? 'Present' : 'Missing'}`);
         console.log(`  - Token type: ${newTokens.token_type || 'Not specified'}`);
         console.log(`  - Expiry date: ${newTokens.expiry_date || 'Not specified'}`);
-        
+
         tokenData[email] = newTokens as TokenData[string];
         await writeTokenData(tokenPath, tokenData);
     }
@@ -246,81 +254,83 @@ export async function authorizeGmail(email: string, config: AppConfig, force: bo
  * @param {AppConfig} config The application configuration
  * @returns {Promise<{email: string, hasToken: boolean, isValid: boolean, error?: string}>} Validation result
  */
-export async function validateGmailToken(email: string, config: AppConfig): Promise<{
+export async function validateGmailToken(
+    email: string,
+    config: AppConfig
+): Promise<{
     email: string;
     hasToken: boolean;
     isValid: boolean;
     error?: string;
 }> {
     const tokenPath = config.google.pollTokenPath;
-    
+
     try {
         // Check if token file exists and has data for this email
         const tokenData: TokenData = await readTokenData(tokenPath);
         const hasToken = !!(tokenData[email] && tokenData[email].access_token);
-        
+
         if (!hasToken) {
             return {
                 email,
                 hasToken: false,
                 isValid: false,
-                error: 'No token found for this email'
+                error: 'No token found for this email',
             };
         }
-        
+
         // Check if refresh token exists
         if (!tokenData[email].refresh_token) {
             return {
                 email,
                 hasToken: true,
                 isValid: false,
-                error: 'Token exists but no refresh token found'
+                error: 'Token exists but no refresh token found',
             };
         }
-        
+
         // Try to use the token to make a test API call
         const credentialsPath = config.google.credentialsPath;
         const credentialsContent = await fs.readFile(credentialsPath, 'utf8');
         const credentials = JSON.parse(credentialsContent);
         const { client_secret, client_id } = credentials.installed || credentials.web;
-        
+
         const oAuth2Client = new google.auth.OAuth2(
             client_id,
             client_secret,
             config.google.redirectUri
         ) as OAuth2Client;
-        
+
         oAuth2Client.setCredentials(tokenData[email]);
-        
+
         // Test the token by making a simple Gmail API call
         const gmail = google.gmail({ version: 'v1', auth: oAuth2Client });
-        
+
         try {
             // Try to get user profile - this will fail if token is invalid
             await gmail.users.getProfile({ userId: email });
-            
+
             return {
                 email,
                 hasToken: true,
-                isValid: true
+                isValid: true,
             };
-        } catch (apiError) {
-            const errorMsg = (apiError instanceof Error) ? apiError.message : String(apiError);
+        } catch (error) {
+            const errorMsg = error instanceof Error ? error.message : String(error);
             return {
                 email,
                 hasToken: true,
                 isValid: false,
-                error: `Token validation failed: ${errorMsg}`
+                error: `Token validation failed: ${errorMsg}`,
             };
         }
-        
     } catch (error) {
-        const errorMsg = (error instanceof Error) ? error.message : String(error);
+        const errorMsg = error instanceof Error ? error.message : String(error);
         return {
             email,
             hasToken: false,
             isValid: false,
-            error: `Error reading token data: ${errorMsg}`
+            error: `Error reading token data: ${errorMsg}`,
         };
     }
 }
@@ -330,25 +340,27 @@ export async function validateGmailToken(email: string, config: AppConfig): Prom
  * @param {AppConfig} config The application configuration
  * @returns {Promise<Array<{email: string, hasToken: boolean, isValid: boolean, error?: string}>>} Validation results
  */
-export async function validateAllGmailTokens(config: AppConfig): Promise<Array<{
-    email: string;
-    hasToken: boolean;
-    isValid: boolean;
-    error?: string;
-}>> {
+export async function validateAllGmailTokens(config: AppConfig): Promise<
+    Array<{
+        email: string;
+        hasToken: boolean;
+        isValid: boolean;
+        error?: string;
+    }>
+> {
     const emails = [
         config.app.defaultPollGmailUser,
         config.app.defaultSendGmailUser,
-        config.app.defaultGetGmailUser
+        config.app.defaultGetGmailUser,
     ].filter((email, index, arr) => email && arr.indexOf(email) === index); // Remove duplicates
-    
+
     const results = [];
-    
+
     for (const email of emails) {
         const result = await validateGmailToken(email, config);
         results.push(result);
     }
-    
+
     return results;
 }
 
@@ -358,100 +370,103 @@ export async function validateAllGmailTokens(config: AppConfig): Promise<Array<{
  * @param {AppConfig} config The application configuration
  * @returns {Promise<{email: string, success: boolean, refreshed: boolean, error?: string}>} Result
  */
-export async function validateAndRefreshToken(email: string, config: AppConfig): Promise<{
+export async function validateAndRefreshToken(
+    email: string,
+    config: AppConfig
+): Promise<{
     email: string;
     success: boolean;
     refreshed: boolean;
     error?: string;
 }> {
     const tokenPath = config.google.pollTokenPath;
-    
+
     try {
-        // 1. Check if token exists in token.json
+        // 1. Check if token exists in google_tokens.json
         const tokenData: TokenData = await readTokenData(tokenPath);
         if (!tokenData[email] || !tokenData[email].access_token) {
             return {
                 email,
                 success: false,
                 refreshed: false,
-                error: 'No token found for this email'
+                error: 'No token found for this email',
             };
         }
-        
+
         // 2. Check if refresh token exists
         if (!tokenData[email].refresh_token) {
             return {
                 email,
                 success: false,
                 refreshed: false,
-                error: 'Token exists but no refresh token found'
+                error: 'Token exists but no refresh token found',
             };
         }
-        
+
         // 3. Check if access token is still valid
         const credentialsPath = config.google.credentialsPath;
         const credentialsContent = await fs.readFile(credentialsPath, 'utf8');
         const credentials = JSON.parse(credentialsContent);
         const { client_secret, client_id } = credentials.installed || credentials.web;
-        
+
         const oAuth2Client = new google.auth.OAuth2(
             client_id,
             client_secret,
             config.google.redirectUri
         ) as OAuth2Client;
-        
+
         oAuth2Client.setCredentials(tokenData[email]);
-        
+
         // Test the token by making a simple Gmail API call
         const gmail = google.gmail({ version: 'v1', auth: oAuth2Client });
-        
+
         try {
             // Try to get user profile - this will fail if token is invalid
             await gmail.users.getProfile({ userId: email });
-            
+
             // Token is still valid, no refresh needed
             return {
                 email,
                 success: true,
-                refreshed: false
+                refreshed: false,
             };
-        } catch (apiError) {
+        } catch {
             // Token is invalid, try to refresh
             try {
                 console.log(`🔄 Refreshing token for ${email}...`);
                 const { credentials: refreshedTokens } = await oAuth2Client.refreshAccessToken();
-                
+
                 // Update the stored token data with the refreshed tokens
                 tokenData[email] = {
                     ...tokenData[email], // Keep existing properties (including refresh_token)
                     ...refreshedTokens, // Update with refreshed tokens
                 } as TokenData[string];
                 await writeTokenData(tokenPath, tokenData);
-                
+
                 console.log(`✅ Token refreshed successfully for ${email}`);
                 return {
                     email,
                     success: true,
-                    refreshed: true
+                    refreshed: true,
                 };
             } catch (refreshError) {
-                const errorMsg = (refreshError instanceof Error) ? refreshError.message : String(refreshError);
+                const errorMsg =
+                    refreshError instanceof Error ? refreshError.message : String(refreshError);
                 return {
                     email,
                     success: false,
                     refreshed: false,
-                    error: `Token refresh failed: ${errorMsg}`
+                    error: `Token refresh failed: ${errorMsg}`,
                 };
             }
         }
-        
     } catch (error) {
-        const errorMsg = (error instanceof Error) ? error.message : String(error);
+        const errorMsg = error instanceof Error ? error.message : String(error);
         return {
             email,
             success: false,
             refreshed: false,
-            error: `Error during token validation: ${errorMsg}`
+            error: `Error during token validation: ${errorMsg}`,
         };
     }
 }
@@ -461,46 +476,35 @@ export { writeTokenData };
 
 // CLI interface for running validation directly
 if (require.main === module) {
-    import('../loadConfig').then(async (configModule) => {
-        const config = configModule.default;
-        
-        console.log('🔍 Validating Gmail tokens...\n');
-        
-        try {
-            const results = await validateAllGmailTokens(config);
-            
-            console.log('Token Validation Results:');
-            console.log('========================');
-            
-            for (const result of results) {
-                console.log(`\n📧 Email: ${result.email}`);
-                console.log(`   Token exists: ${result.hasToken ? '✅ Yes' : '❌ No'}`);
-                console.log(`   Token valid: ${result.isValid ? '✅ Yes' : '❌ No'}`);
-                
-                if (result.error) {
-                    console.log(`   Error: ${result.error}`);
+    import('../loadConfig')
+        .then(async (configModule) => {
+            const config = configModule.default;
+
+            console.log('🔍 Validating Gmail tokens...\n');
+
+            try {
+                const results = await validateAllGmailTokens(config);
+
+                console.log('Token Validation Results:');
+                console.log('========================');
+
+                for (const result of results) {
+                    console.log(`\n📧 Email: ${result.email}`);
+                    console.log(`   Token exists: ${result.hasToken ? '✅ Yes' : '❌ No'}`);
+                    console.log(`   Token valid: ${result.isValid ? '✅ Yes' : '❌ No'}`);
+                    if (result.error) {
+                        console.log(`   Error: ${result.error}`);
+                    }
                 }
+
+                console.log('\n✅ Token validation complete!');
+            } catch (error) {
+                console.error('❌ Error during token validation:', error);
+                process.exit(1);
             }
-            
-            // Summary
-            const validTokens = results.filter(r => r.isValid).length;
-            const totalTokens = results.length;
-            
-            console.log(`\n📊 Summary: ${validTokens}/${totalTokens} tokens are valid`);
-            
-            if (validTokens === totalTokens) {
-                console.log('🎉 All tokens are valid and ready to use!');
-            } else {
-                console.log('⚠️  Some tokens need attention. Run: npm run mail:authorize');
-            }
-            
-            process.exit(validTokens === totalTokens ? 0 : 1);
-        } catch (error) {
-            console.error('❌ Validation failed:', error);
+        })
+        .catch((error) => {
+            console.error('❌ Error loading config:', error);
             process.exit(1);
-        }
-    }).catch((error) => {
-        console.error('❌ Failed to load config:', error);
-        process.exit(1);
-    });
+        });
 }

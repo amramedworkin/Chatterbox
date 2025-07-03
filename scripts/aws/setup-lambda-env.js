@@ -22,7 +22,7 @@ async function setupLambdaEnvironment() {
         const prefix = `/chatterbox/${environment}`;
 
         // Check for Gmail credentials
-        const credentialsPath = path.join(__dirname, '../../credentials.json');
+        const credentialsPath = path.join(__dirname, '../../google_credentials.json');
         let gmailCredentials = null;
 
         if (fs.existsSync(credentialsPath)) {
@@ -34,7 +34,7 @@ async function setupLambdaEnvironment() {
                     redirectUri: config.google?.redirectUri || 'http://localhost:3000'
                 };
             } catch (error) {
-                console.error('❌ Error reading credentials.json:', error.message);
+                console.error('❌ Error reading google_credentials.json:', error.message);
             }
         }
 
@@ -46,8 +46,8 @@ async function setupLambdaEnvironment() {
             console.log('2. Create a project or select existing one');
             console.log('3. Enable Gmail API');
             console.log('4. Create OAuth2 credentials (Desktop app or Web app)');
-            console.log('5. Download credentials as credentials.json');
-            console.log('6. Place credentials.json in the project root');
+            console.log('5. Download credentials as google_credentials.json');
+            console.log('6. Place google_credentials.json in the project root');
             console.log('');
             console.log('Or run the Gmail authorization first:');
             console.log('  npm run mail:authorize');

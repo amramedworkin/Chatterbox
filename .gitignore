@@ -167,6 +167,9 @@ tokens/
 tokens/gmail_tokens.json
 tokens/google_credentials.json
 **/*_credentials.txt
+**/google_tokens.json
+**/google_token.json
+google_credentials.json
 
 # ===============================
 # Backup & Temp Files (Global)
@@ -219,3 +222,19 @@ terraform.rc
 
 # Ingnore the inventory files
 **/aws-resource-inventory*.*
+# Migration initialization data
+data/init/
+
+# Ignore the AWS credentials file
+/Docs/Cloud/AWS/aws-account-into.txt
+
+# Do not store the yehoash.com artifacts 
+/src/html/yehoash-index.html
+
+# Ignore manual teardown scripts
+/scripts/aws/manual/
+
+
+# Ignore vim swap files
+*.swp
+*.swo

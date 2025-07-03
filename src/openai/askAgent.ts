@@ -23,17 +23,13 @@ export interface AskAgentResponse {
  * @returns Promise resolving to the agent response
  */
 export async function askAgent(options: AskAgentOptions): Promise<AskAgentResponse> {
-    const {
-        prompt,
-        files = [],
-        responseFormat = 'text',
-        model = config.openai.llmModel,
-        maxTokens = config.openai.maxResponseTokens
-    } = options;
+    const { prompt, files = [], responseFormat = 'text', model = config.openai.llmModel } = options;
 
     // Validate OpenAI API key
     if (!config.openai.apiKey) {
-        throw new Error('OpenAI API key not found. Please set OPENAI_API_KEY in your environment or config.');
+        throw new Error(
+            'OpenAI API key not found. Please set OPENAI_API_KEY in your environment or config.'
+        );
     }
 
     // Warn about file support
@@ -51,7 +47,8 @@ export async function askAgent(options: AskAgentOptions): Promise<AskAgentRespon
         // Create a new assistant for this request
         const assistant = await openai.beta.assistants.create({
             model: model,
-            instructions: 'You are a helpful assistant. Respond to the user\'s request based on the provided prompt.',
+            instructions:
+                "You are a helpful assistant. Respond to the user's request based on the provided prompt.",
         });
 
         // Create a new thread
@@ -70,7 +67,9 @@ export async function askAgent(options: AskAgentOptions): Promise<AskAgentRespon
 
         // Check if the run completed successfully
         if (run.status !== 'completed') {
-            throw new Error(`Assistant run failed with status: ${run.status}. ${run.last_error?.message || ''}`);
+            throw new Error(
+                `Assistant run failed with status: ${run.status}. ${run.last_error?.message || ''}`
+            );
         }
 
         // Get the messages from the thread
@@ -123,9 +122,10 @@ export async function askAgent(options: AskAgentOptions): Promise<AskAgentRespon
         }
 
         return response;
-
     } catch (error) {
-        throw new Error(`Failed to process agent request: ${error instanceof Error ? error.message : String(error)}`);
+        throw new Error(
+            `Failed to process agent request: ${error instanceof Error ? error.message : String(error)}`
+        );
     }
 }
 
@@ -153,7 +153,7 @@ export async function askAgentNative(prompt: string, files?: string[]): Promise<
 // CLI interface for direct execution
 if (require.main === module) {
     const args = process.argv.slice(2);
-    
+
     if (args.length === 0 || args.includes('--help') || args.includes('-h')) {
         console.log(`
 Usage: node dist/src/openai/askAgent.js <prompt> [options]
@@ -171,9 +171,11 @@ Examples:
     }
 
     const prompt = args[0];
-    const format = (args.find(arg => arg.startsWith('--format='))?.split('=')[1] as ResponseFormat) || 'text';
-    const model = args.find(arg => arg.startsWith('--model='))?.split('=')[1];
-    const maxTokens = args.find(arg => arg.startsWith('--max-tokens='))?.split('=')[1];
+    const format =
+        (args.find((arg) => arg.startsWith('--format='))?.split('=')[1] as ResponseFormat) ||
+        'text';
+    const model = args.find((arg) => arg.startsWith('--model='))?.split('=')[1];
+    const maxTokens = args.find((arg) => arg.startsWith('--max-tokens='))?.split('=')[1];
 
     const options: AskAgentOptions = {
         prompt,
@@ -194,4 +196,4 @@ Examples:
             console.error('Error:', error.message);
             process.exit(1);
         });
-} 
+}

@@ -17,7 +17,7 @@ export interface GmailMessage {
 
 export interface DateRange {
     startDays: number; // Days ago from today
-    endDays: number;   // Days ago from today (0 = today)
+    endDays: number; // Days ago from today (0 = today)
 }
 
 /**
@@ -25,7 +25,7 @@ export interface DateRange {
  */
 const DEFAULT_DATE_RANGE: DateRange = {
     startDays: 7,
-    endDays: 0
+    endDays: 0,
 };
 
 /**
@@ -34,18 +34,19 @@ const DEFAULT_DATE_RANGE: DateRange = {
  * @returns Gmail search query string
  */
 function buildDateRangeQuery(dateRange: Partial<DateRange> = {}): string {
-    const { startDays = DEFAULT_DATE_RANGE.startDays, endDays = DEFAULT_DATE_RANGE.endDays } = dateRange;
-    
+    const { startDays = DEFAULT_DATE_RANGE.startDays, endDays = DEFAULT_DATE_RANGE.endDays } =
+        dateRange;
+
     const queryParts: string[] = [];
-    
+
     if (startDays > 0) {
         queryParts.push(`newer_than:${startDays}d`);
     }
-    
+
     if (endDays > 0) {
         queryParts.push(`older_than:${endDays}d`);
     }
-    
+
     return queryParts.join(' ');
 }
 
@@ -63,7 +64,9 @@ export async function getMostRecentChatterboxGmailId(
 ): Promise<string | null> {
     const gmailUser = userEmail || config.app.defaultGetGmailUser;
     if (!existingAuth) {
-        throw new Error(`OAuth2Client is required for Gmail user ${gmailUser}. Please ensure Gmail user is authorized via npm run mail:authorize`);
+        throw new Error(
+            `OAuth2Client is required for Gmail user ${gmailUser}. Please ensure Gmail user is authorized via npm run mail:authorize`
+        );
     }
     const gmail = google.gmail({ version: 'v1', auth: existingAuth });
     const dateQuery = buildDateRangeQuery(dateRange);
@@ -72,7 +75,7 @@ export async function getMostRecentChatterboxGmailId(
     const { data } = await gmail.users.messages.list({
         userId: gmailUser,
         q: query,
-        maxResults: 1 // Only get the most recent
+        maxResults: 1, // Only get the most recent
     });
     if (data.messages && data.messages.length > 0) {
         return data.messages[0].id || null;
@@ -93,11 +96,13 @@ export async function getGmailById(
     existingAuth?: OAuth2Client
 ): Promise<GmailMessage> {
     const gmailUser = userEmail || config.app.defaultGetGmailUser;
-    
+
     if (!existingAuth) {
-        throw new Error(`OAuth2Client is required for Gmail user ${gmailUser}. Please ensure Gmail user is authorized via npm run mail:authorize`);
+        throw new Error(
+            `OAuth2Client is required for Gmail user ${gmailUser}. Please ensure Gmail user is authorized via npm run mail:authorize`
+        );
     }
-    
+
     const gmail = google.gmail({ version: 'v1', auth: existingAuth });
 
     const res = await gmail.users.messages.get({
@@ -117,11 +122,11 @@ export function getEmailSubject(message: GmailMessage): string {
     if (!message.payload || !message.payload.headers) {
         return '';
     }
-    
-    const subjectHeader = message.payload.headers.find((header: any) => 
-        header.name.toLowerCase() === 'subject'
+
+    const subjectHeader = message.payload.headers.find(
+        (header: any) => header.name.toLowerCase() === 'subject'
     );
-    
+
     return subjectHeader ? subjectHeader.value || '' : '';
 }
 
@@ -134,10 +139,10 @@ export function getEmailSender(message: GmailMessage): string {
     if (!message.payload || !message.payload.headers) {
         return '';
     }
-    
-    const fromHeader = message.payload.headers.find((header: any) => 
-        header.name.toLowerCase() === 'from'
+
+    const fromHeader = message.payload.headers.find(
+        (header: any) => header.name.toLowerCase() === 'from'
     );
-    
+
     return fromHeader ? fromHeader.value || '' : '';
-} 
+}

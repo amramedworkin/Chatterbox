@@ -6,8 +6,8 @@
     "defaultGetGmailUser": "awsamram@gmail.com"
   },
   "google": {
-    "credentialsPath": "./credentials.json",
-    "pollTokenPath": "./data/token.json",
+    "credentialsPath": "./google_credentials.json",
+    "pollTokenPath": "./data/google_tokens.json",
     "lastHistoryIdPath": "./data/last_history_id.txt",
     "lastPolledEmailPath": "./data/last_polled_email.txt",
     "totalPollCyclesPath": "./data/total_poll_cycles.txt",
@@ -32,7 +32,7 @@
   },
   "sendTest": {
     "testAttachmentsFolder": "./test/attachments",
-    "tokenPath": "./data/sendtest_token.json",
+    "tokenPath": "./data/sendtest_google_tokens.json",
     "lastSentEmailNumberPath": "./data/sendtest_last_sent_email_number.txt",
     "senderEmailPath": "./data/sendtest_sender_email.txt",
     "recipientEmailPath": "./data/sendtest_recipient_email.txt",

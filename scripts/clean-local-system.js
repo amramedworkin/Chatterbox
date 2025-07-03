@@ -24,9 +24,9 @@ const CLEANUP_ITEMS = [
         description: 'Main Gmail tokens file with access and refresh tokens'
       },
       {
-        path: 'data/token.json',
+        path: 'data/google_tokens.json',
         type: 'file',
-        description: 'Legacy token file for Gmail polling'
+        description: 'Gmail OAuth tokens'
       }
     ],
     sensitive: true
@@ -141,7 +141,7 @@ const CLEANUP_ITEMS = [
     documentation: 'See test/sendGmail.test.ts and data/ directory',
     locations: [
       {
-        path: 'data/sendtest_token.json',
+        path: 'data/sendtest_google_tokens.json',
         type: 'file',
         description: 'Send test Gmail tokens'
       },

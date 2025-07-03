@@ -15,18 +15,6 @@ variable "environment" {
   }
 }
 
-variable "vpc_cidr_block" {
-  description = "CIDR block for VPC"
-  type        = string
-  default     = "10.0.0.0/16"
-}
-
-variable "availability_zones" {
-  description = "List of availability zones"
-  type        = list(string)
-  default     = ["us-east-1a", "us-east-1b"]
-}
-
 variable "dynamodb_state_table_name" {
   description = "Name of DynamoDB table for state storage"
   type        = string
@@ -40,11 +28,7 @@ variable "s3_bucket_name" {
 }
 
 variable "s3_backup_bucket_name" {
-variable "s3_email_archive_bucket_name" {
-  description = "Name of S3 bucket for email archive storage"
-  type        = string
-  default     = "chatterbox-email-archive"
-}  description = "Name of S3 bucket for backups"
+  description = "Name of S3 bucket for backups"
   type        = string
   default     = "chatterbox-backup-bucket"
 }
@@ -71,12 +55,6 @@ variable "cloudwatch_log_group_name" {
   description = "Name of CloudWatch log group"
   type        = string
   default     = "/aws/chatterbox"
-}
-
-variable "enable_vpc_endpoints" {
-  description = "Enable VPC endpoints for AWS services"
-  type        = bool
-  default     = true
 }
 
 variable "enable_encryption" {

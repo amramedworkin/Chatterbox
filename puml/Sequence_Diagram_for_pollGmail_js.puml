@@ -34,7 +34,7 @@ group Authorization
         S -> S: Set OAuth client credentials
         S --> U: Log "Using existing tokens"
     else `sendtest_token.json` does not exist
-        S -> LFS: Read `credentials.json`
+        S -> LFS: Read `google_credentials.json`
         S -> S: Create OAuth client from credentials
         S -> GAPI: Generate authorization URL with `gmail.readonly`, `gmail.send` scopes
         GAPI --> S: Authorization URL

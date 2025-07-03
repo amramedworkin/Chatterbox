@@ -1,24 +1,49 @@
 # Lambda function for pulling latest Chatterbox email
 resource "aws_lambda_function" "pull_latest_chatterbox_email" {
-  filename         = data.archive_file.lambda_zip.output_path
-  function_name    = "${var.environment}-pull-latest-chatterbox-email"
-  role            = var.iam_role_arn
-  handler         = "pullLatestChatterboxEmail.handler"
-  runtime         = "nodejs18.x"
-  timeout         = 30
-  memory_size     = 256
+  filename      = data.archive_file.lambda_zip.output_path
+  function_name = "${var.environment}-pull-latest-chatterbox-email"
+  role          = var.iam_role_arn
+  handler       = "dist/pullLatestChatterboxEmail.handler"
+  runtime       = "nodejs18.x"
+  timeout       = 30
+  memory_size   = 256
 
   environment {
     variables = {
-      GMAIL_TOKENS_SECRET_NAME        = var.gmail_tokens_secret_name
-      GOOGLE_CREDENTIALS_SECRET_NAME  = var.google_credentials_secret_name
-      EMAIL_STORAGE_BUCKET            = var.email_storage_bucket
-      DEFAULT_GMAIL_USER              = var.default_gmail_user
+      GMAIL_TOKENS_SECRET_NAME       = var.gmail_tokens_secret_name
+      GOOGLE_CREDENTIALS_SECRET_NAME = var.google_credentials_secret_name
+      EMAIL_STORAGE_BUCKET           = var.email_storage_bucket
+      DEFAULT_GMAIL_USER             = var.default_gmail_user
     }
   }
 
   tags = {
     Name = "${var.environment}-pull-latest-chatterbox-email"
+  }
+}
+
+# Lambda function for polling Gmail
+resource "aws_lambda_function" "poll_gmail" {
+  filename      = data.archive_file.lambda_zip.output_path
+  function_name = "${var.environment}-poll-gmail"
+  role          = var.iam_role_arn
+  handler       = "dist/pollGmail.handler"
+  runtime       = "nodejs18.x"
+  timeout       = 60
+  memory_size   = 256
+
+  environment {
+    variables = {
+      GMAIL_TOKENS_SECRET_NAME       = var.gmail_tokens_secret_name
+      GOOGLE_CREDENTIALS_SECRET_NAME = var.google_credentials_secret_name
+      EMAIL_STORAGE_BUCKET           = var.email_storage_bucket
+      DEFAULT_GMAIL_USER             = var.default_gmail_user
+      PARAMETER_STORE_PREFIX         = var.parameter_store_prefix
+    }
+  }
+
+  tags = {
+    Name = "${var.environment}-poll-gmail"
   }
 }
 
@@ -38,14 +63,14 @@ resource "aws_api_gateway_rest_api" "chatterbox_api" {
   }
 }
 
-# API Gateway Resource
+# API Gateway Resource for pull email
 resource "aws_api_gateway_resource" "pull_email" {
   rest_api_id = aws_api_gateway_rest_api.chatterbox_api.id
   parent_id   = aws_api_gateway_rest_api.chatterbox_api.root_resource_id
   path_part   = "pull-latest-email"
 }
 
-# API Gateway Method
+# API Gateway Method for pull email
 resource "aws_api_gateway_method" "pull_email_get" {
   rest_api_id   = aws_api_gateway_rest_api.chatterbox_api.id
   resource_id   = aws_api_gateway_resource.pull_email.id
@@ -53,18 +78,44 @@ resource "aws_api_gateway_method" "pull_email_get" {
   authorization = "NONE"
 }
 
-# API Gateway Integration
+# API Gateway Integration for pull email
 resource "aws_api_gateway_integration" "lambda_integration" {
   rest_api_id = aws_api_gateway_rest_api.chatterbox_api.id
   resource_id = aws_api_gateway_resource.pull_email.id
   http_method = aws_api_gateway_method.pull_email_get.http_method
 
   integration_http_method = "POST"
-  type                   = "AWS_PROXY"
-  uri                    = aws_lambda_function.pull_latest_chatterbox_email.invoke_arn
+  type                    = "AWS_PROXY"
+  uri                     = aws_lambda_function.pull_latest_chatterbox_email.invoke_arn
 }
 
-# Lambda permission for API Gateway
+# API Gateway Resource for poll email
+resource "aws_api_gateway_resource" "poll_email" {
+  rest_api_id = aws_api_gateway_rest_api.chatterbox_api.id
+  parent_id   = aws_api_gateway_rest_api.chatterbox_api.root_resource_id
+  path_part   = "poll-gmail"
+}
+
+# API Gateway Method for poll email
+resource "aws_api_gateway_method" "poll_email_get" {
+  rest_api_id   = aws_api_gateway_rest_api.chatterbox_api.id
+  resource_id   = aws_api_gateway_resource.poll_email.id
+  http_method   = "GET"
+  authorization = "NONE"
+}
+
+# API Gateway Integration for poll email
+resource "aws_api_gateway_integration" "poll_lambda_integration" {
+  rest_api_id = aws_api_gateway_rest_api.chatterbox_api.id
+  resource_id = aws_api_gateway_resource.poll_email.id
+  http_method = aws_api_gateway_method.poll_email_get.http_method
+
+  integration_http_method = "POST"
+  type                    = "AWS_PROXY"
+  uri                     = aws_lambda_function.poll_gmail.invoke_arn
+}
+
+# Lambda permission for API Gateway - pull email
 resource "aws_lambda_permission" "api_gateway" {
   statement_id  = "AllowExecutionFromAPIGateway"
   action        = "lambda:InvokeFunction"
@@ -73,22 +124,42 @@ resource "aws_lambda_permission" "api_gateway" {
   source_arn    = "${aws_api_gateway_rest_api.chatterbox_api.execution_arn}/*/*"
 }
 
+# Lambda permission for API Gateway - poll email
+resource "aws_lambda_permission" "poll_api_gateway" {
+  statement_id  = "AllowExecutionFromAPIGateway"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.poll_gmail.function_name
+  principal     = "apigateway.amazonaws.com"
+  source_arn    = "${aws_api_gateway_rest_api.chatterbox_api.execution_arn}/*/*"
+}
+
 # API Gateway Deployment
 resource "aws_api_gateway_deployment" "chatterbox_deployment" {
   depends_on = [
     aws_api_gateway_integration.lambda_integration,
+    aws_api_gateway_integration.poll_lambda_integration,
   ]
 
   rest_api_id = aws_api_gateway_rest_api.chatterbox_api.id
   stage_name  = var.environment
 }
 
-# CloudWatch Log Group for Lambda
+# CloudWatch Log Group for Lambda - pull email
 resource "aws_cloudwatch_log_group" "lambda_logs" {
   name              = "/aws/lambda/${aws_lambda_function.pull_latest_chatterbox_email.function_name}"
   retention_in_days = 14
 
   tags = {
     Name = "${var.environment}-lambda-logs"
+  }
+}
+
+# CloudWatch Log Group for Lambda - poll email
+resource "aws_cloudwatch_log_group" "poll_lambda_logs" {
+  name              = "/aws/lambda/${aws_lambda_function.poll_gmail.function_name}"
+  retention_in_days = 14
+
+  tags = {
+    Name = "${var.environment}-poll-lambda-logs"
   }
 }

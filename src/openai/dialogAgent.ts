@@ -24,14 +24,15 @@ export async function dialogAgent(options: DialogAgentOptions): Promise<DialogAg
     const {
         question,
         model = config.openai.llmModel,
-        maxTokens = config.openai.maxResponseTokens,
         instructions = 'You are a helpful assistant. Provide clear, concise, and accurate responses to user questions.',
-        maxTurns = 1
+        maxTurns = 1,
     } = options;
 
     // Validate OpenAI API key
     if (!config.openai.apiKey) {
-        throw new Error('OpenAI API key not found. Please set OPENAI_API_KEY in your environment or config.');
+        throw new Error(
+            'OpenAI API key not found. Please set OPENAI_API_KEY in your environment or config.'
+        );
     }
 
     // Initialize OpenAI client
@@ -72,7 +73,9 @@ export async function dialogAgent(options: DialogAgentOptions): Promise<DialogAg
 
             // Check if the run completed successfully
             if (run.status !== 'completed') {
-                throw new Error(`Assistant run failed with status: ${run.status}. ${run.last_error?.message || ''}`);
+                throw new Error(
+                    `Assistant run failed with status: ${run.status}. ${run.last_error?.message || ''}`
+                );
             }
 
             // Store usage information
@@ -123,9 +126,10 @@ export async function dialogAgent(options: DialogAgentOptions): Promise<DialogAg
             usage: usage,
             turns: turns,
         };
-
     } catch (error) {
-        throw new Error(`Failed to process dialog request: ${error instanceof Error ? error.message : String(error)}`);
+        throw new Error(
+            `Failed to process dialog request: ${error instanceof Error ? error.message : String(error)}`
+        );
     }
 }
 
@@ -145,7 +149,10 @@ export async function askDialog(question: string): Promise<string> {
  * @param instructions - Custom instructions for the agent
  * @returns Promise resolving to the response text
  */
-export async function askDialogWithInstructions(question: string, instructions: string): Promise<string> {
+export async function askDialogWithInstructions(
+    question: string,
+    instructions: string
+): Promise<string> {
     const response = await dialogAgent({ question, instructions });
     return response.text;
 }
@@ -162,7 +169,7 @@ export async function askDialogFull(question: string): Promise<DialogAgentRespon
 // CLI interface for direct execution
 if (require.main === module) {
     const args = process.argv.slice(2);
-    
+
     if (args.length === 0 || args.includes('--help') || args.includes('-h')) {
         console.log(`
 Usage: node dist/src/openai/dialogAgent.js <question> [options]
@@ -182,10 +189,10 @@ Examples:
     }
 
     const question = args[0];
-    const model = args.find(arg => arg.startsWith('--model='))?.split('=')[1];
-    const maxTokens = args.find(arg => arg.startsWith('--max-tokens='))?.split('=')[1];
-    const instructions = args.find(arg => arg.startsWith('--instructions='))?.split('=')[1];
-    const maxTurns = args.find(arg => arg.startsWith('--max-turns='))?.split('=')[1];
+    const model = args.find((arg) => arg.startsWith('--model='))?.split('=')[1];
+    const maxTokens = args.find((arg) => arg.startsWith('--max-tokens='))?.split('=')[1];
+    const instructions = args.find((arg) => arg.startsWith('--instructions='))?.split('=')[1];
+    const maxTurns = args.find((arg) => arg.startsWith('--max-turns='))?.split('=')[1];
 
     const options: DialogAgentOptions = {
         question,
@@ -203,4 +210,4 @@ Examples:
             console.error('Error:', error.message);
             process.exit(1);
         });
-} 
+}

@@ -24,6 +24,12 @@ variable "default_gmail_user" {
   default     = ""
 }
 
+variable "parameter_store_prefix" {
+  description = "Prefix for Parameter Store parameters"
+  type        = string
+  default     = "/chatterbox"
+}
+
 variable "iam_role_arn" {
   description = "ARN of the IAM role for Lambda execution"
   type        = string

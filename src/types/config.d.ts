@@ -2,7 +2,7 @@
 
 declare interface GoogleConfig {
     credentialsPath: string;
-    pollTokenPath: string;
+    pollTokenPath: string; // Path to google_tokens.json
     lastHistoryIdPath: string;
     lastPolledEmailPath: string;
     totalPollCyclesPath: string;

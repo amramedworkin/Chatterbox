@@ -378,14 +378,14 @@ async function main(): Promise<void> {
     // If sender email changed, force re-authorization by deleting token
     if (forceReauthorization) {
         console.log(
-            'Deleting token.json due to sender email change. Re-authorization required.'
+            'Deleting google_token.json due to sender email change. Re-authorization required.'
         );
         try {
             if (await fileExists(config.google.pollTokenPath)) {
                 await fs.unlink(config.google.pollTokenPath);
             }
         } catch (err) {
-            console.error('Error deleting token.json:', err);
+            console.error('Error deleting google_token.json:', err);
         }
     }
 

@@ -6,7 +6,7 @@ resource "aws_resourcegroups_group" "chatterbox" {
     query = jsonencode({
       ResourceTypeFilters = [
         "AWS::S3::Bucket",
-        "AWS::DynamoDB::Table", 
+        "AWS::DynamoDB::Table",
         "AWS::Lambda::Function",
         "AWS::ApiGateway::RestApi",
         "AWS::SecretsManager::Secret",
@@ -17,10 +17,7 @@ resource "aws_resourcegroups_group" "chatterbox" {
         "AWS::EC2::Subnet",
         "AWS::EC2::RouteTable",
         "AWS::EC2::InternetGateway",
-        "AWS::EC2::NatGateway",
-        "AWS::EC2::VpcEndpoint",
-        "AWS::IAM::Role",
-        "AWS::IAM::Policy"
+        "AWS::EC2::NatGateway"
       ]
       TagFilters = [
         {

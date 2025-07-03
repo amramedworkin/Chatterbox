@@ -47,6 +47,28 @@
       "rules": {
         "no-unused-vars": "warn"
       }
+    },
+    {
+      "files": [
+        "src/lambda/pullLatestChatterboxEmail.ts",
+        "src/mail/getGmail.ts",
+        "src/mail/getLatestGmail.ts",
+        "src/mail/pollGmail.ts",
+        "src/openai/askAgent.ts",
+        "src/openai/dialogAgent.ts",
+        "src/openai/dialogConsole.ts",
+        "src/utils/awsSecrets.ts"
+      ],
+      "rules": {
+        "@typescript-eslint/no-explicit-any": "off"
+      }
+    },
+    {
+      "files": ["**/*.test.{js,ts}", "**/*.spec.{js,ts}", "**/test/**/*.{js,ts}"],
+      "rules": {
+        "@typescript-eslint/no-explicit-any": "off",
+        "jest/no-conditional-expect": "off"
+      }
     }
   ]
 }

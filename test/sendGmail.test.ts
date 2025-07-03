@@ -70,7 +70,10 @@ async function readRecipientEmail(): Promise<string | null> {
             return (await fs.readFile(config.sendTest.recipientEmailPath, 'utf8')).trim();
         }
     } catch (err) {
-        console.error(`Error reading recipient email file (${config.sendTest.recipientEmailPath}):`, err);
+        console.error(
+            `Error reading recipient email file (${config.sendTest.recipientEmailPath}):`,
+            err
+        );
     }
     return null;
 }
@@ -85,7 +88,10 @@ async function writeRecipientEmail(email: string): Promise<void> {
         await fs.writeFile(config.sendTest.recipientEmailPath, email, 'utf8');
         console.log(`Recipient email persisted to: ${config.sendTest.recipientEmailPath}`);
     } catch (err) {
-        console.error(`Error writing recipient email file (${config.sendTest.recipientEmailPath}):`, err);
+        console.error(
+            `Error writing recipient email file (${config.sendTest.recipientEmailPath}):`,
+            err
+        );
     }
 }
 
@@ -118,35 +124,62 @@ async function writeSendCount(count: number): Promise<void> {
     }
 }
 
-
 // Function to display email details attractively
 
 // Function to display email details attractively
-function displayEmailDetails(result: any, sender: string, recipient: string, conversationId: string | null, attachCount: number): void {
-    console.log(chalk.green.bold("\n📧 Email Sent Successfully! 📧"));
-    console.log(chalk.cyan("═".repeat(60)));
-    console.log(chalk.yellow.bold("📅 Sent Date:"), chalk.white(new Date().toLocaleString('en-US', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit', timeZoneName: 'short' })));
-    console.log(chalk.yellow.bold("📨 Message ID:"), chalk.white(result.messageId));
-    console.log(chalk.yellow.bold("📝 Subject:"), chalk.white(`chatterbox test title${conversationId ? `:${conversationId}` : ""} ${(sendCount).toString().padStart(4, "0")}`));
-    console.log(chalk.yellow.bold("👤 From:"), chalk.white(sender));
-    console.log(chalk.yellow.bold("👥 To:"), chalk.white(recipient));
-    console.log(chalk.yellow.bold("📄 Body:"));
-    console.log(chalk.gray("─".repeat(40)));
-    console.log(chalk.white(`What is the definition of quantum froth?  Does it exist?  How did we find it or are we still looking to verify its existence?\n\nConversation ID: ${conversationId || "null"}\nAttachment count: ${attachCount}`));
-    console.log(chalk.gray("─".repeat(40)));
-    
+function displayEmailDetails(
+    result: any,
+    sender: string,
+    recipient: string,
+    conversationId: string | null,
+    attachCount: number
+): void {
+    console.log(chalk.green.bold('\n📧 Email Sent Successfully! 📧'));
+    console.log(chalk.cyan('═'.repeat(60)));
+    console.log(
+        chalk.yellow.bold('📅 Sent Date:'),
+        chalk.white(
+            new Date().toLocaleString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                timeZoneName: 'short',
+            })
+        )
+    );
+    console.log(chalk.yellow.bold('📨 Message ID:'), chalk.white(result.messageId));
+    console.log(
+        chalk.yellow.bold('📝 Subject:'),
+        chalk.white(
+            `chatterbox test title${conversationId ? `:${conversationId}` : ''} ${sendCount.toString().padStart(4, '0')}`
+        )
+    );
+    console.log(chalk.yellow.bold('👤 From:'), chalk.white(sender));
+    console.log(chalk.yellow.bold('👥 To:'), chalk.white(recipient));
+    console.log(chalk.yellow.bold('📄 Body:'));
+    console.log(chalk.gray('─'.repeat(40)));
+    console.log(
+        chalk.white(
+            `What is the definition of quantum froth?  Does it exist?  How did we find it or are we still looking to verify its existence?\n\nConversation ID: ${conversationId || 'null'}\nAttachment count: ${attachCount}`
+        )
+    );
+    console.log(chalk.gray('─'.repeat(40)));
+
     if (attachCount > 0) {
-        console.log(chalk.yellow.bold("📎 Attachments:"));
+        console.log(chalk.yellow.bold('📎 Attachments:'));
         for (let i = 1; i <= attachCount; i++) {
             const attachmentName = `attachment_${i}.txt`;
-            console.log(chalk.blue(`  ${i}. ${attachmentName}`), chalk.gray("(test file)"));
+            console.log(chalk.blue(`  ${i}. ${attachmentName}`), chalk.gray('(test file)'));
         }
     } else {
-        console.log(chalk.yellow.bold("📎 Attachments:"), chalk.gray("None"));
+        console.log(chalk.yellow.bold('📎 Attachments:'), chalk.gray('None'));
     }
-    
-    console.log(chalk.cyan("═".repeat(60)));
-    console.log(chalk.green.bold("✅ Email sent successfully!"));
+
+    console.log(chalk.cyan('═'.repeat(60)));
+    console.log(chalk.green.bold('✅ Email sent successfully!'));
 }
 async function main(): Promise<void> {
     // Parse command-line arguments
@@ -379,14 +412,14 @@ async function main(): Promise<void> {
     // If sender email changed, force re-authorization by deleting token
     if (forceReauthorization) {
         console.log(
-            'Deleting token.json due to sender email change. Re-authorization required.'
+            'Deleting google_tokens.json due to sender email change. Re-authorization required.'
         );
         try {
             if (await fileExists(config.google.pollTokenPath)) {
                 await fs.unlink(config.google.pollTokenPath);
             }
         } catch (err) {
-            console.error('Error deleting token.json:', err);
+            console.error('Error deleting google_tokens.json:', err);
         }
     }
 
@@ -406,7 +439,13 @@ async function main(): Promise<void> {
         );
 
         if (result.success) {
-            displayEmailDetails(result, gmailUser, currentRecipientEmail, conversationId, attachCount);
+            displayEmailDetails(
+                result,
+                gmailUser,
+                currentRecipientEmail,
+                conversationId,
+                attachCount
+            );
         } else {
             console.error(`❌ Failed to send test email: ${result.error}`);
             process.exit(1);

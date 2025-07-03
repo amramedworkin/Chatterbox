@@ -80,19 +80,19 @@ async function checkAuthorizationAndGetAuth(gmailUser: string): Promise<OAuth2Cl
         // Try to authorize the user
         const auth = await authorizeGmail(gmailUser, config);
         return auth;
-    } catch (error) {
+    } catch {
         logWithTimestamp('❌ Authorization failed for Gmail polling.');
         logWithTimestamp('💡 To fix this issue:');
         logWithTimestamp('   1. Run: npm run mail:authorize');
         logWithTimestamp('   2. Follow the authorization prompts for each Gmail user');
-        logWithTimestamp('   3. Make sure your credentials.json file is valid');
+        logWithTimestamp('   3. Make sure your google_credentials.json file is valid');
         logWithTimestamp('   4. If problems persist, run: npm run mail:authorize --force');
         logWithTimestamp('   5. Ensure you have the correct Gmail scopes configured');
         logWithTimestamp('   6. Check that your Google Cloud project has Gmail API enabled');
         logWithTimestamp('');
         logWithTimestamp('🔧 Additional troubleshooting:');
         logWithTimestamp('   • Verify your .env file contains valid configuration');
-        logWithTimestamp('   • Check that credentials.json is in the correct location');
+        logWithTimestamp('   • Check that google_credentials.json is in the correct location');
         logWithTimestamp('   • Ensure your Google account has 2FA enabled if required');
         logWithTimestamp('   • Try running the authorization process in a different browser');
         logWithTimestamp('');
@@ -100,7 +100,7 @@ async function checkAuthorizationAndGetAuth(gmailUser: string): Promise<OAuth2Cl
         logWithTimestamp('   • Check the project README for setup instructions');
         logWithTimestamp('   • Review Google Cloud Console for API settings');
         logWithTimestamp('   • Open an issue on GitHub if problem persists');
-        
+
         throw new Error(`Authorization failed for ${gmailUser}. Please run authorization first.`);
     }
 }
@@ -113,15 +113,16 @@ async function checkAuthorizationAndGetAuth(gmailUser: string): Promise<OAuth2Cl
 async function performPollingCycle(auth: OAuth2Client, currentPollingCycle: number): Promise<void> {
     try {
         const result = await pollGmail(auth, gmailUser);
-        
-        logWithTimestamp(`Polling cycle ${currentPollingCycle} completed. Found ${result.newMessages.length} new messages.`);
-        
+
+        logWithTimestamp(
+            `Polling cycle ${currentPollingCycle} completed. Found ${result.newMessages.length} new messages.`
+        );
+
         if (result.newMessages.length > 0) {
             logWithTimestamp('New message IDs:', result.newMessages);
             // Here you would integrate with your LLM interaction logic
             // For now, just logging the IDs
         }
-        
     } catch (error) {
         logWithTimestamp(`Error during polling cycle ${currentPollingCycle}:`, error);
         // Continue polling even if one cycle fails
@@ -149,7 +150,7 @@ async function main(): Promise<void> {
     if (process.argv.includes('--clean')) {
         logWithTimestamp('Cleaning up previous authorization and state...');
         try {
-            // Delete token.json and last_history_id.txt for the current user
+            // Delete google_tokens.json and last_history_id.txt for the current user
             await fs.unlink(config.google.pollTokenPath).catch(() => {});
             await fs.unlink(config.google.lastHistoryIdPath).catch(() => {});
             await fs.unlink(config.google.totalPollCyclesPath).catch(() => {});
@@ -158,8 +159,8 @@ async function main(): Promise<void> {
                 'Cleanup complete. Please re-run the script to re-authorize and start fresh.'
             );
             return;
-        } catch (err: unknown) {
-            logWithTimestamp('Error during clean operation:', err);
+        } catch {
+            logWithTimestamp('Error during clean operation');
             process.exit(1);
         }
     }
@@ -167,39 +168,43 @@ async function main(): Promise<void> {
     try {
         // Check authorization and get authenticated client
         const auth = await checkAuthorizationAndGetAuth(gmailUser);
-        
+
         logWithTimestamp(`Starting timed Gmail poller for ${gmailUser}`);
         logWithTimestamp(`Poll interval: ${pollInterval / 1000 / 60} minutes`);
         logWithTimestamp(`Duration: ${pollDurationMinutes} minutes`);
-        logWithTimestamp(`Total cycles: ${Math.ceil((pollDurationMinutes * 60 * 1000) / pollInterval)}`);
-        
+        logWithTimestamp(
+            `Total cycles: ${Math.ceil((pollDurationMinutes * 60 * 1000) / pollInterval)}`
+        );
+
         const startTime = Date.now();
-        const endTime = startTime + (pollDurationMinutes * 60 * 1000);
+        const endTime = startTime + pollDurationMinutes * 60 * 1000;
         let currentPollingCycle = 1;
-        
+
         // Perform initial poll
         await performPollingCycle(auth, currentPollingCycle);
-        
+
         // Set up interval for subsequent polls
         const intervalId = setInterval(async () => {
             currentPollingCycle++;
-            
+
             // Check if we've exceeded the duration
             if (Date.now() >= endTime) {
                 logWithTimestamp('Polling duration reached. Stopping poller.');
                 clearInterval(intervalId);
                 return;
             }
-            
+
             await performPollingCycle(auth, currentPollingCycle);
         }, pollInterval);
-        
+
         // Set up timeout to stop polling after the specified duration
-        setTimeout(() => {
-            logWithTimestamp('Polling duration reached. Stopping poller.');
-            clearInterval(intervalId);
-        }, pollDurationMinutes * 60 * 1000);
-        
+        setTimeout(
+            () => {
+                logWithTimestamp('Polling duration reached. Stopping poller.');
+                clearInterval(intervalId);
+            },
+            pollDurationMinutes * 60 * 1000
+        );
     } catch (err: unknown) {
         logWithTimestamp('Failed to start poller:', err);
         process.exit(1);

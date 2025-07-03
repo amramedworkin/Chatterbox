@@ -24,7 +24,7 @@ function getGmailUsersFromConfig(): EmailPurpose[] {
         users.push({
             email: config.app.defaultPollGmailUser,
             purpose: 'Gmail polling (monitoring incoming emails)',
-            scopes: config.google.scopes
+            scopes: config.google.scopes,
         });
         seenEmails.add(config.app.defaultPollGmailUser);
     }
@@ -34,7 +34,7 @@ function getGmailUsersFromConfig(): EmailPurpose[] {
         users.push({
             email: config.app.defaultSendGmailUser,
             purpose: 'Gmail sending (outgoing emails)',
-            scopes: config.sendTest.scopes
+            scopes: config.sendTest.scopes,
         });
         seenEmails.add(config.app.defaultSendGmailUser);
     }
@@ -44,7 +44,7 @@ function getGmailUsersFromConfig(): EmailPurpose[] {
         users.push({
             email: config.app.defaultGetGmailUser,
             purpose: 'Gmail retrieval (reading emails)',
-            scopes: config.google.scopes
+            scopes: config.google.scopes,
         });
         seenEmails.add(config.app.defaultGetGmailUser);
     }
@@ -57,7 +57,9 @@ function getGmailUsersFromConfig(): EmailPurpose[] {
  * @param forceReauthorize If true, forces re-authorization for all users
  * @returns Promise resolving to a map of email to OAuth2Client
  */
-export async function authorizeAllGmailUsers(forceReauthorize: boolean = false): Promise<Map<string, OAuth2Client>> {
+export async function authorizeAllGmailUsers(
+    forceReauthorize: boolean = false
+): Promise<Map<string, OAuth2Client>> {
     const users = getGmailUsersFromConfig();
     const authorizedClients = new Map<string, OAuth2Client>();
 
@@ -82,7 +84,7 @@ export async function authorizeAllGmailUsers(forceReauthorize: boolean = false):
             authorizedClients.set(user.email, authClient);
             console.log(`✅ Successfully authorized ${user.email}\n`);
         } catch (error) {
-            const errorMsg = (error instanceof Error) ? error.message : String(error);
+            const errorMsg = error instanceof Error ? error.message : String(error);
             console.error(`❌ Failed to authorize ${user.email}: ${errorMsg}`);
             throw new Error(`Authorization failed for ${user.email}: ${errorMsg}`);
         }
@@ -98,7 +100,7 @@ export async function authorizeAllGmailUsers(forceReauthorize: boolean = false):
  */
 export async function checkAllGmailUsersAuthorized(): Promise<boolean> {
     const users = getGmailUsersFromConfig();
-    
+
     for (const user of users) {
         try {
             // Try to authorize without forcing (this will only refresh existing tokens)
@@ -108,7 +110,7 @@ export async function checkAllGmailUsersAuthorized(): Promise<boolean> {
             return false;
         }
     }
-    
+
     return true;
 }
 
@@ -118,7 +120,7 @@ export async function checkAllGmailUsersAuthorized(): Promise<boolean> {
 async function main(): Promise<void> {
     const args = process.argv.slice(2);
     const forceReauthorize = args.includes('--force') || args.includes('-f');
-    
+
     if (args.includes('--help') || args.includes('-h')) {
         console.log('Usage: npm run mail:authorize [--force]');
         console.log('');
@@ -128,7 +130,7 @@ async function main(): Promise<void> {
         console.log('');
         console.log('This script will authorize all Gmail users defined in the config:');
         const users = getGmailUsersFromConfig();
-        users.forEach(user => {
+        users.forEach((user) => {
             console.log(`  - ${user.email} (${user.purpose})`);
         });
         process.exit(0);
@@ -142,7 +144,7 @@ async function main(): Promise<void> {
         console.log('\n💡 To fix authorization issues:');
         console.log('   1. Run: npm run mail:authorize --force');
         console.log('   2. Follow the authorization prompts for each user');
-        console.log('   3. Make sure your credentials.json file is valid');
+        console.log('   3. Make sure your google_credentials.json file is valid');
         process.exit(1);
     }
 }
@@ -152,4 +154,4 @@ if (require.main === module) {
     main();
 }
 
-export { getGmailUsersFromConfig }; 
+export { getGmailUsersFromConfig };

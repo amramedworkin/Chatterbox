@@ -12,7 +12,7 @@ System_Ext(externalSender, "External Email Sender", "External User/System", "Sen
 System_Ext(externalRecipient, "External Email Recipient", "External User/System", "Receives confirmation/response emails from the Poller.")
 
 Boundary(localFsBoundary, "Local File System") {
-    Component(credentialsFile, "credentials.json", "OAuth Client File", "Contains OAuth Client ID and Secret for Google API access.")
+    Component(credentialsFile, "google_credentials.json", "OAuth Client File", "Contains OAuth Client ID and Secret for Google API access.")
     Component(tokenFile, "sendtest_token.json", "OAuth Token File", "Stores Access and Refresh Tokens for ongoing API authorization.")
     Component(historyIdFile, "last_history_id.txt", "History ID File", "Persists the last processed Gmail history ID for efficient polling.")
     Component(polledEmailFile, "last_polled_email.txt", "Config File", "Persists the last used Gmail address for polling.")

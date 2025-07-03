@@ -16,7 +16,7 @@ output "backup_bucket_name" {
 output "backup_bucket_arn" {
   description = "S3 backup bucket ARN"
   value       = aws_s3_bucket.backup.arn
-} 
+}
 output "email_archive_bucket_name" {
   description = "S3 email archive bucket name"
   value       = aws_s3_bucket.email_archive.bucket

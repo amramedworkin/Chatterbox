@@ -46,6 +46,12 @@ resource "aws_secretsmanager_secret" "google_credentials" {
   }
 }
 
+# Initial secret value (empty JSON object)
+resource "aws_secretsmanager_secret_version" "google_credentials" {
+  secret_id     = aws_secretsmanager_secret.google_credentials.id
+  secret_string = jsonencode({})
+}
+
 # CloudWatch Alarms for Secrets Manager
 resource "aws_cloudwatch_metric_alarm" "secrets_manager_errors" {
   alarm_name          = "${var.environment}-chatterbox-secrets-manager-errors"

@@ -1,3 +1,7 @@
+# Data sources for ARN construction
+data "aws_region" "current" {}
+data "aws_caller_identity" "current" {}
+
 # IAM Role for Chatterbox Application
 resource "aws_iam_role" "chatterbox_role" {
   name = "${var.environment}-chatterbox-role"
@@ -86,8 +90,7 @@ resource "aws_iam_policy" "s3_policy" {
           var.s3_backup_bucket_arn,
           "${var.s3_backup_bucket_arn}/*",
           var.s3_email_archive_bucket_arn,
-          "${var.s3_email_archive_bucket_arn}/*"
-          "${var.s3_backup_bucket_arn}/*"
+          "${var.s3_email_archive_bucket_arn}/*",
         ]
       }
     ]
@@ -146,7 +149,10 @@ resource "aws_iam_policy" "parameter_store_policy" {
           "ssm:GetParameters",
           "ssm:PutParameter"
         ]
-        Resource = var.parameter_store_arn
+        Resource = [
+          "arn:aws:ssm:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:parameter/chatterbox*",
+          "arn:aws:ssm:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:parameter/chatterbox/*"
+        ]
       }
     ]
   })
@@ -191,6 +197,37 @@ resource "aws_iam_policy" "cloudwatch_policy" {
   }
 }
 
+# IAM Policy for VPC Access
+resource "aws_iam_policy" "vpc_policy" {
+  name        = "${var.environment}-chatterbox-vpc-policy"
+  description = "Policy for VPC access"
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "ec2:CreateNetworkInterface",
+          "ec2:DescribeNetworkInterfaces",
+          "ec2:DeleteNetworkInterface",
+          "ec2:AssignPrivateIpAddresses",
+          "ec2:UnassignPrivateIpAddresses"
+        ]
+        Resource = "*"
+      }
+    ]
+  })
+
+  tags = {
+    Name        = "${var.environment}-chatterbox-vpc-policy"
+    Project     = "Chatterbox"
+    Environment = var.environment
+    Subsystem   = "networking"
+    ManagedBy   = "Terraform"
+  }
+}
+
 # Attach policies to role
 resource "aws_iam_role_policy_attachment" "dynamodb_attachment" {
   role       = aws_iam_role.chatterbox_role.name
@@ -215,6 +252,17 @@ resource "aws_iam_role_policy_attachment" "parameter_store_attachment" {
 resource "aws_iam_role_policy_attachment" "cloudwatch_attachment" {
   role       = aws_iam_role.chatterbox_role.name
   policy_arn = aws_iam_policy.cloudwatch_policy.arn
+}
+
+resource "aws_iam_role_policy_attachment" "vpc_attachment" {
+  role       = aws_iam_role.chatterbox_role.name
+  policy_arn = aws_iam_policy.vpc_policy.arn
+}
+
+# Attach AWS Lambda Basic Execution Role (managed policy)
+resource "aws_iam_role_policy_attachment" "lambda_basic_execution" {
+  role       = aws_iam_role.chatterbox_role.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
 }
 
 # Instance Profile

@@ -1,0 +1,46 @@
+{
+    "FunctionName": "development-pull-latest-chatterbox-email",
+    "FunctionArn": "arn:aws:lambda:us-east-1:855581761117:function:development-pull-latest-chatterbox-email",
+    "Runtime": "nodejs18.x",
+    "Role": "arn:aws:iam::855581761117:role/development-chatterbox-role",
+    "Handler": "dist/pullLatestChatterboxEmail.handler",
+    "CodeSize": 30366936,
+    "Description": "",
+    "Timeout": 30,
+    "MemorySize": 256,
+    "LastModified": "2025-06-30T16:37:43.000+0000",
+    "CodeSha256": "HRdnJmeMXqwH6DRLO5PApINlSDR5lsrg1/tyKEVVVRA=",
+    "Version": "$LATEST",
+    "Environment": {
+        "Variables": {
+            "GMAIL_TOKENS_SECRET_NAME": "development-chatterbox/gmail-tokens",
+            "DEFAULT_GMAIL_USER": "default@example.com",
+            "GOOGLE_CREDENTIALS_SECRET_NAME": "development-chatterbox-google-credentials",
+            "EMAIL_STORAGE_BUCKET": "chatterbox-email-archive"
+        }
+    },
+    "TracingConfig": {
+        "Mode": "PassThrough"
+    },
+    "RevisionId": "ed519ad1-e8f8-416f-b81c-ca575855974f",
+    "State": "Active",
+    "LastUpdateStatus": "Successful",
+    "PackageType": "Zip",
+    "Architectures": [
+        "x86_64"
+    ],
+    "EphemeralStorage": {
+        "Size": 512
+    },
+    "SnapStart": {
+        "ApplyOn": "None",
+        "OptimizationStatus": "Off"
+    },
+    "RuntimeVersionConfig": {
+        "RuntimeVersionArn": "arn:aws:lambda:us-east-1::runtime:65487f7287f6cbcecddd42f370b3113f0a16f3fa301e5b1158f7d924b2ce4425"
+    },
+    "LoggingConfig": {
+        "LogFormat": "Text",
+        "LogGroup": "/aws/lambda/development-pull-latest-chatterbox-email"
+    }
+}

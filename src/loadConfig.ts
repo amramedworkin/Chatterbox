@@ -76,12 +76,12 @@ const config: AppConfig = {
         credentialsPath: getOrDefault(
             'GOOGLE_CREDENTIALS_PATH',
             'google.credentialsPath',
-            './credentials.json'
+            '~/google_credentials.json'
         ),
         pollTokenPath: getOrDefault(
             'GOOGLE_POLL_TOKEN_PATH',
             'google.pollTokenPath',
-            './data/token.json'
+            './data/google_tokens.json'
         ),
         lastHistoryIdPath: getOrDefault(
             'GOOGLE_LAST_HISTORY_ID_PATH',
@@ -146,7 +146,7 @@ const config: AppConfig = {
         tokenPath: getOrDefault(
             'SENDTEST_TOKEN_PATH',
             'sendTest.tokenPath',
-            './data/sendtest_token.json'
+            './data/sendtest_google_tokens.json'
         ),
         lastSentEmailNumberPath: getOrDefault(
             'SENDTEST_LAST_SENT_EMAIL_NUMBER_PATH',
@@ -210,11 +210,7 @@ const config: AppConfig = {
             endpoint: process.env.AWS_DYNAMODB_ENDPOINT || appDefaults.aws?.dynamodb?.endpoint,
         },
         s3: {
-            bucketName: getOrDefault(
-                'AWS_S3_BUCKET_NAME',
-                'aws.s3.bucketName',
-                'chatterbox-data'
-            ),
+            bucketName: getOrDefault('AWS_S3_BUCKET_NAME', 'aws.s3.bucketName', 'chatterbox-data'),
             backupBucketName: getOrDefault(
                 'AWS_S3_BACKUP_BUCKET_NAME',
                 'aws.s3.backupBucketName',
@@ -236,11 +232,15 @@ const config: AppConfig = {
                 'aws.parameterStore.prefix',
                 '/chatterbox'
             ),
-            endpoint: process.env.AWS_PARAMETER_STORE_ENDPOINT || appDefaults.aws?.parameterStore?.endpoint,
+            endpoint:
+                process.env.AWS_PARAMETER_STORE_ENDPOINT ||
+                appDefaults.aws?.parameterStore?.endpoint,
         },
         iam: {
             roleArn: process.env.AWS_IAM_ROLE_ARN || appDefaults.aws?.iam?.roleArn,
-            instanceProfileArn: process.env.AWS_IAM_INSTANCE_PROFILE_ARN || appDefaults.aws?.iam?.instanceProfileArn,
+            instanceProfileArn:
+                process.env.AWS_IAM_INSTANCE_PROFILE_ARN ||
+                appDefaults.aws?.iam?.instanceProfileArn,
         },
         cloudwatch: {
             logGroupName: getOrDefault(
@@ -250,11 +250,11 @@ const config: AppConfig = {
             ),
             endpoint: process.env.AWS_CLOUDWATCH_ENDPOINT || appDefaults.aws?.cloudwatch?.endpoint,
         },
-        environment: getOrDefault(
-            'AWS_ENVIRONMENT',
-            'aws.environment',
-            'local'
-        ) as 'local' | 'development' | 'staging' | 'production',
+        environment: getOrDefault('AWS_ENVIRONMENT', 'aws.environment', 'local') as
+            | 'local'
+            | 'development'
+            | 'staging'
+            | 'production',
     },
 };
 

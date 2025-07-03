@@ -18,7 +18,7 @@ export async function listGmails(
     existingAuth?: OAuth2Client
 ): Promise<string[]> {
     const gmailUser = userEmail || config.app.defaultPollGmailUser;
-    const auth: OAuth2Client = existingAuth || await authorizeGmail(gmailUser, config);
+    const auth: OAuth2Client = existingAuth || (await authorizeGmail(gmailUser, config));
     const gmail = google.gmail({ version: 'v1', auth });
 
     const queryParts: string[] = ['subject:chatterbox'];

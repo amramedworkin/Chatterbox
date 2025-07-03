@@ -35,8 +35,8 @@ async function testIAM() {
         // Check trust policy
         if (roleResponse.Role.AssumeRolePolicyDocument) {
             console.log('✅ Trust Policy:');
-            console.log(`   Version: ${roleResponse.Role.AssumeRolePolicyDocument.Version}`);
-            console.log(`   Statements: ${roleResponse.Role.AssumeRolePolicyDocument.Statement.length}`);
+            console.log(`   Version: ${roleResponse.Role.AssumeRolePolicyDocument.Version || 'Not specified'}`);
+            console.log(`   Statements: ${roleResponse.Role.AssumeRolePolicyDocument.Statement ? roleResponse.Role.AssumeRolePolicyDocument.Statement.length : 0}`);
         }
 
         // List attached policies
