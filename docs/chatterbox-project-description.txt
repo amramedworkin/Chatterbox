@@ -1,0 +1,126 @@
+1. The overarching goal of this system is to create a back end app that
+1.a. captures incoming emails on a defined (configured) gmail account
+1.b. captures incoming sms on a defined sms account (phone number)
+1.c. transforms each one seperately into a format that can be used to query an LLM
+1.d.1. Right now this is only OpenAI but future versions will access AWS Bedrock LLMs
+1.e. Take the response from the LLM and package it in an attractive form
+1.f. Return the formatted response to the senders email address
+1.g. Store the message/response so the user can retrieve it at some future date
+1.g.1. Persisting messages is configurable.  The user can decide whether to or not to persist his message history
+
+2. Users will have to set up an account with chatterbox before allowed to use the service
+2.a. For now, before we integrate the registered account capability, any incoming mail should be allowed
+2.b. We need a mechanism to shut off the "any account" feature once the registration process is deployed
+
+
+3. User endpoints are defined by their endpoints
+3.a. Every time a user uses the system:
+3.a.1. A counter should be incremented indicating a usage
+3.a.2. A counter should be incremented only if the process completed successfully (a response message was received from the LLM  and forward to the user)
+3.a.3. This lets us limit users to a set number of free uses before they have to register
+
+4. Account Types
+4.a. Per use: the user's card is debitted every time they use the system
+4.b. Prepaid: The user purchases a certain amount of usage and that is decremented every time they use the system
+4.c. Weekly:
+4.c.1. As many usages as desired during a 7 day period, up to some limit that ensures we do not lose money on the account due to overly heavy usage
+4.c.2. Weekly - One time pay, no recurring
+4.c.3. Weekly - Recurring
+4.d. Monthly:
+4.d.1. As many usages as desired during a 30 day period, up to some limit that ensures we do not lose money on the account due to overly heavy usage
+4.d.2. Monthly - One time pay, no recurring
+4.d.3. Monthly - Recurring
+4.d.3.a. After six months of recurring, they get 5 days free
+4.e. Annual:
+4.e.1. As many usages as desired during a 365 day period, up to some limit that ensures we do not lose money on the account due to overly heavy usage
+4.e.2. Annual - One time pay, no recurring
+4.e.3. Annual - Recurring
+4.e.3.a. After the first year, they get one month free for every year they have been members
+4.f. Daily - 
+4.f.1. As many usages as desired during a 24 hour period, up to some limit that ensures we do not lose money on the account due to overly heavy usage
+4.f.2. Daily - One time pay, no recurring
+4.f.3. Daily - Recurring
+4.f.3.a. After 7 days, they get one day free 
+
+5. Permanent storage
+5.a. Every query should create a permanent record with:
+5.a.1. The icnoming email address
+5.a.2. The size of the query in bytes and tokens
+5.a.3. Wether it was a single request (simple prompt) or part of a dialog
+5.a.4. The size of the reponse in bytes and tokens
+5.b. When it was received
+5.c. When it was processed
+5.d. When it was mailed or messaged back to the user
+5.e. What AI model was used and whether it was requested or used the default
+5.e.1. This is because costs are allocated by models and we give a discount to using the default model
+5.f. Every query has a costing component.  
+5.f.1. The cost of the LLM (tokens, etc)
+5.f.2. The infrastructure maintenance costs
+5.f.3. Any other ancillary costs for the software (licences, etc).
+5.f.4. The costing bucket should added to the profile of every query
+
+
+6. Query descriptions:
+6.a. Queries can be standalone single questions or conversations
+6.b. All queries can include files of the types permissable by the LLM
+6.b.1. Files included in the senders email are automatically included in the request to the LLM.
+6.b.2. If a file type is rejected by the LLM the request is still made to the LLM, but the rejection is noted in the response to the sender/requestor
+6.c. Standalones are single questions or prompts with no context
+6.d. Conversations are ongoing dialogs with the LLM
+6.d.1. Conversations can only be against a single model
+6.d.2. Some models do not support conversations
+6.d.3. Conversations use a guid identifier to indicate continuation of prior dialogs with the LLM
+6.d.4. Accounts with persistence turned off cannot use the conversation feature
+6.e. Persisted queries can be retrieved at a vastly reduced cost. 
+6.e.1. If a query cost $0.08 its retrieval might only cost $0.01.
+
+7. User profiles
+7.a. Type of subscription they want (per-use, daily, weekly, monthly, annual)
+7.b. User information: Name, Email, Username
+7.c. Credit card info
+7.d. Persist or throwaway mode
+7.e. Budgets (for per-use)
+7.e.1. Maximum spend per query
+7.e.2. Max per day
+7.e.3. Max per week
+7.e.4. Max per month
+7.e.5. Max per year
+7.f. Each budget limit should have multiple warning/notification when the amount hits a specifc percent or amount
+7.g. LLM Selection
+7.g.1. Preferred provider
+7.g.2. Preferred model
+7.g.3. Should have a "Most recent model" option that continuously picks the most recent model available for that provider
+7.g.4. Here is where it is explained that the user gets a discount if they use the default model
+7.g.4.a. Here is where we tell them what the current default model is
+
+8. Emails or SMS
+8.a. Requests can be emails or SMS
+8.b.2. If after the word chatterbox, a well formed GUID is next word, the system assumes this is a conversation
+8.b.3. The user can place the <<<model>>> anywhere in the subject or body
+8.b.3.a. The system will ascertain what provider the model belongs to
+8.b.3.b. The system will use that model if it supports it
+8.b.3.c. If the system does not support that model, the default model will be used
+8.b.4. If anywhere in the body or the subject line, a well formed guid is embedded in <<<guidS>>>
+8.b.4.a. The system will assume this is a conversationd
+8.b.4.b. If the user profile allows persistence, the prior conversation will be pulled from storage and the new prompt/attachments added to it.
+8.b.4.c. If no persisted conversation matches the guid, it is stripped from the email and igored by the system.  The query is still executed
+8.d. Every interaction with the system is returned with a guid. 
+8.d.1. If persistence is turned on, this is the unique identifier fo the conversation
+8.d.2. If not-persisted, it is just a link back to billing
+8.d.3. Guids are the link back to the costing system so that we can give an accounting of every query and how much we charged and why.
+8.e. The body of the email, if one exists, is the query for this interaction
+8.e.1. If no body exists, the email subject line, minus the word "chatterbox" and the first guid (if any) is the query/prompt for the interaction
+8.e.2. If neither body nor valid subject line, the query is rejected and an email is sent.
+8.e.2.a. Only one email is sent every five minutes for non-prompt emails.
+8.e.2.b. The one per five minutes limit keeps people from DoS attacks and spamming.
+8.e.2.c. The five minutes should be a parameter in the system, settable by the admin.
+8.c. SMS/MMS Messages - FUTURE DESIGN - IGNORE UNTIL OTHERWISE
+8.c.1. All SMS messages are assumed to be chatterbox messages.
+8.c.2. No need for "chatterbox" to be included
+8.c.3. There will be no free mode for phone endpoints.  
+8.c.3.a. An endpoint must be set up in advance and paid for to be used
+8.d. All mms content in a message is assumed to be a file.
+8.d.1. If the content cannot be converted to an image or a usuable lLm format, itis ignored.
+8.d.1.a. Even if the MMS content is ignored, the query is routed and returned to the LLM
+8.c. Empty messages are charged at a rate of $0.10 a message
+8.d. Messages 
