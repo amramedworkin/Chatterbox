@@ -21,10 +21,10 @@ export interface DateRange {
 }
 
 /**
- * Default date range: last 7 days
+ * Default date range: last 30 days
  */
 const DEFAULT_DATE_RANGE: DateRange = {
-    startDays: 7,
+    startDays: 30,
     endDays: 0,
 };
 
@@ -58,7 +58,7 @@ function buildDateRangeQuery(dateRange: Partial<DateRange> = {}): string {
  * @returns Promise resolving to the most recent Gmail message ID, or null if none found
  */
 export async function getMostRecentChatterboxGmailId(
-    dateRange: Partial<DateRange> = { startDays: 7 },
+    dateRange: Partial<DateRange> = { startDays: 30 },
     userEmail?: string,
     existingAuth?: OAuth2Client
 ): Promise<string | null> {

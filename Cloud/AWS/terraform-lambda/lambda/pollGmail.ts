@@ -3,19 +3,20 @@ import { google } from 'googleapis';
 import { OAuth2Client } from 'google-auth-library';
 import { SecretsManagerClient, GetSecretValueCommand } from '@aws-sdk/client-secrets-manager';
 import { SSMClient, GetParameterCommand, PutParameterCommand } from '@aws-sdk/client-ssm';
-import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
+import { DynamoDBClient, PutItemCommand, QueryCommand } from '@aws-sdk/client-dynamodb';
+import { marshall, unmarshall } from '@aws-sdk/util-dynamodb';
 
 // AWS Clients
 const secretsClient = new SecretsManagerClient({ region: process.env.AWS_REGION || 'us-east-1' });
 const ssmClient = new SSMClient({ region: process.env.AWS_REGION || 'us-east-1' });
-const s3Client = new S3Client({ region: process.env.AWS_REGION || 'us-east-1' });
+const dynamoClient = new DynamoDBClient({ region: process.env.AWS_REGION || 'us-east-1' });
 
 // Environment variables
 const GMAIL_TOKENS_SECRET_NAME = process.env.GMAIL_TOKENS_SECRET_NAME || 'development-chatterbox-gmail-tokens';
 const GOOGLE_CREDENTIALS_SECRET_NAME = process.env.GOOGLE_CREDENTIALS_SECRET_NAME || 'development-chatterbox-google-credentials';
-const EMAIL_STORAGE_BUCKET = process.env.EMAIL_STORAGE_BUCKET || 'chatterbox-email-archive';
 const DEFAULT_GMAIL_USER = process.env.DEFAULT_GMAIL_USER || 'awsamram@gmail.com';
 const PARAMETER_STORE_PREFIX = process.env.PARAMETER_STORE_PREFIX || '/chatterbox';
+const DYNAMODB_TABLE_NAME = process.env.DYNAMODB_TABLE_NAME || 'development-chatterbox-state-table';
 
 // Interfaces
 interface PollState {
@@ -29,26 +30,23 @@ interface PollResult {
   newMessages: string[];
   newHistoryId: string | null;
   totalPollCycles: number;
-  processedEmails: EmailData[];
+  chatterboxEmailIds: string[];
+  totalChatterboxEmailsFound: number;
 }
 
-interface EmailData {
-  address: string;
-  id: string;
-  threadId: string;
-  sentDate: string;
-  receivedDate: string;
+interface PendingEmailJob {
+  pk: string; // "PENDING_EMAIL#<gmail_id>"
+  sk: string; // "USER#<user_email>"
+  gmailId: string;
+  userEmail: string;
   subject: string;
   fromSender: string;
-  bodyText: string;
-  attachments: EmailAttachment[];
-  rawEmail: string;
-}
-
-interface EmailAttachment {
-  name: string;
-  size: number;
-  mimeType: string;
+  receivedDate: string;
+  createdAt: string;
+  status: 'pending' | 'processing' | 'completed' | 'failed';
+  retryCount: number;
+  lastProcessedAt?: string;
+  errorMessage?: string;
 }
 
 interface LambdaResponse {
@@ -200,7 +198,7 @@ async function getPollState(userEmail: string): Promise<PollState> {
       lastPolledTimestamp: lastPolledTimestampParam.Parameter?.Value || null
     };
   } catch (error) {
-    console.log(`No existing poll state found for ${userEmail}. Starting fresh.`);
+    console.log(`Error getting poll state, using defaults: ${error}`);
     return {
       lastHistoryId: null,
       totalPollCycles: 0,
@@ -211,174 +209,144 @@ async function getPollState(userEmail: string): Promise<PollState> {
 }
 
 /**
- * Saves the poll state to AWS Parameter Store.
+ * Saves the current poll state to AWS Parameter Store.
  * @param {string} userEmail The Gmail user email.
  * @param {PollState} state The poll state to save.
- * @returns {Promise<void>}
  */
 async function savePollState(userEmail: string, state: PollState): Promise<void> {
   const userPrefix = `${PARAMETER_STORE_PREFIX}/polling/${userEmail.replace(/[^a-zA-Z0-9]/g, '_')}`;
-  const timestamp = new Date().toISOString();
+  const now = new Date().toISOString();
   
-  // Debug logging to identify which value is causing the issue
-  const lastHistoryIdValue = state.lastHistoryId || 'none';
-  const totalPollCyclesValue = Math.max(1, state.totalPollCycles).toString(); // Ensure at least 1
-  const lastPolledUserValue = userEmail || 'unknown';
-  const lastPolledTimestampValue = timestamp;
-  
-  console.log(`Debug - Values to write to SSM:`);
-  console.log(`  lastHistoryId: "${lastHistoryIdValue}" (length: ${lastHistoryIdValue.length})`);
-  console.log(`  totalPollCycles: "${totalPollCyclesValue}" (length: ${totalPollCyclesValue.length})`);
-  console.log(`  lastPolledUser: "${lastPolledUserValue}" (length: ${lastPolledUserValue.length})`);
-  console.log(`  lastPolledTimestamp: "${lastPolledTimestampValue}" (length: ${lastPolledTimestampValue.length})`);
-  
-  await Promise.all([
-    ssmClient.send(new PutParameterCommand({
-      Name: `${userPrefix}/last_history_id`,
-      Value: lastHistoryIdValue,
-      Type: 'String',
-      Overwrite: true
-    })),
-    ssmClient.send(new PutParameterCommand({
-      Name: `${userPrefix}/total_poll_cycles`,
-      Value: totalPollCyclesValue,
-      Type: 'String',
-      Overwrite: true
-    })),
-    ssmClient.send(new PutParameterCommand({
-      Name: `${userPrefix}/last_polled_user`,
-      Value: lastPolledUserValue,
-      Type: 'String',
-      Overwrite: true
-    })),
-    ssmClient.send(new PutParameterCommand({
-      Name: `${userPrefix}/last_polled_timestamp`,
-      Value: lastPolledTimestampValue,
-      Type: 'String',
-      Overwrite: true
-    }))
-  ]);
-  
-  console.log(`Saved poll state for ${userEmail}: historyId=${state.lastHistoryId}, cycles=${state.totalPollCycles}`);
+  try {
+    await Promise.all([
+      ssmClient.send(new PutParameterCommand({
+        Name: `${userPrefix}/last_history_id`,
+        Value: state.lastHistoryId || 'none',
+        Type: 'String',
+        Overwrite: true
+      })),
+      ssmClient.send(new PutParameterCommand({
+        Name: `${userPrefix}/total_poll_cycles`,
+        Value: state.totalPollCycles.toString(),
+        Type: 'String',
+        Overwrite: true
+      })),
+      ssmClient.send(new PutParameterCommand({
+        Name: `${userPrefix}/last_polled_user`,
+        Value: userEmail,
+        Type: 'String',
+        Overwrite: true
+      })),
+      ssmClient.send(new PutParameterCommand({
+        Name: `${userPrefix}/last_polled_timestamp`,
+        Value: now,
+        Type: 'String',
+        Overwrite: true
+      }))
+    ]);
+    
+    logWithTimestamp(`Poll state saved for user: ${userEmail}`);
+  } catch (error) {
+    console.error(`Error saving poll state: ${error}`);
+    throw error;
+  }
 }
 
 /**
- * Checks if an email is a Chatterbox email by examining its subject and content.
+ * Checks if an email is a Chatterbox email based on subject line.
  * @param {any} message The Gmail message object.
  * @returns {boolean} True if it's a Chatterbox email.
  */
 function isChatterboxEmail(message: any): boolean {
-  const headers = message.payload?.headers || [];
-  const subject = headers.find((h: any) => h.name === 'Subject')?.value || '';
-  // Check if subject contains "chatterbox" (case insensitive)
-  if (subject.toLowerCase().includes('chatterbox')) {
+  const subject = message.payload?.headers?.find((h: any) => h.name === 'Subject')?.value || '';
+  
+  // Check if "chatterbox" is the first word in the subject (case insensitive)
+  // Handle any amount of leading/trailing whitespace
+  const subjectLower = subject.toLowerCase().trim();
+  const words = subjectLower.split(/\s+/);
+  
+  if (words.length > 0 && words[0] === 'chatterbox') {
     console.log(`[ChatterboxCheck] Subject matched: '${subject}'`);
     return true;
   }
-  // Check body content for chatterbox indicators
-  let bodyText = '';
-  if (message.payload?.body?.data) {
-    bodyText = Buffer.from(message.payload.body.data, 'base64').toString('utf-8');
-  } else if (message.payload?.parts) {
-    const textPart = message.payload.parts.find((part: any) =>
-      part.mimeType === 'text/plain' && part.body?.data
-    );
-    if (textPart) {
-      bodyText = Buffer.from(textPart.body.data, 'base64').toString('utf-8');
-    }
-  }
-  const chatterboxIndicators = ['conversation id:', 'sequential number:', 'chatterbox'];
-  const matched = chatterboxIndicators.some(indicator => 
-    bodyText.toLowerCase().includes(indicator.toLowerCase())
-  );
-  if (matched) {
-    console.log(`[ChatterboxCheck] Body matched: Subject='${subject}', Body='${bodyText.slice(0, 80)}...'`);
-  } else {
-    console.log(`[ChatterboxCheck] No match: Subject='${subject}', Body='${bodyText.slice(0, 80)}...'`);
-  }
-  return matched;
+  
+  return false;
 }
 
 /**
- * Extracts email data from a Gmail message.
+ * Extracts basic email metadata for storage.
  * @param {any} message The Gmail message object.
  * @param {string} userEmail The Gmail user email.
- * @returns {EmailData} The extracted email data.
+ * @returns {object} Basic email metadata.
  */
-function extractEmailData(message: any, userEmail: string): EmailData {
+function extractEmailMetadata(message: any, userEmail: string): {
+  gmailId: string;
+  subject: string;
+  fromSender: string;
+  receivedDate: string;
+} {
   const headers = message.payload?.headers || [];
-  const subject = headers.find((h: any) => h.name === 'Subject')?.value || '';
-  const from = headers.find((h: any) => h.name === 'From')?.value || '';
-  const date = headers.find((h: any) => h.name === 'Date')?.value || '';
-  let bodyText = '';
-  if (message.payload?.body?.data) {
-    bodyText = Buffer.from(message.payload.body.data, 'base64').toString('utf-8');
-  } else if (message.payload?.parts) {
-    const textPart = message.payload.parts.find((part: any) =>
-      part.mimeType === 'text/plain' && part.body?.data
-    );
-    if (textPart) {
-      bodyText = Buffer.from(textPart.body.data, 'base64').toString('utf-8');
-    }
-  }
-  const attachments: EmailAttachment[] = [];
-  if (message.payload?.parts) {
-    for (const part of message.payload.parts) {
-      if (part.filename && part.body?.attachmentId) {
-        attachments.push({
-          name: part.filename,
-          size: part.body.size || 0,
-          mimeType: part.mimeType || 'application/octet-stream',
-        });
-      }
-    }
-  }
-  const rawEmail = message.raw ? Buffer.from(message.raw, 'base64').toString('utf-8') : '';
+  const subject = headers.find((h: any) => h.name === 'Subject')?.value || 'No Subject';
+  const from = headers.find((h: any) => h.name === 'From')?.value || 'Unknown Sender';
+  const date = headers.find((h: any) => h.name === 'Date')?.value || new Date().toISOString();
+  
   return {
-    address: userEmail,
-    id: message.id,
-    threadId: message.threadId,
-    sentDate: date,
-    receivedDate: message.internalDate ? new Date(parseInt(message.internalDate)).toISOString() : '',
+    gmailId: message.id,
     subject,
     fromSender: from,
-    bodyText,
-    attachments,
-    rawEmail,
+    receivedDate: date
   };
 }
 
 /**
- * Stores an email in S3.
- * @param {EmailData} emailData The email data to store.
- * @returns {Promise<void>}
+ * Stores a pending email job in DynamoDB.
+ * @param {PendingEmailJob} job The pending email job to store.
  */
-async function storeEmailInS3(emailData: EmailData): Promise<void> {
-  if (!emailData.rawEmail) return;
-  const key = `emails/${emailData.id}/${new Date().toISOString().replace(/[:.]/g, '-')}.eml`;
-  await s3Client.send(new PutObjectCommand({
-    Bucket: EMAIL_STORAGE_BUCKET,
-    Key: key,
-    Body: emailData.rawEmail,
-    ContentType: 'message/rfc822',
-    ServerSideEncryption: 'AES256',
-    Metadata: {
-      'email-id': emailData.id,
-      'thread-id': emailData.threadId,
-      'subject': emailData.subject,
-      'from': emailData.fromSender,
-      'sent-date': emailData.sentDate,
-      'received-date': emailData.receivedDate,
-    },
-  }));
-  console.log(`Stored email ${emailData.id} in S3: ${key}`);
+async function storePendingEmailJob(job: PendingEmailJob): Promise<void> {
+  try {
+    const command = new PutItemCommand({
+      TableName: DYNAMODB_TABLE_NAME,
+      Item: marshall(job)
+    });
+    
+    await dynamoClient.send(command);
+    logWithTimestamp(`Stored pending email job for Gmail ID: ${job.gmailId}`);
+  } catch (error) {
+    console.error(`Error storing pending email job: ${error}`);
+    throw error;
+  }
 }
 
 /**
- * Fetches new emails since the last history ID and filters for Chatterbox emails.
+ * Checks if a Gmail ID is already stored as a pending job.
+ * @param {string} gmailId The Gmail message ID.
+ * @param {string} userEmail The Gmail user email.
+ * @returns {Promise<boolean>} True if already stored.
+ */
+async function isEmailAlreadyStored(gmailId: string, userEmail: string): Promise<boolean> {
+  try {
+    const command = new QueryCommand({
+      TableName: DYNAMODB_TABLE_NAME,
+      KeyConditionExpression: 'pk = :pk AND sk = :sk',
+      ExpressionAttributeValues: marshall({
+        ':pk': `PENDING_EMAIL#${gmailId}`,
+        ':sk': `USER#${userEmail}`
+      })
+    });
+    
+    const response = await dynamoClient.send(command);
+    return !!(response.Items && response.Items.length > 0);
+  } catch (error) {
+    console.error(`Error checking if email is already stored: ${error}`);
+    return false;
+  }
+}
+
+/**
+ * Main Gmail polling function.
  * @param {OAuth2Client} auth The authenticated OAuth2 client.
  * @param {string} gmailUser The Gmail user email.
- * @returns {Promise<PollResult>} Object containing new message IDs, new history ID, and processed emails.
+ * @returns {Promise<PollResult>} The polling result.
  */
 async function pollGmail(
     auth: OAuth2Client,
@@ -394,11 +362,11 @@ async function pollGmail(
 
     const newMessages: string[] = [];
     let newHistoryId: string | null = null;
-    const processedEmails: EmailData[] = [];
+    const chatterboxEmailIds: string[] = [];
 
     try {
-        // If we have a history ID, use the History API to get new messages
-        if (state.lastHistoryId) {
+        // If we have a valid history ID (not "none"), use the History API to get new messages
+        if (state.lastHistoryId && state.lastHistoryId !== 'none') {
             logWithTimestamp(`Using History API with startHistoryId: ${state.lastHistoryId}`);
             
             const response = await gmail.users.history.list({
@@ -430,21 +398,36 @@ async function pollGmail(
                                         metadataHeaders: ['From', 'To', 'Subject', 'Date'],
                                     });
                                     
-                                    // Get RFC 5322 raw
-                                    const rawResponse = await gmail.users.messages.get({
-                                        userId: 'me',
-                                        id: messageId,
-                                        format: 'raw',
-                                    });
-                                    
-                                    const fullMessage = { ...messageResponse.data, raw: rawResponse.data.raw };
+                                    const fullMessage = messageResponse.data;
                                     
                                     // Check if it's a Chatterbox email
                                     if (isChatterboxEmail(fullMessage)) {
                                         logWithTimestamp(`Processing Chatterbox email: ${messageId}`);
-                                        const emailData = extractEmailData(fullMessage, gmailUser);
-                                        await storeEmailInS3(emailData);
-                                        processedEmails.push(emailData);
+                                        
+                                        // Check if already stored
+                                        if (!(await isEmailAlreadyStored(messageId, gmailUser))) {
+                                            const metadata = extractEmailMetadata(fullMessage, gmailUser);
+                                            
+                                            // Store as pending job
+                                            const pendingJob: PendingEmailJob = {
+                                                pk: `PENDING_EMAIL#${messageId}`,
+                                                sk: `USER#${gmailUser}`,
+                                                gmailId: messageId,
+                                                userEmail: gmailUser,
+                                                subject: metadata.subject,
+                                                fromSender: metadata.fromSender,
+                                                receivedDate: metadata.receivedDate,
+                                                createdAt: new Date().toISOString(),
+                                                status: 'pending',
+                                                retryCount: 0
+                                            };
+                                            
+                                            await storePendingEmailJob(pendingJob);
+                                            chatterboxEmailIds.push(messageId);
+                                            logWithTimestamp(`Stored Chatterbox email ID: ${messageId}`);
+                                        } else {
+                                            logWithTimestamp(`Chatterbox email already stored: ${messageId}`);
+                                        }
                                     } else {
                                         logWithTimestamp(`Skipping non-Chatterbox email: ${messageId}`);
                                     }
@@ -497,18 +480,36 @@ async function pollGmail(
                                     format: 'full',
                                     metadataHeaders: ['From', 'To', 'Subject', 'Date'],
                                 });
-                                const rawResponse = await gmail.users.messages.get({
-                                    userId: 'me',
-                                    id: messageId,
-                                    format: 'raw',
-                                });
-                                const fullMessage = { ...messageResponse.data, raw: rawResponse.data.raw };
+                                
+                                const fullMessage = messageResponse.data;
                                 if (isChatterboxEmail(fullMessage)) {
                                     logWithTimestamp(`Found Chatterbox email: ${messageId}`);
                                     newMessages.push(messageId);
-                                    const emailData = extractEmailData(fullMessage, gmailUser);
-                                    await storeEmailInS3(emailData);
-                                    processedEmails.push(emailData);
+                                    
+                                    // Check if already stored
+                                    if (!(await isEmailAlreadyStored(messageId, gmailUser))) {
+                                        const metadata = extractEmailMetadata(fullMessage, gmailUser);
+                                        
+                                        // Store as pending job
+                                        const pendingJob: PendingEmailJob = {
+                                            pk: `PENDING_EMAIL#${messageId}`,
+                                            sk: `USER#${gmailUser}`,
+                                            gmailId: messageId,
+                                            userEmail: gmailUser,
+                                            subject: metadata.subject,
+                                            fromSender: metadata.fromSender,
+                                            receivedDate: metadata.receivedDate,
+                                            createdAt: new Date().toISOString(),
+                                            status: 'pending',
+                                            retryCount: 0
+                                        };
+                                        
+                                        await storePendingEmailJob(pendingJob);
+                                        chatterboxEmailIds.push(messageId);
+                                        logWithTimestamp(`Stored Chatterbox email ID: ${messageId}`);
+                                    } else {
+                                        logWithTimestamp(`Chatterbox email already stored: ${messageId}`);
+                                    }
                                 } else {
                                     logWithTimestamp(`Skipping non-Chatterbox email: ${messageId}`);
                                 }
@@ -554,7 +555,13 @@ async function pollGmail(
         }
     }
 
-    return { newMessages, newHistoryId, totalPollCycles: state.totalPollCycles, processedEmails };
+    return { 
+        newMessages, 
+        newHistoryId, 
+        totalPollCycles: state.totalPollCycles, 
+        chatterboxEmailIds,
+        totalChatterboxEmailsFound: chatterboxEmailIds.length
+    };
 }
 
 /**
@@ -563,8 +570,8 @@ async function pollGmail(
  * @returns {Promise<APIGatewayProxyResult>} The Lambda response.
  */
 export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
-  console.log('=== LAMBDA FUNCTION STARTED - UPDATED CODE VERSION 2 ===');
-  console.log('=== THIS SHOULD APPEAR IN CLOUDWATCH LOGS ===');
+  console.log('=== LAMBDA FUNCTION STARTED - EMAIL ID STORAGE VERSION ===');
+  console.log('=== FOCUSED ON STORING GMAIL IDs FOR FUTURE PROCESSING ===');
   
   try {
     const userEmail = event.queryStringParameters?.userEmail || DEFAULT_GMAIL_USER;
@@ -585,11 +592,19 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
       },
       body: JSON.stringify({
         success: true,
-        data: result
+        data: {
+          message: `Gmail poll completed successfully for ${userEmail}`,
+          totalMessagesFound: result.newMessages.length,
+          chatterboxEmailsFound: result.totalChatterboxEmailsFound,
+          chatterboxEmailIds: result.chatterboxEmailIds,
+          totalPollCycles: result.totalPollCycles,
+          newHistoryId: result.newHistoryId,
+          timestamp: new Date().toISOString()
+        }
       })
     };
   } catch (error) {
-    console.error('Lambda execution error:', error);
+    console.error('Lambda function error:', error);
     
     return {
       statusCode: 500,
@@ -601,7 +616,8 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
       },
       body: JSON.stringify({
         success: false,
-        error: error instanceof Error ? error.message : String(error)
+        error: error instanceof Error ? error.message : 'Unknown error occurred',
+        timestamp: new Date().toISOString()
       })
     };
   }

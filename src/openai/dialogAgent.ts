@@ -115,8 +115,8 @@ export async function dialogAgent(options: DialogAgentOptions): Promise<DialogAg
 
         // Clean up resources
         try {
-            await openai.beta.assistants.delete(assistant.id);
-            await openai.beta.threads.delete(thread.id);
+            await openai.beta.assistants.del(assistant.id);
+            await openai.beta.threads.del(thread.id);
         } catch (cleanupError) {
             console.warn('Failed to clean up resources:', cleanupError);
         }

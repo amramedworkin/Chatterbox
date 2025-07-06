@@ -151,15 +151,24 @@ export async function authorizeGmail(
     config: AppConfig,
     force: boolean = false
 ): Promise<OAuth2Client> {
+    console.log(`🔍 [AUTH DEBUG] Starting authorization for: ${email}`);
+    console.log(`🔍 [AUTH DEBUG] Force re-authorization: ${force}`);
+
     const credentialsPath = config.google.credentialsPath;
     const tokenPath = config.google.pollTokenPath;
     const scopes = config.google.scopes;
 
+    console.log(`🔍 [AUTH DEBUG] Credentials path: ${credentialsPath}`);
+    console.log(`🔍 [AUTH DEBUG] Token path: ${tokenPath}`);
+    console.log(`🔍 [AUTH DEBUG] Required scopes: ${scopes.join(', ')}`);
+
     let credentialsContent: string;
     try {
         credentialsContent = await fs.readFile(credentialsPath, 'utf8');
+        console.log(`✅ [AUTH DEBUG] Credentials file loaded successfully`);
     } catch (err: unknown) {
         const error = err as Error;
+        console.error(`❌ [AUTH DEBUG] Failed to load credentials: ${error.message}`);
         throw new Error(
             `Error loading client secret file from ${credentialsPath}: ${error.message}. Please ensure google_credentials.json is present.`
         );
@@ -167,6 +176,9 @@ export async function authorizeGmail(
 
     const credentials = JSON.parse(credentialsContent);
     const { client_secret, client_id } = credentials.installed || credentials.web;
+    console.log(
+        `✅ [AUTH DEBUG] OAuth2 client created with client_id: ${client_id ? 'Present' : 'Missing'}`
+    );
 
     const oAuth2Client = new google.auth.OAuth2(
         client_id,
@@ -176,23 +188,46 @@ export async function authorizeGmail(
 
     // If force is true, remove the token for this email first
     if (force) {
+        console.log(`🔄 [AUTH DEBUG] Force mode enabled, removing existing token for ${email}`);
         await removeTokenForEmail(tokenPath, email);
     }
 
     const tokenData: TokenData = await readTokenData(tokenPath);
+    console.log(
+        `🔍 [AUTH DEBUG] Token data loaded. Available users: ${Object.keys(tokenData).join(', ')}`
+    );
 
     if (tokenData[email]) {
+        console.log(`✅ [AUTH DEBUG] Found existing token for ${email}`);
+        console.log(`🔍 [AUTH DEBUG] Token details:`);
+        console.log(`  - Access token: ${tokenData[email].access_token ? 'Present' : 'Missing'}`);
+        console.log(`  - Refresh token: ${tokenData[email].refresh_token ? 'Present' : 'Missing'}`);
+        console.log(`  - Token type: ${tokenData[email].token_type || 'Not specified'}`);
+        console.log(`  - Expiry date: ${tokenData[email].expiry_date || 'Not specified'}`);
+        console.log(`  - Scope: ${tokenData[email].scope || 'Not specified'}`);
+
+        if (tokenData[email].expiry_date !== null) {
+            const expiryDate = new Date(tokenData[email].expiry_date!);
+            const now = new Date();
+            const isExpired = expiryDate < now;
+            console.log(`  - Expiry date: ${expiryDate.toISOString()}`);
+            console.log(`  - Current time: ${now.toISOString()}`);
+            console.log(`  - Token expired: ${isExpired}`);
+        }
+
         oAuth2Client.setCredentials(tokenData[email]);
 
         // Check if we have a refresh token
         if (!tokenData[email].refresh_token) {
-            console.warn(`No refresh token found for ${email}. Re-authorization required.`);
-            console.warn('Attempting to re-authorize from scratch.');
+            console.warn(
+                `⚠️ [AUTH DEBUG] No refresh token found for ${email}. Re-authorization required.`
+            );
+            console.warn('🔄 [AUTH DEBUG] Attempting to re-authorize from scratch.');
             await getNewToken(oAuth2Client, scopes);
 
             // Save the new tokens with all fields
             const newTokens = oAuth2Client.credentials;
-            console.log('Saving new tokens with fields:');
+            console.log('💾 [AUTH DEBUG] Saving new tokens with fields:');
             console.log(`  - Access token: ${newTokens.access_token ? 'Present' : 'Missing'}`);
             console.log(`  - Refresh token: ${newTokens.refresh_token ? 'Present' : 'Missing'}`);
             console.log(`  - Token type: ${newTokens.token_type || 'Not specified'}`);
@@ -200,29 +235,61 @@ export async function authorizeGmail(
 
             tokenData[email] = newTokens as TokenData[string];
             await writeTokenData(tokenPath, tokenData);
+            console.log(`✅ [AUTH DEBUG] Authorization completed successfully for ${email}`);
             return oAuth2Client;
         }
 
         try {
+            console.log(`🔄 [AUTH DEBUG] Attempting to refresh token for ${email}...`);
             // Attempt to refresh the token. If it's invalid or expired, refreshAccessToken will throw an error.
             const { credentials: refreshedTokens } = await oAuth2Client.refreshAccessToken();
+            console.log(`✅ [AUTH DEBUG] Token refresh successful for ${email}`);
+            console.log(`🔍 [AUTH DEBUG] Refreshed token details:`);
+            console.log(
+                `  - Access token: ${refreshedTokens.access_token ? 'Present' : 'Missing'}`
+            );
+            console.log(
+                `  - Refresh token: ${refreshedTokens.refresh_token ? 'Present' : 'Missing'}`
+            );
+            console.log(`  - Token type: ${refreshedTokens.token_type || 'Not specified'}`);
+            console.log(`  - Expiry date: ${refreshedTokens.expiry_date || 'Not specified'}`);
+
             // Update the stored token data with the refreshed tokens, ensuring type compatibility
             tokenData[email] = {
                 ...tokenData[email], // Keep existing properties (including refresh_token)
                 ...refreshedTokens, // Update with refreshed tokens
             } as TokenData[string];
             await writeTokenData(tokenPath, tokenData);
-            console.log('Token refreshed successfully.');
+            console.log(`💾 [AUTH DEBUG] Refreshed tokens saved to ${tokenPath}`);
         } catch (err) {
             // If refresh fails, it means the token is expired or invalid, so re-authorize
             const errorMsg = err instanceof Error ? err.message : String(err);
-            console.warn('Failed to refresh access token, or token was invalid:', errorMsg);
-            console.warn('Attempting to re-authorize from scratch.');
+            console.error(`❌ [AUTH DEBUG] Token refresh failed for ${email}:`);
+            console.error(
+                `   Error type: ${err instanceof Error ? err.constructor.name : typeof err}`
+            );
+            console.error(`   Error message: ${errorMsg}`);
+
+            // Log additional error details if available
+            if (err instanceof Error) {
+                console.error(`   Error stack: ${err.stack}`);
+            }
+
+            // Check if it's a specific Google API error
+            const errorObj = err as Record<string, unknown>;
+            if (errorObj && typeof errorObj === 'object' && 'code' in errorObj) {
+                console.error(`   Error code: ${errorObj.code}`);
+            }
+            if (errorObj && typeof errorObj === 'object' && 'status' in errorObj) {
+                console.error(`   HTTP status: ${errorObj.status}`);
+            }
+
+            console.warn('🔄 [AUTH DEBUG] Attempting to re-authorize from scratch.');
             await getNewToken(oAuth2Client, scopes);
 
             // Save the new tokens with all fields
             const newTokens = oAuth2Client.credentials;
-            console.log('Saving new tokens with fields:');
+            console.log('💾 [AUTH DEBUG] Saving new tokens with fields:');
             console.log(`  - Access token: ${newTokens.access_token ? 'Present' : 'Missing'}`);
             console.log(`  - Refresh token: ${newTokens.refresh_token ? 'Present' : 'Missing'}`);
             console.log(`  - Token type: ${newTokens.token_type || 'Not specified'}`);
@@ -232,11 +299,14 @@ export async function authorizeGmail(
             await writeTokenData(tokenPath, tokenData);
         }
     } else {
+        console.log(
+            `⚠️ [AUTH DEBUG] No existing token found for ${email}. Starting fresh authorization.`
+        );
         await getNewToken(oAuth2Client, scopes);
 
         // Save the new tokens with all fields
         const newTokens = oAuth2Client.credentials;
-        console.log('Saving new tokens with fields:');
+        console.log('💾 [AUTH DEBUG] Saving new tokens with fields:');
         console.log(`  - Access token: ${newTokens.access_token ? 'Present' : 'Missing'}`);
         console.log(`  - Refresh token: ${newTokens.refresh_token ? 'Present' : 'Missing'}`);
         console.log(`  - Token type: ${newTokens.token_type || 'Not specified'}`);
@@ -245,6 +315,8 @@ export async function authorizeGmail(
         tokenData[email] = newTokens as TokenData[string];
         await writeTokenData(tokenPath, tokenData);
     }
+
+    console.log(`✅ [AUTH DEBUG] Authorization completed successfully for ${email}`);
     return oAuth2Client;
 }
 
@@ -317,6 +389,26 @@ export async function validateGmailToken(
             };
         } catch (error) {
             const errorMsg = error instanceof Error ? error.message : String(error);
+            console.error(`❌ [VALIDATE DEBUG] Token validation failed for ${email}:`);
+            console.error(
+                `   Error type: ${error instanceof Error ? error.constructor.name : typeof error}`
+            );
+            console.error(`   Error message: ${errorMsg}`);
+
+            // Log additional error details if available
+            if (error instanceof Error) {
+                console.error(`   Error stack: ${error.stack}`);
+            }
+
+            // Check if it's a specific Google API error
+            const errorObj = error as Record<string, unknown>;
+            if (errorObj && typeof errorObj === 'object' && 'code' in errorObj) {
+                console.error(`   Error code: ${errorObj.code}`);
+            }
+            if (errorObj && typeof errorObj === 'object' && 'status' in errorObj) {
+                console.error(`   HTTP status: ${errorObj.status}`);
+            }
+
             return {
                 email,
                 hasToken: true,

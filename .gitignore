@@ -234,6 +234,8 @@ data/init/
 # Ignore manual teardown scripts
 /scripts/aws/manual/
 
+# Ignore AWS config dumps (contain sensitive data)
+data/dump/
 
 # Ignore vim swap files
 *.swp

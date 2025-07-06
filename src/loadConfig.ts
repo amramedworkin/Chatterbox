@@ -146,7 +146,7 @@ const config: AppConfig = {
         tokenPath: getOrDefault(
             'SENDTEST_TOKEN_PATH',
             'sendTest.tokenPath',
-            './data/sendtest_google_tokens.json'
+            './data/google_tokens.json'
         ),
         lastSentEmailNumberPath: getOrDefault(
             'SENDTEST_LAST_SENT_EMAIL_NUMBER_PATH',

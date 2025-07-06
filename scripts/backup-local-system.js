@@ -134,7 +134,7 @@ const BACKUP_ITEMS = [
     documentation: 'See test/sendGmail.test.ts and data/ directory',
     locations: [
       {
-        path: 'data/sendtest_google_tokens.json',
+        // Removed: sendtest_google_tokens.json - now using standard google_tokens.json
         type: 'file',
         description: 'Send test Gmail tokens'
       },

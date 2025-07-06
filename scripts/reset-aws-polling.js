@@ -1,216 +1,237 @@
 #!/usr/bin/env node
 
 /**
- * Reset AWS Polling State Script
- * 
- * This script resets the AWS polling state back to its initial (never polled) state
- * by clearing all Parameter Store parameters related to polling.
+ * Reset AWS Parameter Store polling state to mimic "first run" state
+ * Clears last_history_id and last_polled_timestamp for all configured Gmail users
  */
 
-const { SSMClient, DeleteParameterCommand, GetParametersByPathCommand } = require('@aws-sdk/client-ssm');
+const { SSMClient, PutParameterCommand } = require('@aws-sdk/client-ssm');
 const { SecretsManagerClient, GetSecretValueCommand } = require('@aws-sdk/client-secrets-manager');
+const { DynamoDBClient, ScanCommand, BatchWriteItemCommand } = require('@aws-sdk/client-dynamodb');
+const { marshall } = require('@aws-sdk/util-dynamodb');
 
 // AWS Clients
 const ssmClient = new SSMClient({ region: process.env.AWS_REGION || 'us-east-1' });
 const secretsClient = new SecretsManagerClient({ region: process.env.AWS_REGION || 'us-east-1' });
+const dynamoClient = new DynamoDBClient({ region: process.env.AWS_REGION || 'us-east-1' });
 
-// Environment variables
-const PARAMETER_STORE_PREFIX = process.env.PARAMETER_STORE_PREFIX || '/chatterbox';
-const GMAIL_TOKENS_SECRET_NAME = process.env.GMAIL_TOKENS_SECRET_NAME || 'development-chatterbox-gmail-tokens';
+// Configuration
+const ENVIRONMENT = process.env.ENVIRONMENT || 'development';
+const PARAMETER_STORE_PREFIX = `/chatterbox/${ENVIRONMENT}`;
+const GMAIL_TOKENS_SECRET_NAME = `${ENVIRONMENT}-chatterbox-gmail-tokens`;
+const DYNAMODB_TABLE_NAME = process.env.DYNAMODB_TABLE_NAME || 'development-chatterbox-state-table';
+
+// Colors for console output
+const colors = {
+    reset: '\x1b[0m',
+    bright: '\x1b[1m',
+    red: '\x1b[31m',
+    green: '\x1b[32m',
+    yellow: '\x1b[33m',
+    blue: '\x1b[34m',
+    magenta: '\x1b[35m',
+    cyan: '\x1b[36m'
+};
+
+function printInfo(message) {
+    console.log(`${colors.blue}ℹ${colors.reset} ${message}`);
+}
+
+function printSuccess(message) {
+    console.log(`${colors.green}✅${colors.reset} ${message}`);
+}
+
+function printWarning(message) {
+    console.log(`${colors.yellow}⚠${colors.reset} ${message}`);
+}
+
+function printError(message) {
+    console.log(`${colors.red}❌${colors.reset} ${message}`);
+}
+
+function printHeader(message) {
+    console.log(`\n${colors.bright}${colors.cyan}${message}${colors.reset}`);
+    console.log(`${'='.repeat(message.length)}`);
+}
 
 /**
- * Gets all Gmail users from the tokens secret
+ * Get Gmail users from AWS Secrets Manager
  */
 async function getGmailUsers() {
     try {
-        const command = new GetSecretValueCommand({ SecretId: GMAIL_TOKENS_SECRET_NAME });
-        const response = await secretsClient.send(command);
+        const response = await secretsClient.send(new GetSecretValueCommand({
+            SecretId: GMAIL_TOKENS_SECRET_NAME
+        }));
+        
         const tokens = JSON.parse(response.SecretString || '{}');
         return Object.keys(tokens);
     } catch (error) {
-        console.error('Error getting Gmail users from secrets:', error);
-        return [];
+        if (error.name === 'ResourceNotFoundException') {
+            printWarning(`Gmail tokens secret not found: ${GMAIL_TOKENS_SECRET_NAME}`);
+            return [];
+        }
+        throw error;
     }
 }
 
 /**
- * Deletes a parameter from Parameter Store
+ * Clear pending email jobs from DynamoDB for a specific user
  */
-async function deleteParameter(parameterName) {
+async function clearPendingEmailJobs(userEmail) {
+    const sk = `USER#${userEmail}`;
+    let lastEvaluatedKey = undefined;
+    let totalDeleted = 0;
+    do {
+        const scan = new ScanCommand({
+            TableName: DYNAMODB_TABLE_NAME,
+            FilterExpression: 'sk = :sk AND begins_with(pk, :pkPrefix)',
+            ExpressionAttributeValues: marshall({
+                ':sk': sk,
+                ':pkPrefix': 'PENDING_EMAIL#'
+            }),
+            ProjectionExpression: 'pk, sk',
+            ExclusiveStartKey: lastEvaluatedKey
+        });
+        const result = await dynamoClient.send(scan);
+        const items = result.Items || [];
+        if (items.length > 0) {
+            // Batch delete (max 25 at a time)
+            for (let i = 0; i < items.length; i += 25) {
+                const batch = items.slice(i, i + 25);
+                const deleteRequests = batch.map(item => ({
+                    DeleteRequest: { Key: item }
+                }));
+                await dynamoClient.send(new BatchWriteItemCommand({
+                    RequestItems: {
+                        [DYNAMODB_TABLE_NAME]: deleteRequests
+                    }
+                }));
+                totalDeleted += batch.length;
+            }
+        }
+        lastEvaluatedKey = result.LastEvaluatedKey;
+    } while (lastEvaluatedKey);
+    if (totalDeleted > 0) {
+        printSuccess(`  Cleared ${totalDeleted} pending Gmail ID jobs from DynamoDB for ${userEmail}`);
+    } else {
+        printInfo(`  No pending Gmail ID jobs to clear for ${userEmail}`);
+    }
+}
+
+/**
+ * Reset polling state for a specific user
+ */
+async function resetUserPollingState(userEmail) {
+    const userPrefix = `${PARAMETER_STORE_PREFIX}/polling/${userEmail.replace(/[^a-zA-Z0-9]/g, '_')}`;
+    
+    printInfo(`Resetting polling state for: ${userEmail}`);
+    
     try {
-        const command = new DeleteParameterCommand({ Name: parameterName });
-        await ssmClient.send(command);
-        console.log(`✅ Deleted parameter: ${parameterName}`);
+        // Reset last_history_id to "none" (indicates first run)
+        await ssmClient.send(new PutParameterCommand({
+            Name: `${userPrefix}/last_history_id`,
+            Value: 'none',
+            Type: 'String',
+            Overwrite: true
+        }));
+        printSuccess(`  Reset last_history_id to "none"`);
+        
+        // Reset last_polled_timestamp to current time
+        const currentTimestamp = new Date().toISOString();
+        await ssmClient.send(new PutParameterCommand({
+            Name: `${userPrefix}/last_polled_timestamp`,
+            Value: currentTimestamp,
+            Type: 'String',
+            Overwrite: true
+        }));
+        printSuccess(`  Reset last_polled_timestamp to: ${currentTimestamp}`);
+        
+        // Reset total_poll_cycles to 0
+        await ssmClient.send(new PutParameterCommand({
+            Name: `${userPrefix}/total_poll_cycles`,
+            Value: '0',
+            Type: 'String',
+            Overwrite: true
+        }));
+        printSuccess(`  Reset total_poll_cycles to 0`);
+        
+        // Reset last_polled_user to current user
+        await ssmClient.send(new PutParameterCommand({
+            Name: `${userPrefix}/last_polled_user`,
+            Value: userEmail,
+            Type: 'String',
+            Overwrite: true
+        }));
+        printSuccess(`  Reset last_polled_user to: ${userEmail}`);
+        
+        // After resetting SSM, clear DynamoDB jobs
+        await clearPendingEmailJobs(userEmail);
+        
         return true;
     } catch (error) {
-        if (error.name === 'ParameterNotFound') {
-            console.log(`ℹ️  Parameter not found (already deleted): ${parameterName}`);
-            return true;
-        }
-        console.error(`❌ Error deleting parameter ${parameterName}:`, error.message);
+        printError(`  Failed to reset polling state for ${userEmail}: ${error.message}`);
         return false;
     }
 }
 
 /**
- * Gets all parameters under a specific path
+ * Main function
  */
-async function getParametersByPath(path) {
+async function main() {
+    printHeader('AWS Polling State Reset');
+    printInfo(`Environment: ${ENVIRONMENT}`);
+    printInfo(`Parameter Store Prefix: ${PARAMETER_STORE_PREFIX}`);
+    
     try {
-        const command = new GetParametersByPathCommand({ 
-            Path: path,
-            Recursive: true,
-            WithDecryption: false
-        });
-        const response = await ssmClient.send(command);
-        return response.Parameters || [];
-    } catch (error) {
-        console.error(`Error getting parameters for path ${path}:`, error.message);
-        return [];
-    }
-}
-
-/**
- * Resets polling state for a specific Gmail user
- */
-async function resetUserPollingState(userEmail) {
-    console.log(`\n🔄 Resetting polling state for user: ${userEmail}`);
-    
-    const userPrefix = `${PARAMETER_STORE_PREFIX}/polling/${userEmail.replace(/[^a-zA-Z0-9]/g, '_')}`;
-    
-    // Only delete polling counters and history ID, not tokens or other state
-    const parametersToDelete = [
-        `${userPrefix}/last_history_id`,
-        `${userPrefix}/total_poll_cycles`
-    ];
-    
-    let successCount = 0;
-    let totalCount = parametersToDelete.length;
-    
-    for (const parameterName of parametersToDelete) {
-        const success = await deleteParameter(parameterName);
-        if (success) successCount++;
-    }
-    
-    console.log(`📊 User ${userEmail}: ${successCount}/${totalCount} parameters reset`);
-    return successCount === totalCount;
-}
-
-/**
- * Main function to reset all polling state
- */
-async function resetAllPollingState() {
-    console.log('🚀 Starting AWS Polling State Reset...\n');
-    
-    // Get all Gmail users
-    const gmailUsers = await getGmailUsers();
-    
-    if (gmailUsers.length === 0) {
-        console.log('⚠️  No Gmail users found in secrets. Checking for existing polling parameters...');
+        // Get Gmail users from secrets
+        printInfo('Retrieving Gmail users from AWS Secrets Manager...');
+        const gmailUsers = await getGmailUsers();
         
-        // Check if there are any existing polling parameters
-        const existingParameters = await getParametersByPath(`${PARAMETER_STORE_PREFIX}/polling`);
-        
-        if (existingParameters.length === 0) {
-            console.log('✅ No polling parameters found. State is already reset.');
-            return;
+        if (gmailUsers.length === 0) {
+            printWarning('No Gmail users found in secrets. Using default user.');
+            gmailUsers.push('awsamram@gmail.com');
         }
         
-        console.log(`Found ${existingParameters.length} existing polling parameters. Attempting to delete them...`);
+        printSuccess(`Found ${gmailUsers.length} Gmail user(s): ${gmailUsers.join(', ')}`);
         
+        // Reset polling state for each user
         let successCount = 0;
-        for (const param of existingParameters) {
-            const success = await deleteParameter(param.Name);
-            if (success) successCount++;
+        let failureCount = 0;
+        
+        for (const userEmail of gmailUsers) {
+            const success = await resetUserPollingState(userEmail);
+            if (success) {
+                successCount++;
+            } else {
+                failureCount++;
+            }
+            console.log(''); // Add spacing between users
         }
         
-        console.log(`\n📊 Reset complete: ${successCount}/${existingParameters.length} parameters deleted`);
-        return;
-    }
-    
-    console.log(`Found ${gmailUsers.length} Gmail users: ${gmailUsers.join(', ')}`);
-    
-    // Reset polling state for each user
-    let allUsersSuccess = true;
-    for (const userEmail of gmailUsers) {
-        const success = await resetUserPollingState(userEmail);
-        if (!success) allUsersSuccess = false;
-    }
-    
-    console.log('\n🎉 AWS Polling State Reset Complete!');
-    console.log('\n📝 Summary:');
-    console.log(`   • Processed ${gmailUsers.length} Gmail users`);
-    console.log(`   • Only polling counters and last history ID have been reset`);
-    console.log(`   • Next Lambda poll will start fresh with no history ID`);
-    
-    if (!allUsersSuccess) {
-        console.log('\n⚠️  Some operations failed. Check the logs above for details.');
+        // Summary
+        printHeader('Reset Summary');
+        printSuccess(`Successfully reset ${successCount} user(s)`);
+        if (failureCount > 0) {
+            printError(`Failed to reset ${failureCount} user(s)`);
+        }
+        
+        printInfo('\nNext steps:');
+        printInfo('1. The polling Lambda will now start fresh on next invocation');
+        printInfo('2. It will search for emails from the last 30 days');
+        printInfo('3. Run: npm run aws:deploy:lambda to test the reset state');
+        
+    } catch (error) {
+        printError(`Script failed: ${error.message}`);
         process.exit(1);
     }
 }
 
-// Handle command line arguments
-const args = process.argv.slice(2);
-const command = args[0];
-
-if (command === '--help' || command === '-h') {
-    console.log(`
-AWS Polling State Reset Script
-
-Usage:
-  node scripts/reset-aws-polling.js [options]
-
-Options:
-  --help, -h     Show this help message
-  --dry-run      Show what would be deleted without actually deleting
-  --user <email> Reset state for a specific user only
-
-Examples:
-  node scripts/reset-aws-polling.js                    # Reset all users
-  node scripts/reset-aws-polling.js --user test@example.com  # Reset specific user
-  node scripts/reset-aws-polling.js --dry-run          # Show what would be reset
-
-Environment Variables:
-  AWS_REGION                    AWS region (default: us-east-1)
-  PARAMETER_STORE_PREFIX        Parameter store prefix (default: /chatterbox)
-  GMAIL_TOKENS_SECRET_NAME      Gmail tokens secret name (default: development-chatterbox-gmail-tokens)
-`);
-    process.exit(0);
-}
-
-if (command === '--dry-run') {
-    console.log('🔍 DRY RUN MODE - No changes will be made\n');
-    // TODO: Implement dry run functionality
-    console.log('Dry run mode not yet implemented. Use --help for available options.');
-    process.exit(0);
-}
-
-if (command === '--user') {
-    const userEmail = args[1];
-    if (!userEmail) {
-        console.error('❌ Error: --user requires an email address');
+// Run the script
+if (require.main === module) {
+    main().catch(error => {
+        printError(`Unhandled error: ${error.message}`);
         process.exit(1);
-    }
-    
-    console.log(`🔄 Resetting polling state for user: ${userEmail}`);
-    resetUserPollingState(userEmail)
-        .then(success => {
-            if (success) {
-                console.log('\n✅ User polling state reset complete!');
-            } else {
-                console.log('\n❌ Some operations failed. Check the logs above.');
-                process.exit(1);
-            }
-        })
-        .catch(error => {
-            console.error('❌ Error resetting user polling state:', error);
-            process.exit(1);
-        });
-} else {
-    // Reset all polling state
-    resetAllPollingState()
-        .catch(error => {
-            console.error('❌ Error resetting polling state:', error);
-            process.exit(1);
-        });
-} 
+    });
+}
+
+module.exports = { resetUserPollingState, getGmailUsers }; 

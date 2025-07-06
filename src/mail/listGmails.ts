@@ -13,7 +13,7 @@ import { authorizeGmail } from './authorizeGmail';
  * @returns Promise resolving to an array of message IDs
  */
 export async function listGmails(
-    daysToSearch = 7,
+    daysToSearch = 30,
     userEmail?: string,
     existingAuth?: OAuth2Client
 ): Promise<string[]> {

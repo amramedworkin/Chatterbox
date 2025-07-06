@@ -115,8 +115,8 @@ export async function askAgent(options: AskAgentOptions): Promise<AskAgentRespon
         // Clean up resources
         try {
             // Delete assistant and thread
-            await openai.beta.assistants.delete(assistant.id);
-            await openai.beta.threads.delete(thread.id);
+            await openai.beta.assistants.del(assistant.id);
+            await openai.beta.threads.del(thread.id);
         } catch (cleanupError) {
             console.warn('Failed to clean up resources:', cleanupError);
         }

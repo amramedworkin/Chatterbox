@@ -3,7 +3,7 @@
     "interactionsBaseFolder": "../interactions",
     "defaultPollGmailUser": "awsamram@gmail.com",
     "defaultSendGmailUser": "amram.dworkin@gmail.com",
-    "defaultGetGmailUser": "awsamram@gmail.com"
+    "defaultGetGmailUser": "isnotmynameatall@gmail.com"
   },
   "google": {
     "credentialsPath": "./google_credentials.json",
@@ -32,7 +32,7 @@
   },
   "sendTest": {
     "testAttachmentsFolder": "./test/attachments",
-    "tokenPath": "./data/sendtest_google_tokens.json",
+    "tokenPath": "./data/google_tokens.json",
     "lastSentEmailNumberPath": "./data/sendtest_last_sent_email_number.txt",
     "senderEmailPath": "./data/sendtest_sender_email.txt",
     "recipientEmailPath": "./data/sendtest_recipient_email.txt",

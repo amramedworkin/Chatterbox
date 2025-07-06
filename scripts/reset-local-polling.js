@@ -1,203 +1,247 @@
 #!/usr/bin/env node
 
 /**
- * Reset Local Polling State Script
- * 
- * This script resets the local polling state back to its initial (never polled) state
- * by clearing all local state files related to polling.
+ * Reset local polling state files to mimic "first run" state
+ * Clears last_history_id.txt, other polling state files, and pending email IDs
  */
 
-const fs = require('fs').promises;
+const fs = require('fs');
 const path = require('path');
 
-// Load configuration
-let config;
-try {
-    config = require('../dist/src/loadConfig.js');
-    if (config.default) config = config.default;
-} catch (error) {
-    console.error('Error loading config. Make sure to run "npm run build" first.');
-    process.exit(1);
+// Colors for console output
+const colors = {
+    reset: '\x1b[0m',
+    bright: '\x1b[1m',
+    red: '\x1b[31m',
+    green: '\x1b[32m',
+    yellow: '\x1b[33m',
+    blue: '\x1b[34m',
+    magenta: '\x1b[35m',
+    cyan: '\x1b[36m'
+};
+
+function printInfo(message) {
+    console.log(`${colors.blue}ℹ${colors.reset} ${message}`);
+}
+
+function printSuccess(message) {
+    console.log(`${colors.green}✅${colors.reset} ${message}`);
+}
+
+function printWarning(message) {
+    console.log(`${colors.yellow}⚠${colors.reset} ${message}`);
+}
+
+function printError(message) {
+    console.log(`${colors.red}❌${colors.reset} ${message}`);
+}
+
+function printHeader(message) {
+    console.log(`\n${colors.bright}${colors.cyan}${message}${colors.reset}`);
+    console.log(`${'='.repeat(message.length)}`);
 }
 
 /**
- * Safely deletes a file, ignoring if it doesn't exist
+ * Get Gmail users from config.json
  */
-async function safeDeleteFile(filePath) {
+function getGmailUsers() {
     try {
-        await fs.unlink(filePath);
-        console.log(`✅ Deleted file: ${filePath}`);
-        return true;
-    } catch (error) {
-        if (error.code === 'ENOENT') {
-            console.log(`ℹ️  File not found (already deleted): ${filePath}`);
-            return true;
+        const configPath = path.join(process.cwd(), 'config.json');
+        if (!fs.existsSync(configPath)) {
+            printWarning('config.json not found. Using default user.');
+            return ['awsamram@gmail.com'];
         }
-        console.error(`❌ Error deleting file ${filePath}:`, error.message);
+        
+        const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+        const users = config.gmail?.users || [];
+        
+        if (users.length === 0) {
+            printWarning('No Gmail users found in config.json. Using default user.');
+            return ['awsamram@gmail.com'];
+        }
+        
+        return users;
+    } catch (error) {
+        printWarning(`Error reading config.json: ${error.message}. Using default user.`);
+        return ['awsamram@gmail.com'];
+    }
+}
+
+/**
+ * Clear pending email IDs for a specific user
+ */
+function clearPendingEmails(gmailUser) {
+    const dataDir = path.join(process.cwd(), 'data');
+    const safeUser = gmailUser.replace(/[^a-zA-Z0-9]/g, '_');
+    const pendingEmailsPath = path.join(dataDir, `pending_emails_${safeUser}.json`);
+    
+    try {
+        if (fs.existsSync(pendingEmailsPath)) {
+            // Reset to empty pending emails array
+            const emptyStorage = {
+                pendingEmails: [],
+                lastUpdated: new Date().toISOString()
+            };
+            
+            fs.writeFileSync(pendingEmailsPath, JSON.stringify(emptyStorage, null, 2), 'utf8');
+            printSuccess(`  Cleared pending emails for ${gmailUser}`);
+            return true;
+        } else {
+            printInfo(`  No pending emails file found for ${gmailUser}`);
+            return false;
+        }
+    } catch (error) {
+        printError(`  Failed to clear pending emails for ${gmailUser}: ${error.message}`);
         return false;
     }
 }
 
 /**
- * Gets all token files for different users
+ * Reset local polling state files
  */
-async function getTokenFiles() {
-    const dataDir = path.dirname(config.google.pollTokenPath);
-    const files = await fs.readdir(dataDir);
+function resetLocalPollingState() {
+    const dataDir = path.join(process.cwd(), 'data');
     
-    // Look for token files (google_tokens.json, sendtest_google_tokens.json, etc.)
-    const tokenFiles = files.filter(file => 
-        file.includes('token') && file.endsWith('.json')
-    );
+    printInfo('Resetting local polling state files...');
     
-    return tokenFiles.map(file => path.join(dataDir, file));
-}
-
-/**
- * Resets polling state for a specific Gmail user
- */
-async function resetUserPollingState(userEmail) {
-    console.log(`\n🔄 Resetting polling state for user: ${userEmail}`);
-    // Only clear poll counters and last history ID
-    const filesToDelete = [
-        config.google.lastHistoryIdPath,
-        config.google.totalPollCyclesPath
-    ];
-    let successCount = 0;
-    let totalCount = filesToDelete.length;
-    for (const filePath of filesToDelete) {
-        const success = await safeDeleteFile(filePath);
-        if (success) successCount++;
-    }
-    console.log(`📊 User ${userEmail}: ${successCount}/${totalCount} files reset`);
-    return successCount === totalCount;
-}
-
-/**
- * Resets send test state
- */
-async function resetSendTestState() {
-    console.log('\n🔄 Resetting send test state...');
-    
-    const sendTestFiles = [
-        config.sendTest.tokenPath,
-        config.sendTest.lastSentEmailNumberPath,
-        config.sendTest.senderEmailPath,
-        config.sendTest.recipientEmailPath,
-        config.sendTest.sendCountPath
+    // Files to reset
+    const filesToReset = [
+        'last_history_id.txt',
+        'total_poll_cycles.txt'
     ];
     
     let successCount = 0;
-    let totalCount = sendTestFiles.length;
+    let failureCount = 0;
     
-    for (const filePath of sendTestFiles) {
-        const success = await safeDeleteFile(filePath);
-        if (success) successCount++;
-    }
-    
-    console.log(`📊 Send test state: ${successCount}/${totalCount} files reset`);
-    return successCount === totalCount;
-}
-
-/**
- * Main function to reset all local polling state
- */
-async function resetAllLocalPollingState() {
-    console.log('🚀 Starting Local Polling State Reset...\n');
-    const defaultUser = config.app.defaultPollGmailUser;
-    console.log(`Default Gmail user: ${defaultUser}`);
-    const userSuccess = await resetUserPollingState(defaultUser);
-    console.log('\n🎉 Local Polling State Reset Complete!');
-    console.log('\n📝 Summary:');
-    console.log(`   • Reset polling state for user: ${defaultUser}`);
-    console.log(`   • Only poll counters and last history ID have been cleared`);
-    console.log(`   • Next local poll will start fresh with no history ID`);
-    if (!userSuccess) {
-        console.log('\n⚠️  Some operations failed. Check the logs above for details.');
-        process.exit(1);
-    }
-}
-
-// Handle command line arguments
-const args = process.argv.slice(2);
-const command = args[0];
-
-if (command === '--help' || command === '-h') {
-    console.log(`
-Local Polling State Reset Script
-
-Usage:
-  node scripts/reset-local-polling.js [options]
-
-Options:
-  --help, -h     Show this help message
-  --dry-run      Show what would be deleted without actually deleting
-  --user <email> Reset state for a specific user only
-  --send-test    Reset send test state only
-  --all          Reset all state (default)
-
-Examples:
-  node scripts/reset-local-polling.js                    # Reset all state
-  node scripts/reset-local-polling.js --user test@example.com  # Reset specific user
-  node scripts/reset-local-polling.js --send-test        # Reset send test state only
-  node scripts/reset-local-polling.js --dry-run          # Show what would be reset
-
-Files that will be deleted:
-  • ${config.google.pollTokenPath}
-  • ${config.google.lastHistoryIdPath}
-  • ${config.google.lastPolledEmailPath}
-  • ${config.google.totalPollCyclesPath}
-  • ${config.sendTest.tokenPath}
-  • ${config.sendTest.lastSentEmailNumberPath}
-  • ${config.sendTest.senderEmailPath}
-  • ${config.sendTest.recipientEmailPath}
-  • ${config.sendTest.sendCountPath}
-  • Any other token or state files in the data directory
-`);
-    process.exit(0);
-}
-
-if (command === '--dry-run') {
-    console.log('🔍 DRY RUN MODE - No changes will be made\n');
-    console.log('Files that would be deleted:');
-    console.log(`  • ${config.google.pollTokenPath}`);
-    console.log(`  • ${config.google.lastHistoryIdPath}`);
-    console.log(`  • ${config.google.lastPolledEmailPath}`);
-    console.log(`  • ${config.google.totalPollCyclesPath}`);
-    console.log(`  • ${config.sendTest.tokenPath}`);
-    console.log(`  • ${config.sendTest.lastSentEmailNumberPath}`);
-    console.log(`  • ${config.sendTest.senderEmailPath}`);
-    console.log(`  • ${config.sendTest.recipientEmailPath}`);
-    console.log(`  • ${config.sendTest.sendCountPath}`);
-    console.log('\nRun without --dry-run to actually delete these files.');
-    process.exit(0);
-}
-
-if (command === '--user') {
-    const userEmail = args[1];
-    if (!userEmail) {
-        console.error('❌ Error: --user requires an email address');
-        process.exit(1);
-    }
-    console.log(`🔄 Resetting polling state for user: ${userEmail}`);
-    resetUserPollingState(userEmail)
-        .then(success => {
-            if (success) {
-                console.log('\n✅ User polling state reset complete!');
-            } else {
-                console.log('\n❌ Some operations failed. Check the logs above.');
-                process.exit(1);
+    for (const filename of filesToReset) {
+        const filePath = path.join(dataDir, filename);
+        
+        try {
+            // Create data directory if it doesn't exist
+            if (!fs.existsSync(dataDir)) {
+                fs.mkdirSync(dataDir, { recursive: true });
+                printInfo(`Created data directory: ${dataDir}`);
             }
-        })
-        .catch(error => {
-            console.error('❌ Error resetting user polling state:', error);
-            process.exit(1);
-        });
-} else {
-    // Reset all local polling state
-    resetAllLocalPollingState()
-        .catch(error => {
-            console.error('❌ Error resetting local polling state:', error);
-            process.exit(1);
-        });
-} 
+            
+            // Reset file content based on type
+            let content = '';
+            if (filename === 'last_history_id.txt') {
+                content = ''; // Empty string indicates first run (will be treated as null)
+            } else if (filename === 'total_poll_cycles.txt') {
+                content = '0'; // Reset poll cycle counter
+            }
+            
+            fs.writeFileSync(filePath, content, 'utf8');
+            printSuccess(`  Reset ${filename} to: "${content}"`);
+            successCount++;
+            
+        } catch (error) {
+            printError(`  Failed to reset ${filename}: ${error.message}`);
+            failureCount++;
+        }
+    }
+    
+    // Also reset any user-specific files in data directory
+    try {
+        const files = fs.readdirSync(dataDir);
+        const userFiles = files.filter(file => 
+            file.includes('last_polled') || 
+            file.includes('sendtest_') ||
+            file.endsWith('_last_sent_email_number.txt')
+        );
+        
+        for (const userFile of userFiles) {
+            const filePath = path.join(dataDir, userFile);
+            try {
+                // Reset to current timestamp or appropriate default
+                let content = '';
+                if (userFile.includes('last_polled_timestamp')) {
+                    content = new Date().toISOString();
+                } else if (userFile.includes('sendtest_') || userFile.includes('_last_sent_email_number')) {
+                    content = '0';
+                } else {
+                    content = '';
+                }
+                
+                fs.writeFileSync(filePath, content, 'utf8');
+                printSuccess(`  Reset ${userFile} to: "${content}"`);
+                successCount++;
+                
+            } catch (error) {
+                printError(`  Failed to reset ${userFile}: ${error.message}`);
+                failureCount++;
+            }
+        }
+    } catch (error) {
+        printWarning(`Could not read data directory for user files: ${error.message}`);
+    }
+    
+    return { successCount, failureCount };
+}
+
+/**
+ * Clear all pending email IDs for all users
+ */
+function clearAllPendingEmails(gmailUsers) {
+    printInfo('Clearing pending email IDs...');
+    
+    let clearedCount = 0;
+    let totalCount = gmailUsers.length;
+    
+    for (const gmailUser of gmailUsers) {
+        if (clearPendingEmails(gmailUser)) {
+            clearedCount++;
+        }
+    }
+    
+    return { clearedCount, totalCount };
+}
+
+/**
+ * Main function
+ */
+async function main() {
+    printHeader('Local Polling State Reset');
+    
+    try {
+        // Get Gmail users from config
+        printInfo('Reading Gmail users from config.json...');
+        const gmailUsers = getGmailUsers();
+        printSuccess(`Found ${gmailUsers.length} Gmail user(s): ${gmailUsers.join(', ')}`);
+        
+        // Reset local polling state
+        const { successCount, failureCount } = resetLocalPollingState();
+        
+        // Clear pending email IDs
+        const { clearedCount, totalCount } = clearAllPendingEmails(gmailUsers);
+        
+        // Summary
+        printHeader('Reset Summary');
+        printSuccess(`Successfully reset ${successCount} file(s)`);
+        if (failureCount > 0) {
+            printError(`Failed to reset ${failureCount} file(s)`);
+        }
+        
+        printSuccess(`Cleared pending emails for ${clearedCount}/${totalCount} user(s)`);
+        
+        printInfo('\nNext steps:');
+        printInfo('1. Local polling will now start fresh on next run');
+        printInfo('2. It will search for emails from the last 30 days');
+        printInfo('3. All previously stored Gmail IDs have been cleared');
+        printInfo('4. Run: npm run mail:poll to test the reset state');
+        
+    } catch (error) {
+        printError(`Script failed: ${error.message}`);
+        process.exit(1);
+    }
+}
+
+// Run the script
+if (require.main === module) {
+    main().catch(error => {
+        printError(`Unhandled error: ${error.message}`);
+        process.exit(1);
+    });
+}
+
+module.exports = { resetLocalPollingState, getGmailUsers, clearAllPendingEmails }; 
