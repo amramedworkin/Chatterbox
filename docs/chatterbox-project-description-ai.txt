@@ -2,6 +2,7 @@ Chatterbox System Specification
 1. System Overview
 
 The primary objective of the Chatterbox system is to function as a backend application that processes user queries submitted via email or SMS/MMS, interacts with a Large Language Model (LLM) to generate a response, and returns that response to the user.
+NOTE:  All capabiliities will be built to support a local mode, to be run on a desktop or server, and AWS capability, natively created for AWS hosting.
 
 1.A. Input Channels: The system will accept incoming messages from two primary channels:
 1.A.1. A designated Gmail account, the address of which will be configurable.

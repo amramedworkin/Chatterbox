@@ -64,6 +64,9 @@
     "test:lambda": "jest test/lambdaIntegration.test.ts",
     "test:mail:send": "ts-node test/sendGmail.test.ts",
     "test:mail:send:clean": "ts-node test/sendGmail.test.ts --clean",
+    "mail:process": "ts-node src/mail/processIncomingMail.ts",
+    "mail:respond": "ts-node src/mail/generateResponses.ts",
+    "mail:reset:states": "node scripts/reset-email-states.js",
     "start": "npm run mail:poll",
     "help": "open docs/SYSTEM_SETUP_AND_TEARDOWN.md"
   },

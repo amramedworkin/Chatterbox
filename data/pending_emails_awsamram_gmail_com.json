@@ -9,8 +9,9 @@
       "fromSender": "amram.dworkin@gmail.com",
       "receivedDate": "Thu, 3 Jul 2025 13:14:16 -0400",
       "createdAt": "2025-07-05T10:58:46.776Z",
-      "status": "pending",
-      "retryCount": 0
+      "status": "completed",
+      "retryCount": 0,
+      "lastProcessedAt": "2025-07-07T14:57:59.056Z"
     },
     {
       "pk": "PENDING_EMAIL#197c53622650d61a",
@@ -21,8 +22,9 @@
       "fromSender": "amram.dworkin@gmail.com",
       "receivedDate": "Tue, 1 Jul 2025 04:59:07 -0400",
       "createdAt": "2025-07-05T10:58:46.988Z",
-      "status": "pending",
-      "retryCount": 0
+      "status": "completed",
+      "retryCount": 0,
+      "lastProcessedAt": "2025-07-07T14:57:59.291Z"
     },
     {
       "pk": "PENDING_EMAIL#197baeb56337ce22",
@@ -33,8 +35,9 @@
       "fromSender": "amram.dworkin@gmail.com",
       "receivedDate": "Sun, 29 Jun 2025 05:01:13 -0400",
       "createdAt": "2025-07-05T10:58:47.213Z",
-      "status": "pending",
-      "retryCount": 0
+      "status": "completed",
+      "retryCount": 0,
+      "lastProcessedAt": "2025-07-07T14:57:59.539Z"
     },
     {
       "pk": "PENDING_EMAIL#197bacfcb8893044",
@@ -45,8 +48,9 @@
       "fromSender": "amram.dworkin@gmail.com",
       "receivedDate": "Sun, 29 Jun 2025 04:31:08 -0400",
       "createdAt": "2025-07-05T10:58:47.426Z",
-      "status": "pending",
-      "retryCount": 0
+      "status": "completed",
+      "retryCount": 0,
+      "lastProcessedAt": "2025-07-07T14:57:59.751Z"
     },
     {
       "pk": "PENDING_EMAIL#197bacf7b356c0ad",
@@ -57,8 +61,9 @@
       "fromSender": "amram.dworkin@gmail.com",
       "receivedDate": "Sun, 29 Jun 2025 01:30:48 -0700",
       "createdAt": "2025-07-05T10:58:47.664Z",
-      "status": "pending",
-      "retryCount": 0
+      "status": "completed",
+      "retryCount": 0,
+      "lastProcessedAt": "2025-07-07T14:58:00.010Z"
     },
     {
       "pk": "PENDING_EMAIL#197baab0f4e12ae4",
@@ -69,8 +74,9 @@
       "fromSender": "amram.dworkin@gmail.com",
       "receivedDate": "Sun, 29 Jun 2025 00:51:00 -0700",
       "createdAt": "2025-07-05T10:58:47.900Z",
-      "status": "pending",
-      "retryCount": 0
+      "status": "completed",
+      "retryCount": 0,
+      "lastProcessedAt": "2025-07-07T14:58:00.229Z"
     },
     {
       "pk": "PENDING_EMAIL#197ba491324f2393",
@@ -81,8 +87,9 @@
       "fromSender": "amram.dworkin@gmail.com",
       "receivedDate": "Sat, 28 Jun 2025 23:03:58 -0700",
       "createdAt": "2025-07-05T10:58:48.114Z",
-      "status": "pending",
-      "retryCount": 0
+      "status": "completed",
+      "retryCount": 0,
+      "lastProcessedAt": "2025-07-07T14:58:01.128Z"
     },
     {
       "pk": "PENDING_EMAIL#197ba48d374123dd",
@@ -93,8 +100,9 @@
       "fromSender": "amram.dworkin@gmail.com",
       "receivedDate": "Sat, 28 Jun 2025 23:03:43 -0700",
       "createdAt": "2025-07-05T10:58:48.329Z",
-      "status": "pending",
-      "retryCount": 0
+      "status": "completed",
+      "retryCount": 0,
+      "lastProcessedAt": "2025-07-07T14:58:01.340Z"
     },
     {
       "pk": "PENDING_EMAIL#197b34be1230b6e8",
@@ -105,8 +113,9 @@
       "fromSender": "amram.dworkin@gmail.com",
       "receivedDate": "Fri, 27 Jun 2025 17:29:42 -0400",
       "createdAt": "2025-07-05T10:58:48.557Z",
-      "status": "pending",
-      "retryCount": 0
+      "status": "completed",
+      "retryCount": 0,
+      "lastProcessedAt": "2025-07-06T23:20:54.189Z"
     },
     {
       "pk": "PENDING_EMAIL#197b2a58d309e0eb",
@@ -117,8 +126,9 @@
       "fromSender": "amram.dworkin@gmail.com",
       "receivedDate": "Fri, 27 Jun 2025 14:28:02 -0400",
       "createdAt": "2025-07-05T10:58:48.796Z",
-      "status": "pending",
-      "retryCount": 0
+      "status": "completed",
+      "retryCount": 0,
+      "lastProcessedAt": "2025-07-06T23:20:54.413Z"
     },
     {
       "pk": "PENDING_EMAIL#197b29df134cafad",
@@ -129,8 +139,9 @@
       "fromSender": "amram.dworkin@gmail.com",
       "receivedDate": "Fri, 27 Jun 2025 11:19:42 -0700",
       "createdAt": "2025-07-05T10:58:49.057Z",
-      "status": "pending",
-      "retryCount": 0
+      "status": "completed",
+      "retryCount": 0,
+      "lastProcessedAt": "2025-07-06T23:20:54.633Z"
     },
     {
       "pk": "PENDING_EMAIL#197b245e00efd022",
@@ -141,8 +152,9 @@
       "fromSender": "amram.dworkin@gmail.com",
       "receivedDate": "Fri, 27 Jun 2025 12:43:31 -0400",
       "createdAt": "2025-07-05T10:58:49.325Z",
-      "status": "pending",
-      "retryCount": 0
+      "status": "completed",
+      "retryCount": 0,
+      "lastProcessedAt": "2025-07-06T23:20:54.865Z"
     },
     {
       "pk": "PENDING_EMAIL#1978adc93cfc965c",
@@ -153,8 +165,9 @@
       "fromSender": "amram.dworkin@gmail.com",
       "receivedDate": "Fri, 20 Jun 2025 01:03:19 +0000",
       "createdAt": "2025-07-05T10:58:49.536Z",
-      "status": "pending",
-      "retryCount": 0
+      "status": "completed",
+      "retryCount": 0,
+      "lastProcessedAt": "2025-07-06T23:20:55.118Z"
     },
     {
       "pk": "PENDING_EMAIL#197758f80ce4d798",
@@ -165,8 +178,9 @@
       "fromSender": "amram.dworkin@gmail.com",
       "receivedDate": "Sun, 15 Jun 2025 14:47:06 -0700",
       "createdAt": "2025-07-05T10:58:50.490Z",
-      "status": "pending",
-      "retryCount": 0
+      "status": "completed",
+      "retryCount": 0,
+      "lastProcessedAt": "2025-07-06T23:20:55.324Z"
     },
     {
       "pk": "PENDING_EMAIL#197536973fed1083",
@@ -177,8 +191,9 @@
       "fromSender": "amram.dworkin@gmail.com",
       "receivedDate": "Sun, 8 Jun 2025 23:38:27 -0700",
       "createdAt": "2025-07-05T10:58:50.948Z",
-      "status": "pending",
-      "retryCount": 0
+      "status": "completed",
+      "retryCount": 0,
+      "lastProcessedAt": "2025-07-06T23:20:55.560Z"
     },
     {
       "pk": "PENDING_EMAIL#197536899e39be2a",
@@ -189,8 +204,9 @@
       "fromSender": "amram.dworkin@gmail.com",
       "receivedDate": "Sun, 8 Jun 2025 23:37:31 -0700",
       "createdAt": "2025-07-05T10:58:51.185Z",
-      "status": "pending",
-      "retryCount": 0
+      "status": "completed",
+      "retryCount": 0,
+      "lastProcessedAt": "2025-07-06T23:20:55.781Z"
     },
     {
       "pk": "PENDING_EMAIL#19745d14e8e41e33",
@@ -201,8 +217,9 @@
       "fromSender": "amram.dworkin@gmail.com",
       "receivedDate": "Fri, 6 Jun 2025 08:17:12 -0700",
       "createdAt": "2025-07-05T10:58:51.421Z",
-      "status": "pending",
-      "retryCount": 0
+      "status": "completed",
+      "retryCount": 0,
+      "lastProcessedAt": "2025-07-06T23:20:56.062Z"
     },
     {
       "pk": "PENDING_EMAIL#1973ed1f6ee9e09a",
@@ -213,8 +230,9 @@
       "fromSender": "awsamram@gmail.com",
       "receivedDate": "Wed, 4 Jun 2025 23:40:37 -0700",
       "createdAt": "2025-07-05T10:58:51.864Z",
-      "status": "pending",
-      "retryCount": 0
+      "status": "completed",
+      "retryCount": 0,
+      "lastProcessedAt": "2025-07-06T23:20:56.341Z"
     },
     {
       "pk": "PENDING_EMAIL#1973ec53a5d9a27d",
@@ -225,8 +243,9 @@
       "fromSender": "awsamram@gmail.com",
       "receivedDate": "Wed, 4 Jun 2025 23:26:42 -0700",
       "createdAt": "2025-07-05T10:58:52.316Z",
-      "status": "pending",
-      "retryCount": 0
+      "status": "completed",
+      "retryCount": 0,
+      "lastProcessedAt": "2025-07-06T23:20:56.578Z"
     },
     {
       "pk": "PENDING_EMAIL#1973ea16c6b8385d",
@@ -237,8 +256,9 @@
       "fromSender": "awsamram@gmail.com",
       "receivedDate": "Wed, 4 Jun 2025 22:47:36 -0700",
       "createdAt": "2025-07-05T10:58:53.130Z",
-      "status": "pending",
-      "retryCount": 0
+      "status": "completed",
+      "retryCount": 0,
+      "lastProcessedAt": "2025-07-06T23:20:56.796Z"
     },
     {
       "pk": "PENDING_EMAIL#1973e5e8507336ec",
@@ -249,9 +269,49 @@
       "fromSender": "Amram Dworkin <amram.dworkin@gmail.com>",
       "receivedDate": "Thu, 5 Jun 2025 04:34:27 +0000",
       "createdAt": "2025-07-05T10:58:54.879Z",
-      "status": "pending",
-      "retryCount": 0
+      "status": "completed",
+      "retryCount": 0,
+      "lastProcessedAt": "2025-07-06T23:20:57.363Z"
+    },
+    {
+      "pk": "PENDING_EMAIL#197dbcf11a7b2b77",
+      "sk": "USER#awsamram@gmail.com",
+      "gmailId": "197dbcf11a7b2b77",
+      "userEmail": "awsamram@gmail.com",
+      "subject": "chatterbox test title 0001",
+      "fromSender": "amram.dworkin@gmail.com",
+      "receivedDate": "Sat, 5 Jul 2025 11:17:48 -0700",
+      "createdAt": "2025-07-07T13:55:40.021Z",
+      "status": "completed",
+      "retryCount": 0,
+      "lastProcessedAt": "2025-07-07T13:56:44.216Z"
+    },
+    {
+      "pk": "PENDING_EMAIL#197e523360d751c7",
+      "sk": "USER#awsamram@gmail.com",
+      "gmailId": "197e523360d751c7",
+      "userEmail": "awsamram@gmail.com",
+      "subject": "chatterbox test title 0002",
+      "fromSender": "amram.dworkin@gmail.com",
+      "receivedDate": "Mon, 7 Jul 2025 09:46:17 -0400",
+      "createdAt": "2025-07-07T13:55:40.291Z",
+      "status": "completed",
+      "retryCount": 0,
+      "lastProcessedAt": "2025-07-07T13:56:44.573Z"
+    },
+    {
+      "pk": "PENDING_EMAIL#197e52b3b5faa524",
+      "sk": "USER#awsamram@gmail.com",
+      "gmailId": "197e52b3b5faa524",
+      "userEmail": "awsamram@gmail.com",
+      "subject": "chatterbox test title 0003",
+      "fromSender": "amram.dworkin@gmail.com",
+      "receivedDate": "Mon, 7 Jul 2025 09:55:03 -0400",
+      "createdAt": "2025-07-07T13:55:40.570Z",
+      "status": "completed",
+      "retryCount": 0,
+      "lastProcessedAt": "2025-07-07T13:56:44.842Z"
     }
   ],
-  "lastUpdated": "2025-07-05T10:58:54.879Z"
+  "lastUpdated": "2025-07-07T14:58:01.340Z"
 }
