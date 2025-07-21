@@ -282,7 +282,7 @@ const MENU_STRUCTURE = {
         items: [
             {
                 id: 'aws-validation',
-                name: 'AWS Validation (4 items)',
+                name: 'AWS Validation (5 items)',
                 description: 'Validate AWS infrastructure and configuration',
                 type: 'category',
                 submenu: [
@@ -313,6 +313,49 @@ const MENU_STRUCTURE = {
                         description: `Validate SES is properly cleaned up${SHOW_SCRIPTS ? `\n${colors.yellow}Script: npm run aws:validate:ses --clean (node scripts/validate-ses.js --clean)${colors.reset}` : ''}`,
                         command: 'aws:validate:ses --clean',
                         type: 'script'
+                    },
+                    {
+                        id: 'email-round-trip-tests',
+                        name: 'Email Round Trip Tests (5 items)',
+                        description: 'Comprehensive email round trip testing',
+                        type: 'category',
+                        submenu: [
+                            {
+                                id: 'test-email-all',
+                                name: 'Run All Email Tests',
+                                description: `Run all email round trip tests (SES and Gmail)${SHOW_SCRIPTS ? `\n${colors.yellow}Script: npm run aws:test:email:roundtrip (node scripts/run-email-round-trip-tests.js)${colors.reset}` : ''}`,
+                                command: 'aws:test:email:roundtrip',
+                                type: 'script'
+                            },
+                            {
+                                id: 'test-email-ses-to-ses',
+                                name: 'SES-to-SES Tests',
+                                description: `Test email delivery between SES verified addresses${SHOW_SCRIPTS ? `\n${colors.yellow}Script: npm run aws:test:email:ses-to-ses (node scripts/test-email-ses-to-ses.js)${colors.reset}` : ''}`,
+                                command: 'aws:test:email:ses-to-ses',
+                                type: 'script'
+                            },
+                            {
+                                id: 'test-email-gmail-to-gmail',
+                                name: 'Gmail-to-Gmail Tests',
+                                description: `Test email delivery between Gmail API authorized addresses${SHOW_SCRIPTS ? `\n${colors.yellow}Script: npm run aws:test:email:gmail-to-gmail (node scripts/test-email-gmail-to-gmail.js)${colors.reset}` : ''}`,
+                                command: 'aws:test:email:gmail-to-gmail',
+                                type: 'script'
+                            },
+                            {
+                                id: 'test-email-ses-to-gmail',
+                                name: 'SES-to-Gmail Tests',
+                                description: `Test email delivery from SES to Gmail addresses${SHOW_SCRIPTS ? `\n${colors.yellow}Script: npm run aws:test:email:ses-to-gmail (node scripts/test-email-ses-to-gmail.js)${colors.reset}` : ''}`,
+                                command: 'aws:test:email:ses-to-gmail',
+                                type: 'script'
+                            },
+                            {
+                                id: 'test-email-gmail-to-ses',
+                                name: 'Gmail-to-SES Tests',
+                                description: `Test email delivery from Gmail to SES addresses${SHOW_SCRIPTS ? `\n${colors.yellow}Script: npm run aws:test:email:gmail-to-ses (node scripts/test-email-gmail-to-ses.js)${colors.reset}` : ''}`,
+                                command: 'aws:test:email:gmail-to-ses',
+                                type: 'script'
+                            }
+                        ]
                     }
                 ]
             },

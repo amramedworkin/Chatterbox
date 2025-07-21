@@ -164,6 +164,28 @@ resource "aws_iam_role" "response_generator_lambda" {
   }
 }
 
+resource "aws_iam_role" "email_round_trip_tester_lambda" {
+  name = "chatterbox-email-round-trip-tester-lambda-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = "sts:AssumeRole"
+        Effect = "Allow"
+        Principal = {
+          Service = "lambda.amazonaws.com"
+        }
+      }
+    ]
+  })
+
+  tags = {
+    Name        = "chatterbox-email-round-trip-tester-lambda-role"
+    Subsystem   = "email-testing"
+  }
+}
+
 # IAM Policies for Email Processing
 resource "aws_iam_policy" "email_processor_policy" {
   name = "chatterbox-email-processor-policy"
@@ -275,6 +297,49 @@ resource "aws_iam_policy" "response_generator_policy" {
   })
 }
 
+resource "aws_iam_policy" "email_round_trip_tester_policy" {
+  name = "chatterbox-email-round-trip-tester-policy"
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "logs:CreateLogGroup",
+          "logs:CreateLogStream",
+          "logs:PutLogEvents"
+        ]
+        Resource = "arn:aws:logs:*:*:*"
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "ses:SendEmail",
+          "ses:SendRawEmail",
+          "ses:GetIdentityVerificationAttributes",
+          "ses:ListIdentities"
+        ]
+        Resource = "*"
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "secretsmanager:GetSecretValue"
+        ]
+        Resource = var.secrets_arns
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "ssm:GetParameter",
+          "ssm:GetParameters"
+        ]
+        Resource = var.parameter_store_arn
+      }
+    ]
+  })
+}
+
 # Attach policies to roles
 resource "aws_iam_role_policy_attachment" "email_processor_policy" {
   role       = aws_iam_role.email_processor_lambda.name
@@ -284,6 +349,11 @@ resource "aws_iam_role_policy_attachment" "email_processor_policy" {
 resource "aws_iam_role_policy_attachment" "response_generator_policy" {
   role       = aws_iam_role.response_generator_lambda.name
   policy_arn = aws_iam_policy.response_generator_policy.arn
+}
+
+resource "aws_iam_role_policy_attachment" "email_round_trip_tester_policy" {
+  role       = aws_iam_role.email_round_trip_tester_lambda.name
+  policy_arn = aws_iam_policy.email_round_trip_tester_policy.arn
 }
 
 # Lambda Functions
@@ -333,6 +403,29 @@ resource "aws_lambda_function" "response_generator" {
   }
 }
 
+resource "aws_lambda_function" "email_round_trip_tester" {
+  filename      = data.archive_file.email_round_trip_tester_zip.output_path
+  function_name = "chatterbox-email-round-trip-tester"
+  role          = aws_iam_role.email_round_trip_tester_lambda.arn
+  handler       = "dist/emailRoundTripTester.handler"
+  runtime       = "nodejs18.x"
+  timeout       = 300
+  memory_size   = 512
+
+  environment {
+    variables = {
+      GMAIL_TOKENS_SECRET_NAME = var.gmail_tokens_secret_name
+      GOOGLE_CREDENTIALS_SECRET_NAME = var.google_credentials_secret_name
+      PARAMETER_STORE_PREFIX = var.parameter_store_prefix
+    }
+  }
+
+  tags = {
+    Name        = "chatterbox-email-round-trip-tester"
+    Subsystem   = "email-testing"
+  }
+}
+
 # Create ZIP files for Lambda deployment
 data "archive_file" "email_processor_zip" {
   type        = "zip"
@@ -343,6 +436,12 @@ data "archive_file" "email_processor_zip" {
 data "archive_file" "response_generator_zip" {
   type        = "zip"
   output_path = "${path.module}/response-generator.zip"
+  source_dir  = "${path.module}/lambda"
+}
+
+data "archive_file" "email_round_trip_tester_zip" {
+  type        = "zip"
+  output_path = "${path.module}/email-round-trip-tester.zip"
   source_dir  = "${path.module}/lambda"
 }
 
@@ -371,6 +470,16 @@ resource "aws_cloudwatch_log_group" "response_generator" {
   tags = {
     Name        = "chatterbox-response-generator-logs"
     Subsystem   = "email-processing"
+  }
+}
+
+resource "aws_cloudwatch_log_group" "email_round_trip_tester" {
+  name              = "/aws/lambda/${aws_lambda_function.email_round_trip_tester.function_name}"
+  retention_in_days = 14
+
+  tags = {
+    Name        = "chatterbox-email-round-trip-tester-logs"
+    Subsystem   = "email-testing"
   }
 }
 

@@ -8,6 +8,11 @@ variable "gmail_tokens_secret_name" {
   type        = string
 }
 
+variable "google_credentials_secret_name" {
+  description = "Name of the Google OAuth credentials secret in Secrets Manager"
+  type        = string
+}
+
 variable "openai_api_key_secret_name" {
   description = "Name of the OpenAI API key secret in Secrets Manager"
   type        = string

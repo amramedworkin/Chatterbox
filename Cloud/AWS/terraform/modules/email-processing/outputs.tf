@@ -44,13 +44,23 @@ output "email_processor_function_arn" {
 }
 
 output "response_generator_function_name" {
-  description = "Name of the response generator Lambda function"
+  description = "Response Generator Lambda Function Name"
   value       = aws_lambda_function.response_generator.function_name
 }
 
 output "response_generator_function_arn" {
-  description = "ARN of the response generator Lambda function"
+  description = "Response Generator Lambda Function ARN"
   value       = aws_lambda_function.response_generator.arn
+}
+
+output "email_round_trip_tester_function_name" {
+  description = "Email Round Trip Tester Lambda Function Name"
+  value       = aws_lambda_function.email_round_trip_tester.function_name
+}
+
+output "email_round_trip_tester_function_arn" {
+  description = "Email Round Trip Tester Lambda Function ARN"
+  value       = aws_lambda_function.email_round_trip_tester.arn
 }
 
 output "email_processor_role_arn" {

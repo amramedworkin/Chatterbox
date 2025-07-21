@@ -119,12 +119,13 @@ module "lambda" {
 module "email_processing" {
   source = "./modules/email-processing"
 
-  environment                 = var.environment
-  gmail_tokens_secret_name    = var.secrets_gmail_tokens_name
-  openai_api_key_secret_name  = "chatterbox/openai-api-key"
-  parameter_store_prefix      = var.parameter_store_prefix
-  secrets_arns                = module.secrets_manager.secret_arns
-  parameter_store_arn         = module.parameter_store.parameter_arn
+  environment                    = var.environment
+  gmail_tokens_secret_name       = var.secrets_gmail_tokens_name
+  google_credentials_secret_name = module.secrets_manager.google_credentials_secret_name
+  openai_api_key_secret_name     = "chatterbox/openai-api-key"
+  parameter_store_prefix         = var.parameter_store_prefix
+  secrets_arns                   = module.secrets_manager.secret_arns
+  parameter_store_arn            = module.parameter_store.parameter_arn
 }
 
 # Outputs
