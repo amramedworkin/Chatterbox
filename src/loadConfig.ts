@@ -19,15 +19,14 @@ try {
 }
 
 const getOrDefault = <T>(envVar: string, appDefaultPath: string, fallback: T): T => {
-    const defaultVal = appDefaultPath.split('.').reduce<Record<string, unknown> | undefined>(
-        (obj, key: string) => {
+    const defaultVal = appDefaultPath
+        .split('.')
+        .reduce<Record<string, unknown> | undefined>((obj, key: string) => {
             if (obj && typeof obj === 'object') {
                 return (obj as Record<string, unknown>)[key] as Record<string, unknown> | undefined;
             }
             return undefined;
-        },
-        appDefaults as Record<string, unknown>
-    );
+        }, appDefaults as Record<string, unknown>);
 
     const envValue = process.env[envVar];
 
@@ -69,7 +68,7 @@ const config: AppConfig = {
         defaultGetGmailUser: getOrDefault(
             'DEFAULT_GET_GMAIL_USER',
             'app.defaultGetGmailUser',
-            'awsamram@gmail.com'
+            'isnotmynameatall@gmail.com'
         ),
     },
     google: {
@@ -101,11 +100,11 @@ const config: AppConfig = {
         scopes: process.env.GOOGLE_SCOPES
             ? process.env.GOOGLE_SCOPES.split(' ')
             : appDefaults.google
-              ? appDefaults.google.scopes
-              : [
-                    'https://www.googleapis.com/auth/gmail.readonly',
-                    'https://www.googleapis.com/auth/gmail.send',
-                ],
+            ? appDefaults.google.scopes
+            : [
+                  'https://www.googleapis.com/auth/gmail.readonly',
+                  'https://www.googleapis.com/auth/gmail.send',
+              ],
         redirectUri: getOrDefault(
             'GOOGLE_REDIRECT_URI',
             'google.redirectUri',
@@ -176,8 +175,8 @@ const config: AppConfig = {
         scopes: process.env.SENDTEST_SCOPES
             ? process.env.SENDTEST_SCOPES.split(' ')
             : appDefaults.sendTest
-              ? appDefaults.sendTest.scopes
-              : ['https://www.googleapis.com/auth/gmail.send'],
+            ? appDefaults.sendTest.scopes
+            : ['https://www.googleapis.com/auth/gmail.send'],
     },
     testOpenAi: {
         testPrompt: getOrDefault(
@@ -188,8 +187,8 @@ const config: AppConfig = {
         dialogPrompts: process.env.TESTOPENAI_DIALOG_PROMPTS
             ? process.env.TESTOPENAI_DIALOG_PROMPTS.split('|')
             : appDefaults.testOpenAi
-              ? appDefaults.testOpenAi.dialogPrompts
-              : [],
+            ? appDefaults.testOpenAi.dialogPrompts
+            : [],
     },
     aws: {
         region: getOrDefault('AWS_REGION', 'aws.region', 'us-east-1'),

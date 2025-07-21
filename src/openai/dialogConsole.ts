@@ -24,9 +24,13 @@ ${chalk.white('• Type your question and press Enter')}
 ${chalk.white('• Type')} ${chalk.cyan('/help')} ${chalk.white('to show this help')}
 ${chalk.white('• Type')} ${chalk.cyan('/clear')} ${chalk.white('to clear the screen')}
 ${chalk.white('• Type')} ${chalk.cyan('/model <model>')} ${chalk.white('to change model')}
-${chalk.white('• Type')} ${chalk.cyan('/instructions <text>')} ${chalk.white('to set custom instructions')}
+${chalk.white('• Type')} ${chalk.cyan('/instructions <text>')} ${chalk.white(
+    'to set custom instructions'
+)}
 ${chalk.white('• Type')} ${chalk.cyan('/info')} ${chalk.white('to show current settings')}
-${chalk.white('• Type')} ${chalk.cyan('/quit')} ${chalk.white('or')} ${chalk.cyan('/exit')} ${chalk.white('to exit')}
+${chalk.white('• Type')} ${chalk.cyan('/quit')} ${chalk.white('or')} ${chalk.cyan(
+    '/exit'
+)} ${chalk.white('to exit')}
 `;
 
 // Current settings
@@ -75,7 +79,11 @@ function displayResponse(response: string, usage?: any): void {
     // Display usage information if available
     if (usage) {
         console.log(
-            `${chalk.gray('📊 Usage:')} ${chalk.white('Prompt:')} ${chalk.yellow(usage.prompt_tokens || 0)} tokens, ${chalk.white('Completion:')} ${chalk.yellow(usage.completion_tokens || 0)} tokens, ${chalk.white('Total:')} ${chalk.yellow(usage.total_tokens || 0)} tokens`
+            `${chalk.gray('📊 Usage:')} ${chalk.white('Prompt:')} ${chalk.yellow(
+                usage.prompt_tokens || 0
+            )} tokens, ${chalk.white('Completion:')} ${chalk.yellow(
+                usage.completion_tokens || 0
+            )} tokens, ${chalk.white('Total:')} ${chalk.yellow(usage.total_tokens || 0)} tokens`
         );
     }
 
@@ -95,7 +103,9 @@ function displayError(error: any): void {
     // Analyze error type and provide specific guidance
     if (errorMessage.includes('Connection error') || errorMessage.includes('fetch failed')) {
         console.log(
-            `${chalk.yellow.bold('🔍 DIAGNOSIS:')} ${chalk.white('Network connectivity issue detected')}`
+            `${chalk.yellow.bold('🔍 DIAGNOSIS:')} ${chalk.white(
+                'Network connectivity issue detected'
+            )}`
         );
         console.log(`${chalk.yellow.bold('💡 LIKELY CAUSES:')}`);
         console.log(`   ${chalk.gray('•')} Corporate firewall or proxy blocking OpenAI API`);
@@ -108,17 +118,25 @@ function displayError(error: any): void {
         console.log(`   ${chalk.cyan('1.')} ${chalk.white('Check your internet connection')}`);
         console.log(`   ${chalk.cyan('2.')} ${chalk.white('Try disabling VPN if active')}`);
         console.log(
-            `   ${chalk.cyan('3.')} ${chalk.white('Contact your IT department about OpenAI API access')}`
+            `   ${chalk.cyan('3.')} ${chalk.white(
+                'Contact your IT department about OpenAI API access'
+            )}`
         );
         console.log(
-            `   ${chalk.cyan('4.')} ${chalk.white('Try using a different network (mobile hotspot)')}`
+            `   ${chalk.cyan('4.')} ${chalk.white(
+                'Try using a different network (mobile hotspot)'
+            )}`
         );
         console.log(
-            `   ${chalk.cyan('5.')} ${chalk.white('Check if you can access https://api.openai.com in your browser')}`
+            `   ${chalk.cyan('5.')} ${chalk.white(
+                'Check if you can access https://api.openai.com in your browser'
+            )}`
         );
     } else if (errorMessage.includes('API key') || errorMessage.includes('authentication')) {
         console.log(
-            `${chalk.yellow.bold('🔍 DIAGNOSIS:')} ${chalk.white('Authentication or API key issue')}`
+            `${chalk.yellow.bold('🔍 DIAGNOSIS:')} ${chalk.white(
+                'Authentication or API key issue'
+            )}`
         );
         console.log(`${chalk.yellow.bold('💡 LIKELY CAUSES:')}`);
         console.log(`   ${chalk.gray('•')} Invalid or expired OpenAI API key`);
@@ -131,20 +149,26 @@ function displayError(error: any): void {
             `   ${chalk.cyan('1.')} ${chalk.white('Verify your OpenAI API key in .env file')}`
         );
         console.log(
-            `   ${chalk.cyan('2.')} ${chalk.white('Check your OpenAI account for remaining credits')}`
+            `   ${chalk.cyan('2.')} ${chalk.white(
+                'Check your OpenAI account for remaining credits'
+            )}`
         );
         console.log(
             `   ${chalk.cyan('3.')} ${chalk.white('Ensure the API key starts with "sk-"')}`
         );
         console.log(
-            `   ${chalk.cyan('4.')} ${chalk.white('Try regenerating your API key on OpenAI platform')}`
+            `   ${chalk.cyan('4.')} ${chalk.white(
+                'Try regenerating your API key on OpenAI platform'
+            )}`
         );
         console.log(
             `   ${chalk.cyan('5.')} ${chalk.white('Verify organization ID if using team account')}`
         );
     } else if (errorMessage.includes('rate limit') || errorMessage.includes('quota')) {
         console.log(
-            `${chalk.yellow.bold('🔍 DIAGNOSIS:')} ${chalk.white('Rate limiting or quota exceeded')}`
+            `${chalk.yellow.bold('🔍 DIAGNOSIS:')} ${chalk.white(
+                'Rate limiting or quota exceeded'
+            )}`
         );
         console.log(`${chalk.yellow.bold('💡 LIKELY CAUSES:')}`);
         console.log(`   ${chalk.gray('•')} OpenAI API rate limit exceeded`);
@@ -168,7 +192,9 @@ function displayError(error: any): void {
 
         console.log(`\n${chalk.blue.bold('🛠️  TROUBLESHOOTING STEPS:')}`);
         console.log(
-            `   ${chalk.cyan('1.')} ${chalk.white('Try using a different model: /model gpt-4o-mini')}`
+            `   ${chalk.cyan('1.')} ${chalk.white(
+                'Try using a different model: /model gpt-4o-mini'
+            )}`
         );
         console.log(
             `   ${chalk.cyan('2.')} ${chalk.white('Check available models in OpenAI dashboard')}`
@@ -207,10 +233,14 @@ function displayError(error: any): void {
     console.log(`\n${chalk.magenta.bold('📞 NEED HELP?')}`);
     console.log(`   ${chalk.white('•')} OpenAI Status: ${chalk.cyan('https://status.openai.com')}`);
     console.log(
-        `   ${chalk.white('•')} OpenAI Documentation: ${chalk.cyan('https://platform.openai.com/docs')}`
+        `   ${chalk.white('•')} OpenAI Documentation: ${chalk.cyan(
+            'https://platform.openai.com/docs'
+        )}`
     );
     console.log(
-        `   ${chalk.white('•')} Chatterbox Issues: ${chalk.cyan('https://github.com/amramedworkin/Chatterbox/issues')}`
+        `   ${chalk.white('•')} Chatterbox Issues: ${chalk.cyan(
+            'https://github.com/amramedworkin/Chatterbox/issues'
+        )}`
     );
 
     console.log(`${chalk.red('═'.repeat(60))}\n`);
@@ -273,7 +303,9 @@ async function processInput(input: string): Promise<void> {
                     console.log(`${chalk.green('✓')} Instructions updated\n`);
                 } else {
                     console.log(
-                        `${chalk.yellow('⚠')} Please specify instructions. Example: /instructions You are a creative poet\n`
+                        `${chalk.yellow(
+                            '⚠'
+                        )} Please specify instructions. Example: /instructions You are a creative poet\n`
                     );
                 }
                 break;
@@ -293,7 +325,9 @@ async function processInput(input: string): Promise<void> {
 
             default:
                 console.log(
-                    `${chalk.yellow('⚠')} Unknown command: ${chalk.cyan(command)}. Type ${chalk.cyan('/help')} for available commands.\n`
+                    `${chalk.yellow('⚠')} Unknown command: ${chalk.cyan(
+                        command
+                    )}. Type ${chalk.cyan('/help')} for available commands.\n`
                 );
         }
         return;
@@ -384,10 +418,14 @@ if (require.main === module) {
         if (errorMessage.includes('API key') || errorMessage.includes('OPENAI_API_KEY')) {
             console.log(`\n${chalk.blue.bold('🛠️  IMMEDIATE FIX:')}`);
             console.log(
-                `   ${chalk.cyan('1.')} ${chalk.white('Create or update your .env file in the project root')}`
+                `   ${chalk.cyan('1.')} ${chalk.white(
+                    'Create or update your .env file in the project root'
+                )}`
             );
             console.log(
-                `   ${chalk.cyan('2.')} ${chalk.white('Add your OpenAI API key: OPENAI_API_KEY=sk-your-key-here')}`
+                `   ${chalk.cyan('2.')} ${chalk.white(
+                    'Add your OpenAI API key: OPENAI_API_KEY=sk-your-key-here'
+                )}`
             );
             console.log(`   ${chalk.cyan('3.')} ${chalk.white('Restart the application')}`);
             console.log(`\n${chalk.gray('Example .env file:')}`);
@@ -396,7 +434,9 @@ if (require.main === module) {
         } else if (errorMessage.includes('config') || errorMessage.includes('config.json')) {
             console.log(`\n${chalk.blue.bold('🛠️  IMMEDIATE FIX:')}`);
             console.log(
-                `   ${chalk.cyan('1.')} ${chalk.white('Ensure config.json exists in the project root')}`
+                `   ${chalk.cyan('1.')} ${chalk.white(
+                    'Ensure config.json exists in the project root'
+                )}`
             );
             console.log(
                 `   ${chalk.cyan('2.')} ${chalk.white('Verify config.json is valid JSON format')}`
@@ -417,13 +457,17 @@ if (require.main === module) {
                 `   ${chalk.cyan('1.')} ${chalk.white('Check your .env file configuration')}`
             );
             console.log(
-                `   ${chalk.cyan('2.')} ${chalk.white('Ensure all dependencies are installed: npm install')}`
+                `   ${chalk.cyan('2.')} ${chalk.white(
+                    'Ensure all dependencies are installed: npm install'
+                )}`
             );
             console.log(
                 `   ${chalk.cyan('3.')} ${chalk.white('Build the project: npm run build')}`
             );
             console.log(
-                `   ${chalk.cyan('4.')} ${chalk.white('Check Node.js version (requires >= 18.0.0)')}`
+                `   ${chalk.cyan('4.')} ${chalk.white(
+                    'Check Node.js version (requires >= 18.0.0)'
+                )}`
             );
             console.log(
                 `   ${chalk.cyan('5.')} ${chalk.white('Verify file permissions and access')}`

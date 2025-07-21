@@ -27,7 +27,7 @@ export class AWSSecretsManager {
     private cacheExpiry: Map<string, number> = new Map();
     private readonly CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
-    constructor(region: string = 'us-east-1', profile?: string) {
+    constructor(region = 'us-east-1', profile?: string) {
         const config: any = { region };
 
         if (profile) {

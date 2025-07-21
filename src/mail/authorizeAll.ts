@@ -58,7 +58,7 @@ function getGmailUsersFromConfig(): EmailPurpose[] {
  * @returns Promise resolving to a map of email to OAuth2Client
  */
 export async function authorizeAllGmailUsers(
-    forceReauthorize: boolean = false
+    forceReauthorize = false
 ): Promise<Map<string, OAuth2Client>> {
     const users = getGmailUsersFromConfig();
     const authorizedClients = new Map<string, OAuth2Client>();
@@ -117,7 +117,7 @@ export async function checkAllGmailUsersAuthorized(): Promise<boolean> {
 /**
  * Main function for running authorization as a script
  */
-async function main(): Promise<void> {
+async function main(): Promise<{ success: boolean; errors: string[] }> {
     const args = process.argv.slice(2);
     const forceReauthorize = args.includes('--force') || args.includes('-f');
 
@@ -133,25 +133,32 @@ async function main(): Promise<void> {
         users.forEach((user) => {
             console.log(`  - ${user.email} (${user.purpose})`);
         });
-        process.exit(0);
+        return { success: true, errors: [] };
     }
 
     try {
         await authorizeAllGmailUsers(forceReauthorize);
         console.log('🎉 All Gmail users are now authorized and ready for Chatterbox!');
+        return { success: true, errors: [] };
     } catch (error) {
-        console.error('💥 Authorization failed:', error);
+        const errorMsg = error instanceof Error ? error.message : String(error);
+        console.error('💥 Authorization failed:', errorMsg);
         console.log('\n💡 To fix authorization issues:');
         console.log('   1. Run: npm run mail:authorize --force');
         console.log('   2. Follow the authorization prompts for each user');
         console.log('   3. Make sure your google_credentials.json file is valid');
-        process.exit(1);
+        return { success: false, errors: [errorMsg] };
     }
 }
 
 // Run as a script if this file is executed directly
 if (require.main === module) {
-    main();
+    main().then(result => {
+        process.exit(result.success ? 0 : 1);
+    }).catch(error => {
+        console.error('Script failed:', error);
+        process.exit(1);
+    });
 }
 
 export { getGmailUsersFromConfig };

@@ -1,20 +1,20 @@
 #!/usr/bin/env node
 
-const { 
-  logInfo, 
-  logBuild, 
-  logTeardown, 
-  logValidate, 
-  logClean, 
-  logDeploy, 
-  logMigrate, 
-  logTest, 
-  logError, 
-  logWarning,
-  logMultiLineInfo,
-  logMultiLineBuild,
-  logMultiLineTeardown,
-  adminLog
+const {
+    logInfo,
+    logBuild,
+    logTeardown,
+    logValidate,
+    logClean,
+    logDeploy,
+    logMigrate,
+    logTest,
+    logError,
+    logWarning,
+    logMultiLineInfo,
+    logMultiLineBuild,
+    logMultiLineTeardown,
+    adminLog,
 } = require('../dist/src/utils/adminLogger');
 
 console.log('🧪 Testing Chatterbox Admin Logging System\n');
@@ -36,28 +36,31 @@ console.log('✅ Single line logging tests complete\n');
 
 // Test multi-line logging
 console.log('2. Testing multi-line logging...');
-logMultiLineInfo('Multi-line info test', 
-  'This is a multi-line test\n' +
-  'NAME: Multi-line information test\n' +
-  'NOTE: Testing the multi-line logging capability\n' +
-  'DETAILS: This should create multiple log entries with the same log ID'
+logMultiLineInfo(
+    'Multi-line info test',
+    'This is a multi-line test\n' +
+        'NAME: Multi-line information test\n' +
+        'NOTE: Testing the multi-line logging capability\n' +
+        'DETAILS: This should create multiple log entries with the same log ID'
 );
 
-logMultiLineBuild('Multi-line build test',
-  'Building complex infrastructure\n' +
-  'NAME: Multi-environment build\n' +
-  'NOTE: Building development, staging, and production environments\n' +
-  'STEP 1: Initialize Terraform\n' +
-  'STEP 2: Validate configuration\n' +
-  'STEP 3: Apply changes'
+logMultiLineBuild(
+    'Multi-line build test',
+    'Building complex infrastructure\n' +
+        'NAME: Multi-environment build\n' +
+        'NOTE: Building development, staging, and production environments\n' +
+        'STEP 1: Initialize Terraform\n' +
+        'STEP 2: Validate configuration\n' +
+        'STEP 3: Apply changes'
 );
 
-logMultiLineTeardown('Multi-line teardown test',
-  'Tearing down multiple environments\n' +
-  'NAME: Complete infrastructure teardown\n' +
-  'NOTE: This will destroy all environments and VPC infrastructure\n' +
-  'ENVIRONMENTS: development, staging, production\n' +
-  'WARNING: This action is irreversible'
+logMultiLineTeardown(
+    'Multi-line teardown test',
+    'Tearing down multiple environments\n' +
+        'NAME: Complete infrastructure teardown\n' +
+        'NOTE: This will destroy all environments and VPC infrastructure\n' +
+        'ENVIRONMENTS: development, staging, production\n' +
+        'WARNING: This action is irreversible'
 );
 
 console.log('✅ Multi-line logging tests complete\n');
@@ -72,29 +75,30 @@ const recentEntries = adminLog.getRecentEntries(10);
 console.log(`Recent log entries: ${recentEntries.length}`);
 
 if (recentEntries.length > 0) {
-  console.log('Sample log entry:');
-  const sample = recentEntries[0];
-  console.log(`  Log ID: ${sample.logId}`);
-  console.log(`  Sequence: ${sample.sequence}`);
-  console.log(`  Timestamp: ${sample.timestamp}`);
-  console.log(`  User: ${sample.user}`);
-  console.log(`  Action Type: ${sample.actionType}`);
-  console.log(`  Action: ${sample.action}`);
-  console.log(`  Notes: ${sample.notes}`);
+    console.log('Sample log entry:');
+    const sample = recentEntries[0];
+    console.log(`  Log ID: ${sample.logId}`);
+    console.log(`  Sequence: ${sample.sequence}`);
+    console.log(`  Timestamp: ${sample.timestamp}`);
+    console.log(`  User: ${sample.user}`);
+    console.log(`  Action Type: ${sample.actionType}`);
+    console.log(`  Action: ${sample.action}`);
+    console.log(`  Notes: ${sample.notes}`);
 }
 
 console.log('✅ Log file access tests complete\n');
 
 // Test log format
 console.log('4. Testing log format...');
+// eslint-disable-next-line no-unused-vars
 const testEntry = {
-  logId: 12345,
-  sequence: 0,
-  timestamp: new Date().toISOString(),
-  user: 'testuser',
-  actionType: 'test',
-  action: 'format test',
-  notes: 'Testing log format'
+    logId: 1,
+    sequence: 1,
+    timestamp: new Date().toISOString(),
+    user: 'testuser',
+    actionType: 'test',
+    action: 'Test log entry',
+    notes: 'This is a test log entry',
 };
 
 console.log('Expected format:');
@@ -108,4 +112,4 @@ console.log('  npm run log:monitor');
 console.log('\nTo view recent logs, run:');
 console.log('  npm run log:monitor:tail');
 console.log('\nTo view all logs, run:');
-console.log('  npm run log:monitor:all'); 
+console.log('  npm run log:monitor:all');

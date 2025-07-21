@@ -3,7 +3,7 @@
     "interactionsBaseFolder": "../interactions",
     "defaultPollGmailUser": "awsamram@gmail.com",
     "defaultSendGmailUser": "amram.dworkin@gmail.com",
-    "defaultGetGmailUser": "isnotmynameatall@gmail.com"
+    "defaultGetGmailUser": "awsamram@gmail.com"
   },
   "google": {
     "credentialsPath": "./google_credentials.json",
@@ -29,6 +29,34 @@
     "organizationId": "org-jtUOS2ket5MKPTVgmcbv5mIP",
     "maxResponseTokens": 10000,
     "openaiApiKeyNOTE": "apiKey is *not* here, it's always from .env"
+  },
+  "email": {
+    "processing": {
+      "enabled": true,
+      "maxRetries": 3,
+      "timeoutSeconds": 30
+    },
+    "response": {
+      "enabled": true,
+      "maxLength": 1000,
+      "includeAttachments": true
+    }
+  },
+  "billing": {
+    "enabled": true,
+    "monthlyBudget": 50,
+    "alertThreshold": 0.8,
+    "costCenter": "Chatterbox"
+  },
+  "rateLimiting": {
+    "gmail": {
+      "requestsPerMinute": 100,
+      "quotaUser": "awsamram@gmail.com"
+    },
+    "openai": {
+      "requestsPerMinute": 60,
+      "tokensPerMinute": 10000
+    }
   },
   "sendTest": {
     "testAttachmentsFolder": "./test/attachments",

@@ -115,6 +115,18 @@ module "lambda" {
   cloudwatch_log_group_arn       = module.cloudwatch.log_group_arn
 }
 
+# Email Processing
+module "email_processing" {
+  source = "./modules/email-processing"
+
+  environment                 = var.environment
+  gmail_tokens_secret_name    = var.secrets_gmail_tokens_name
+  openai_api_key_secret_name  = "chatterbox/openai-api-key"
+  parameter_store_prefix      = var.parameter_store_prefix
+  secrets_arns                = module.secrets_manager.secret_arns
+  parameter_store_arn         = module.parameter_store.parameter_arn
+}
+
 # Outputs
 output "resource_group_name" {
   description = "Chatterbox Resource Group Name"
@@ -184,4 +196,35 @@ output "lambda_role_arn" {
 output "environment" {
   description = "Current environment"
   value       = var.environment
+}
+
+# Email Processing Outputs
+output "email_queries_table_name" {
+  description = "Email Queries DynamoDB Table Name"
+  value       = module.email_processing.email_queries_table_name
+}
+
+output "conversations_table_name" {
+  description = "Conversations DynamoDB Table Name"
+  value       = module.email_processing.conversations_table_name
+}
+
+output "generated_responses_table_name" {
+  description = "Generated Responses DynamoDB Table Name"
+  value       = module.email_processing.generated_responses_table_name
+}
+
+output "response_generation_queue_url" {
+  description = "Response Generation SQS Queue URL"
+  value       = module.email_processing.response_generation_queue_url
+}
+
+output "email_processor_function_name" {
+  description = "Email Processor Lambda Function Name"
+  value       = module.email_processing.email_processor_function_name
+}
+
+output "response_generator_function_name" {
+  description = "Response Generator Lambda Function Name"
+  value       = module.email_processing.response_generator_function_name
 } 

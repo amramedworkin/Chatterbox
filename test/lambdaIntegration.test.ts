@@ -13,7 +13,7 @@ import { execSync } from 'child_process';
 // Global variables for persistence
 const gmailUser: string = config.app.defaultSendGmailUser;
 const currentRecipientEmail: string = config.sendTest.defaultRecipient;
-let sendCount: number = 0;
+let sendCount = 0;
 
 /**
  * Reads the persistent send count from a file.

@@ -15,7 +15,7 @@ let gmailUser: string = config.app.defaultSendGmailUser;
 // Default recipient email address from config. Overridden by persistence/param.
 let currentRecipientEmail: string = config.sendTest.defaultRecipient;
 // Persistent counter for emails sent.
-let sendCount: number = 0;
+let sendCount = 0;
 
 /**
  * Checks if a file exists asynchronously.
@@ -154,7 +154,9 @@ function displayEmailDetails(
     console.log(
         chalk.yellow.bold('📝 Subject:'),
         chalk.white(
-            `chatterbox test title${conversationId ? `:${conversationId}` : ''} ${sendCount.toString().padStart(4, '0')}`
+            `chatterbox test title${conversationId ? `:${conversationId}` : ''} ${sendCount
+                .toString()
+                .padStart(4, '0')}`
         )
     );
     console.log(chalk.yellow.bold('👤 From:'), chalk.white(sender));
@@ -163,7 +165,9 @@ function displayEmailDetails(
     console.log(chalk.gray('─'.repeat(40)));
     console.log(
         chalk.white(
-            `What is the definition of quantum froth?  Does it exist?  How did we find it or are we still looking to verify its existence?\n\nConversation ID: ${conversationId || 'null'}\nAttachment count: ${attachCount}`
+            `What is the definition of quantum froth?  Does it exist?  How did we find it or are we still looking to verify its existence?\n\nConversation ID: ${
+                conversationId || 'null'
+            }\nAttachment count: ${attachCount}`
         )
     );
     console.log(chalk.gray('─'.repeat(40)));
@@ -373,7 +377,7 @@ async function main(): Promise<void> {
 
     // Declare conversationId and attachCount here, before they are used.
     let conversationId: string | null = null; // Initialize to null
-    let attachCount: number = 0; // Initialize to 0
+    let attachCount = 0; // Initialize to 0
 
     // Parse --id
     const idFlagIndex = args.indexOf('--id');
@@ -402,7 +406,9 @@ async function main(): Promise<void> {
             attachCount = value;
         } else {
             console.warn(
-                `Invalid --attach value: ${args[attachFlagIndex + 1]}. No attachments will be included.`
+                `Invalid --attach value: ${
+                    args[attachFlagIndex + 1]
+                }. No attachments will be included.`
             );
         }
     }

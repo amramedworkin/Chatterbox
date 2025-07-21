@@ -5,15 +5,16 @@
  * for the Chatterbox system using data from init folder
  */
 
-const AWS = require('aws-sdk');
+const { SecretsManagerClient, CreateSecretCommand, UpdateSecretCommand, DescribeSecretCommand, TagResourceCommand } = require('@aws-sdk/client-secrets-manager');
+const { SSMClient, PutParameterCommand } = require('@aws-sdk/client-ssm');
 const fs = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
 
 // Configure AWS
-AWS.config.update({ region: 'us-east-1' });
-const secretsManager = new AWS.SecretsManager();
-const ssm = new AWS.SSM();
+const config = { region: 'us-east-1' };
+const secretsManager = new SecretsManagerClient(config);
+const ssm = new SSMClient(config);
 
 const ENVIRONMENT = process.env.ENVIRONMENT || 'development';
 
@@ -214,6 +215,32 @@ async function populateSecrets(initPath) {
             printStatus('Gmail tokens secret created (empty, will be populated by OAuth)');
         }
         
+        // 3. OpenAI API Key
+        const envContent = loadEnvFileFromInit(initPath, '.env');
+        if (envContent) {
+            const openaiApiKey = extractEnvVarFromContent(envContent, 'OPENAI_API_KEY');
+            if (openaiApiKey) {
+                await createOrUpdateSecret(
+                    'chatterbox/openai-api-key',
+                    'OpenAI API key for Chatterbox application',
+                    openaiApiKey,
+                    [
+                        { Key: 'Product', Value: 'Chatterbox' },
+                        { Key: 'Subsystem', Value: 'ai' },
+                        { Key: 'Provider', Value: 'openai' },
+                        { Key: 'Environment', Value: ENVIRONMENT },
+                        { Key: 'ManagedBy', Value: 'Terraform' }
+                    ]
+                );
+                
+                printStatus('OpenAI API key stored in Secrets Manager');
+            } else {
+                printWarning('OpenAI API key not found in .env file');
+            }
+        } else {
+            printWarning('.env file not found in init folder');
+        }
+        
     } catch (error) {
         printError(`Error creating secrets: ${error.message}`);
         throw error;
@@ -222,39 +249,38 @@ async function populateSecrets(initPath) {
 
 async function createOrUpdateSecret(secretName, description, secretString, tags) {
     try {
-        // Check if secret exists
+        // Try to describe the secret to see if it exists
         try {
-            await secretsManager.describeSecret({ SecretId: secretName }).promise();
+            await secretsManager.send(new DescribeSecretCommand({ SecretId: secretName }));
             
-            // Secret exists, update it with new version
-            printInfo(`Secret ${secretName} exists, updating with new version...`);
+            // Secret exists, update it
+            printInfo(`Updating existing secret: ${secretName}`);
             
-            // Create new version
-            await secretsManager.updateSecret({
+            const updateResponse = await secretsManager.send(new UpdateSecretCommand({
                 SecretId: secretName,
-                SecretString: secretString,
-                Description: description
-            }).promise();
+                Description: description,
+                SecretString: secretString
+            }));
             
             // Update tags
-            await secretsManager.tagResource({
+            await secretsManager.send(new TagResourceCommand({
                 SecretId: secretName,
                 Tags: tags
-            }).promise();
+            }));
             
             printStatus(`Secret ${secretName} updated successfully`);
             
         } catch (describeError) {
-            if (describeError.code === 'ResourceNotFoundException') {
+            if (describeError.name === 'ResourceNotFoundException') {
                 // Secret doesn't exist, create it
                 printInfo(`Creating new secret: ${secretName}`);
                 
-                const createResponse = await secretsManager.createSecret({
+                const createResponse = await secretsManager.send(new CreateSecretCommand({
                     Name: secretName,
                     Description: description,
                     SecretString: secretString,
                     Tags: tags
-                }).promise();
+                }));
                 
                 printStatus(`Secret ${secretName} created successfully`);
             } else {
@@ -340,6 +366,37 @@ async function populateParameters(initPath) {
                 Value: config.openai?.llmModel || 'gpt-4o',
                 Type: 'String',
                 Description: 'OpenAI model to use for LLM interactions'
+            },
+            // New parameters for email processing and response generation
+            {
+                Name: '/chatterbox/llm/default-model',
+                Value: config.openai?.llmModel || 'gpt-4o',
+                Type: 'String',
+                Description: 'Default LLM model for email processing and response generation'
+            },
+            {
+                Name: '/chatterbox/billing/free-tier-limit',
+                Value: '10',
+                Type: 'String',
+                Description: 'Free tier limit for daily queries'
+            },
+            {
+                Name: '/chatterbox/billing/infrastructure-cost',
+                Value: '0.01',
+                Type: 'String',
+                Description: 'Infrastructure cost per query in USD'
+            },
+            {
+                Name: '/chatterbox/billing/licensing-cost',
+                Value: '0.005',
+                Type: 'String',
+                Description: 'Licensing cost per query in USD'
+            },
+            {
+                Name: '/chatterbox/email/rejection-rate-limit',
+                Value: '300',
+                Type: 'String',
+                Description: 'Rate limit for email rejections per hour'
             }
         ];
         
@@ -357,22 +414,26 @@ async function populateParameters(initPath) {
                     tags.push({ Key: 'Subsystem', Value: 'mail' });
                 }
                 
-                if (param.Name.includes('openai')) {
+                if (param.Name.includes('openai') || param.Name.includes('llm')) {
                     tags.push({ Key: 'Subsystem', Value: 'ai' });
                     tags.push({ Key: 'Provider', Value: 'openai' });
                 }
                 
-                await ssm.putParameter({
+                if (param.Name.includes('billing')) {
+                    tags.push({ Key: 'Subsystem', Value: 'billing' });
+                }
+                
+                await ssm.send(new PutParameterCommand({
                     Name: param.Name,
                     Value: param.Value,
                     Type: param.Type,
                     Description: param.Description,
                     Overwrite: true
-                }).promise();
+                }));
                 
                 printStatus(`Parameter created: ${param.Name}`);
             } catch (error) {
-                if (error.code === 'ParameterAlreadyExists') {
+                if (error.name === 'ParameterAlreadyExists') {
                     printInfo(`Parameter already exists: ${param.Name}`);
                 } else {
                     printError(`Error creating parameter ${param.Name}: ${error.message}`);

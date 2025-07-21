@@ -5,11 +5,13 @@ import { SecretsManagerClient, GetSecretValueCommand } from '@aws-sdk/client-sec
 import { SSMClient, GetParameterCommand, PutParameterCommand } from '@aws-sdk/client-ssm';
 import { DynamoDBClient, PutItemCommand, QueryCommand } from '@aws-sdk/client-dynamodb';
 import { marshall, unmarshall } from '@aws-sdk/util-dynamodb';
+import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 
 // AWS Clients
 const secretsClient = new SecretsManagerClient({ region: process.env.AWS_REGION || 'us-east-1' });
 const ssmClient = new SSMClient({ region: process.env.AWS_REGION || 'us-east-1' });
 const dynamoClient = new DynamoDBClient({ region: process.env.AWS_REGION || 'us-east-1' });
+const s3Client = new S3Client({ region: process.env.AWS_REGION || 'us-east-1' });
 
 // Environment variables
 const GMAIL_TOKENS_SECRET_NAME = process.env.GMAIL_TOKENS_SECRET_NAME || 'development-chatterbox-gmail-tokens';
@@ -17,6 +19,7 @@ const GOOGLE_CREDENTIALS_SECRET_NAME = process.env.GOOGLE_CREDENTIALS_SECRET_NAM
 const DEFAULT_GMAIL_USER = process.env.DEFAULT_GMAIL_USER || 'awsamram@gmail.com';
 const PARAMETER_STORE_PREFIX = process.env.PARAMETER_STORE_PREFIX || '/chatterbox';
 const DYNAMODB_TABLE_NAME = process.env.DYNAMODB_TABLE_NAME || 'development-chatterbox-state-table';
+const EMAIL_CONTENT_BUCKET = process.env.EMAIL_CONTENT_BUCKET || 'chatterbox-email-content-dev';
 
 // Interfaces
 interface PollState {
@@ -47,6 +50,29 @@ interface PendingEmailJob {
   retryCount: number;
   lastProcessedAt?: string;
   errorMessage?: string;
+}
+
+interface EmailContent {
+  gmailId: string;
+  userEmail: string;
+  fromSender: string;
+  subject: string;
+  body: string;
+  attachments: EmailAttachment[];
+  receivedDate: string;
+  metadata: {
+    messageId: string;
+    threadId: string;
+    labelIds: string[];
+    snippet: string;
+  };
+}
+
+interface EmailAttachment {
+  filename: string;
+  mimeType: string;
+  size: number;
+  data?: Buffer;
 }
 
 interface LambdaResponse {
@@ -299,6 +325,91 @@ function extractEmailMetadata(message: any, userEmail: string): {
 }
 
 /**
+ * Uploads email content to S3 for processing by the email processor Lambda.
+ * @param {EmailContent} emailContent The email content to upload.
+ */
+async function uploadEmailContentToS3(emailContent: EmailContent): Promise<void> {
+  console.log(`Uploading email content to S3 for Gmail ID: ${emailContent.gmailId}`);
+  
+  const s3Key = `emails/${emailContent.gmailId}/metadata.json`;
+  const content = JSON.stringify(emailContent, null, 2);
+  
+  const command = new PutObjectCommand({
+    Bucket: EMAIL_CONTENT_BUCKET,
+    Key: s3Key,
+    Body: content,
+    ContentType: 'application/json',
+    Metadata: {
+      gmailId: emailContent.gmailId,
+      userEmail: emailContent.userEmail,
+      fromSender: emailContent.fromSender,
+      receivedDate: emailContent.receivedDate
+    }
+  });
+  
+  await s3Client.send(command);
+  console.log(`Successfully uploaded email content to S3: ${s3Key}`);
+}
+
+/**
+ * Extracts full email content including body and attachments.
+ * @param {any} message The Gmail message object.
+ * @param {string} userEmail The Gmail user email.
+ * @returns {Promise<EmailContent>} The extracted email content.
+ */
+async function extractEmailContent(message: any, userEmail: string): Promise<EmailContent> {
+  const headers = message.payload?.headers || [];
+  const subject = headers.find((h: any) => h.name === 'Subject')?.value || 'No Subject';
+  const from = headers.find((h: any) => h.name === 'From')?.value || 'Unknown Sender';
+  const date = headers.find((h: any) => h.name === 'Date')?.value || new Date().toISOString();
+  
+  // Extract email body
+  let body = '';
+  if (message.payload?.body?.data) {
+    body = Buffer.from(message.payload.body.data, 'base64').toString('utf-8');
+  } else if (message.payload?.parts) {
+    // Handle multipart messages
+    for (const part of message.payload.parts) {
+      if (part.mimeType === 'text/plain' && part.body?.data) {
+        body = Buffer.from(part.body.data, 'base64').toString('utf-8');
+        break;
+      }
+    }
+  }
+  
+  // Extract attachments (basic implementation)
+  const attachments: EmailAttachment[] = [];
+  if (message.payload?.parts) {
+    for (const part of message.payload.parts) {
+      if (part.filename && part.body?.data) {
+        attachments.push({
+          filename: part.filename,
+          mimeType: part.mimeType || 'application/octet-stream',
+          size: part.body.size || 0,
+          data: Buffer.from(part.body.data, 'base64')
+        });
+      }
+    }
+  }
+  
+  return {
+    gmailId: message.id,
+    userEmail,
+    fromSender: from,
+    subject,
+    body,
+    attachments,
+    receivedDate: date,
+    metadata: {
+      messageId: message.id,
+      threadId: message.threadId,
+      labelIds: message.labelIds || [],
+      snippet: message.snippet || ''
+    }
+  };
+}
+
+/**
  * Stores a pending email job in DynamoDB.
  * @param {PendingEmailJob} job The pending email job to store.
  */
@@ -406,7 +517,11 @@ async function pollGmail(
                                         
                                         // Check if already stored
                                         if (!(await isEmailAlreadyStored(messageId, gmailUser))) {
-                                            const metadata = extractEmailMetadata(fullMessage, gmailUser);
+                                            // Extract full email content
+                                            const emailContent = await extractEmailContent(fullMessage, gmailUser);
+                                            
+                                            // Upload email content to S3 for processing
+                                            await uploadEmailContentToS3(emailContent);
                                             
                                             // Store as pending job
                                             const pendingJob: PendingEmailJob = {
@@ -414,9 +529,9 @@ async function pollGmail(
                                                 sk: `USER#${gmailUser}`,
                                                 gmailId: messageId,
                                                 userEmail: gmailUser,
-                                                subject: metadata.subject,
-                                                fromSender: metadata.fromSender,
-                                                receivedDate: metadata.receivedDate,
+                                                subject: emailContent.subject,
+                                                fromSender: emailContent.fromSender,
+                                                receivedDate: emailContent.receivedDate,
                                                 createdAt: new Date().toISOString(),
                                                 status: 'pending',
                                                 retryCount: 0
@@ -424,7 +539,7 @@ async function pollGmail(
                                             
                                             await storePendingEmailJob(pendingJob);
                                             chatterboxEmailIds.push(messageId);
-                                            logWithTimestamp(`Stored Chatterbox email ID: ${messageId}`);
+                                            logWithTimestamp(`Stored Chatterbox email ID: ${messageId} and uploaded to S3`);
                                         } else {
                                             logWithTimestamp(`Chatterbox email already stored: ${messageId}`);
                                         }
@@ -488,7 +603,11 @@ async function pollGmail(
                                     
                                     // Check if already stored
                                     if (!(await isEmailAlreadyStored(messageId, gmailUser))) {
-                                        const metadata = extractEmailMetadata(fullMessage, gmailUser);
+                                        // Extract full email content
+                                        const emailContent = await extractEmailContent(fullMessage, gmailUser);
+                                        
+                                        // Upload email content to S3 for processing
+                                        await uploadEmailContentToS3(emailContent);
                                         
                                         // Store as pending job
                                         const pendingJob: PendingEmailJob = {
@@ -496,9 +615,9 @@ async function pollGmail(
                                             sk: `USER#${gmailUser}`,
                                             gmailId: messageId,
                                             userEmail: gmailUser,
-                                            subject: metadata.subject,
-                                            fromSender: metadata.fromSender,
-                                            receivedDate: metadata.receivedDate,
+                                            subject: emailContent.subject,
+                                            fromSender: emailContent.fromSender,
+                                            receivedDate: emailContent.receivedDate,
                                             createdAt: new Date().toISOString(),
                                             status: 'pending',
                                             retryCount: 0
@@ -506,7 +625,7 @@ async function pollGmail(
                                         
                                         await storePendingEmailJob(pendingJob);
                                         chatterboxEmailIds.push(messageId);
-                                        logWithTimestamp(`Stored Chatterbox email ID: ${messageId}`);
+                                        logWithTimestamp(`Stored Chatterbox email ID: ${messageId} and uploaded to S3`);
                                     } else {
                                         logWithTimestamp(`Chatterbox email already stored: ${messageId}`);
                                     }

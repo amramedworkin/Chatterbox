@@ -3,7 +3,7 @@
 /**
  * Local System Reset Script
  * Resets the local Chatterbox system to a clean state
- * 
+ *
  * This script resets:
  * - Polling counters
  * - History IDs
@@ -12,6 +12,7 @@
  */
 
 const fs = require('fs');
+// eslint-disable-next-line no-unused-vars
 const path = require('path');
 
 // Colors for output
@@ -21,7 +22,7 @@ const colors = {
     yellow: '\x1b[33m',
     red: '\x1b[31m',
     blue: '\x1b[34m',
-    cyan: '\x1b[36m'
+    cyan: '\x1b[36m',
 };
 
 function printStatus(message) {
@@ -49,23 +50,23 @@ function printSection(message) {
 async function resetLocalSystem() {
     console.log(`🔄 Local System Reset`);
     console.log(`Timestamp: ${new Date().toISOString()}`);
-    
+
     printSection('Local System Reset');
-    
+
     // TODO: Implement comprehensive local system reset
     // This is a placeholder script - implement actual reset logic
-    
+
     printInfo('Local system reset script is a placeholder');
     printInfo('See docs/local/LOCAL_RESET.md for implementation details');
-    
+
     // Placeholder reset operations
     const resetFiles = [
         'data/last_history_id.txt',
         'data/sendtest_send_count.txt',
         'data/total_poll_cycles.txt',
-        'data/state.json'
+        'data/state.json',
     ];
-    
+
     printSection('Reset Operations');
     for (const file of resetFiles) {
         if (fs.existsSync(file)) {
@@ -74,20 +75,22 @@ async function resetLocalSystem() {
             printWarning(`${file} - NOT FOUND (placeholder operation)`);
         }
     }
-    
+
     printSection('Summary');
     printInfo('Local reset complete. This is a placeholder implementation.');
     printInfo('For full reset functionality, see the local reset guide.');
-    
+
     console.log(`\n${colors.green}${'='.repeat(60)}${colors.reset}`);
     console.log(`${colors.green}📋 Local System Reset - PLACEHOLDER${colors.reset}`);
-    console.log(`${colors.green}See docs/local/LOCAL_RESET.md for full implementation${colors.reset}`);
+    console.log(
+        `${colors.green}See docs/local/LOCAL_RESET.md for full implementation${colors.reset}`
+    );
     console.log(`${colors.green}${'='.repeat(60)}${colors.reset}`);
 }
 
 if (require.main === module) {
-    resetLocalSystem().catch(error => {
+    resetLocalSystem().catch((error) => {
         printError(`Reset failed: ${error.message}`);
         process.exit(1);
     });
-} 
+}

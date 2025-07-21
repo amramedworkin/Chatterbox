@@ -264,7 +264,9 @@ describe('Gmail Get Functions', () => {
                     const subject = getEmailSubject(email);
                     const conversationId = extractConversationId(subject);
                     console.log(
-                        `   ${index + 1}. ${subject}${conversationId ? ` (Conversation: ${conversationId})` : ''}`
+                        `   ${index + 1}. ${subject}${
+                            conversationId ? ` (Conversation: ${conversationId})` : ''
+                        }`
                     );
                 });
             }
@@ -306,7 +308,9 @@ describe('Gmail Get Functions', () => {
                     const subject = getEmailSubject(email);
                     const conversationId = extractConversationId(subject);
                     console.log(
-                        `   ${index + 1}. ${subject}${conversationId ? ` (Conversation: ${conversationId})` : ''}`
+                        `   ${index + 1}. ${subject}${
+                            conversationId ? ` (Conversation: ${conversationId})` : ''
+                        }`
                     );
                 });
             }
@@ -540,7 +544,9 @@ describe('Gmail Get Functions', () => {
                         const conversationId = extractConversationId(subject);
 
                         console.log(
-                            `   ${index + 1}. ${subject}${conversationId ? ` (Conversation: ${conversationId})` : ''}`
+                            `   ${index + 1}. ${subject}${
+                                conversationId ? ` (Conversation: ${conversationId})` : ''
+                            }`
                         );
 
                         // Verify all emails are from the expected sender

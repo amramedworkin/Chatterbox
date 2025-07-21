@@ -74,7 +74,9 @@ export async function dialogAgent(options: DialogAgentOptions): Promise<DialogAg
             // Check if the run completed successfully
             if (run.status !== 'completed') {
                 throw new Error(
-                    `Assistant run failed with status: ${run.status}. ${run.last_error?.message || ''}`
+                    `Assistant run failed with status: ${run.status}. ${
+                        run.last_error?.message || ''
+                    }`
                 );
             }
 
@@ -128,7 +130,9 @@ export async function dialogAgent(options: DialogAgentOptions): Promise<DialogAg
         };
     } catch (error) {
         throw new Error(
-            `Failed to process dialog request: ${error instanceof Error ? error.message : String(error)}`
+            `Failed to process dialog request: ${
+                error instanceof Error ? error.message : String(error)
+            }`
         );
     }
 }

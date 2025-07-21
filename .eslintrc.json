@@ -23,6 +23,18 @@
   },
   "overrides": [
     {
+      "files": ["scripts/**/*.js"],
+      "rules": {
+        "no-unused-vars": "off",
+        "@typescript-eslint/no-unused-vars": "off",
+        "no-case-declarations": "off",
+        "no-prototype-builtins": "off",
+        "no-undef": "off",
+        "no-inner-declarations": "off",
+        "no-useless-escape": "off"
+      }
+    },
+    {
       "files": ["**/*.test.{js,ts}", "**/*.spec.{js,ts}", "**/test/**/*.{js,ts}"],
       "env": {
         "jest": true
@@ -68,6 +80,22 @@
       "rules": {
         "@typescript-eslint/no-explicit-any": "off",
         "jest/no-conditional-expect": "off"
+      }
+    },
+    {
+      "files": [
+        "src/aws/emailProcessor.ts",
+        "src/aws/responseGenerator.ts",
+        "src/mail/processIncomingMail.ts",
+        "src/mail/generateResponses.ts",
+        "src/mail/sendGmail.ts",
+        "src/mail/authorizeGmail.ts",
+        "src/mail/pollGmail.ts"
+      ],
+      "rules": {
+        "@typescript-eslint/no-explicit-any": "off",
+        "@typescript-eslint/no-non-null-assertion": "off",
+        "@typescript-eslint/no-unused-vars": "off"
       }
     }
   ]

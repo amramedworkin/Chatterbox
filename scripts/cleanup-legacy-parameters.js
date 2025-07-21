@@ -1,15 +1,15 @@
 #!/usr/bin/env node
 
+const chalk = require('chalk');
+const { SSMClient, GetParameterCommand, DeleteParameterCommand } = require('@aws-sdk/client-ssm');
+
 /**
  * Script to clean up legacy Parameter Store parameters
  * that weren't being removed by the teardown script
  */
 
-const AWS = require('aws-sdk');
-
 // Configure AWS
-AWS.config.update({ region: 'us-east-1' });
-const ssm = new AWS.SSM();
+const ssm = new SSMClient({ region: 'us-east-1' });
 
 // Colors for output
 const colors = {
@@ -17,7 +17,7 @@ const colors = {
     green: '\x1b[32m',
     yellow: '\x1b[33m',
     red: '\x1b[31m',
-    blue: '\x1b[34m'
+    blue: '\x1b[34m',
 };
 
 function printStatus(message) {
@@ -32,8 +32,9 @@ function printError(message) {
     console.log(`${colors.red}❌ ${message}${colors.reset}`);
 }
 
+// eslint-disable-next-line no-unused-vars
 function printInfo(message) {
-    console.log(`${colors.blue}ℹ️  ${message}${colors.reset}`);
+    console.log(chalk.blue(`ℹ️  ${message}`));
 }
 
 // Legacy parameters that need to be cleaned up
@@ -46,28 +47,27 @@ const LEGACY_PARAMETERS = [
     '/chatterbox/polling/awsamram_gmail_com/last_history_id',
     '/chatterbox/polling/awsamram_gmail_com/last_polled_timestamp',
     '/chatterbox/polling/awsamram_gmail_com/last_polled_user',
-    '/chatterbox/polling/awsamram_gmail_com/total_poll_cycles'
+    '/chatterbox/polling/awsamram_gmail_com/total_poll_cycles',
 ];
 
 async function cleanupLegacyParameters() {
     console.log('🧹 Cleaning up legacy Parameter Store parameters...');
     console.log('='.repeat(60));
-    
+
     let deletedCount = 0;
     let errorCount = 0;
-    
+
     for (const paramName of LEGACY_PARAMETERS) {
         try {
             // Check if parameter exists
-            await ssm.getParameter({ Name: paramName }).promise();
-            
+            await ssm.send(new GetParameterCommand({ Name: paramName }));
+
             // Delete the parameter
-            await ssm.deleteParameter({ Name: paramName }).promise();
+            await ssm.send(new DeleteParameterCommand({ Name: paramName }));
             printStatus(`Deleted: ${paramName}`);
             deletedCount++;
-            
         } catch (error) {
-            if (error.code === 'ParameterNotFound') {
+            if (error.name === 'ParameterNotFound') {
                 printWarning(`Already deleted: ${paramName}`);
             } else {
                 printError(`Error deleting ${paramName}: ${error.message}`);
@@ -75,7 +75,7 @@ async function cleanupLegacyParameters() {
             }
         }
     }
-    
+
     console.log('\n' + '='.repeat(60));
     console.log('📋 Cleanup Summary:');
     printStatus(`Successfully deleted: ${deletedCount} parameters`);
@@ -84,7 +84,7 @@ async function cleanupLegacyParameters() {
     } else {
         printStatus('All legacy parameters cleaned up successfully!');
     }
-    
+
     console.log('\n💡 Next steps:');
     console.log('1. Run: npm run aws:deploy:simple');
     console.log('2. Run: npm run aws:init:prepare');
@@ -93,10 +93,10 @@ async function cleanupLegacyParameters() {
 }
 
 if (require.main === module) {
-    cleanupLegacyParameters().catch(error => {
+    cleanupLegacyParameters().catch((error) => {
         printError(`Cleanup failed: ${error.message}`);
         process.exit(1);
     });
 }
 
-module.exports = { cleanupLegacyParameters }; 
+module.exports = { cleanupLegacyParameters };

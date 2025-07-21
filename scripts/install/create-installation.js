@@ -10,29 +10,33 @@ const chalk = require('chalk');
 const CURRENT_DIR = process.cwd();
 const PACKAGE_JSON_PATH = path.join(CURRENT_DIR, 'package.json');
 
+// Excluded directories and files for copying
+const excludeDirs = ['node_modules', '.git', 'dist', 'backups', 'logs'];
+const excludeFiles = ['.env', 'cliadmin_accessKeys.csv'];
+
 /**
  * Validates if the target directory is safe to use
  */
 function validateTargetDirectory(targetPath) {
     const absolutePath = path.resolve(targetPath);
-    
+
     // Check if directory already exists
     if (fs.existsSync(absolutePath)) {
         throw new Error(`Target directory already exists: ${absolutePath}`);
     }
-    
+
     // Check if parent directory exists and is writable
     const parentDir = path.dirname(absolutePath);
     if (!fs.existsSync(parentDir)) {
         throw new Error(`Parent directory does not exist: ${parentDir}`);
     }
-    
+
     try {
         fs.accessSync(parentDir, fs.constants.W_OK);
     } catch (error) {
         throw new Error(`Parent directory is not writable: ${parentDir}`);
     }
-    
+
     return absolutePath;
 }
 
@@ -48,7 +52,7 @@ function getRepositoryUrl() {
     } catch (error) {
         console.warn(chalk.yellow('Could not read repository URL from package.json'));
     }
-    
+
     return null;
 }
 
@@ -57,13 +61,13 @@ function getRepositoryUrl() {
  */
 async function createWithGitClone(targetPath, repoUrl) {
     console.log(chalk.blue(`\n🔗 Cloning repository from ${repoUrl}...`));
-    
+
     try {
-        execSync(`git clone ${repoUrl} "${targetPath}"`, { 
+        execSync(`git clone ${repoUrl} "${targetPath}"`, {
             stdio: 'inherit',
-            cwd: path.dirname(targetPath)
+            cwd: path.dirname(targetPath),
         });
-        
+
         console.log(chalk.green('✅ Repository cloned successfully'));
         return true;
     } catch (error) {
@@ -73,59 +77,55 @@ async function createWithGitClone(targetPath, repoUrl) {
 }
 
 /**
+ * Copy directory function
+ */
+function copyDirectory(src, dest) {
+    if (!fs.existsSync(dest)) {
+        fs.mkdirSync(dest, { recursive: true });
+    }
+
+    const items = fs.readdirSync(src);
+
+    for (const item of items) {
+        const srcPath = path.join(src, item);
+        const destPath = path.join(dest, item);
+        const stat = fs.statSync(srcPath);
+
+        // Skip excluded directories and files
+        if (excludeDirs.includes(item) || excludeFiles.includes(item)) {
+            console.log(chalk.gray(`⏭️  Skipping ${item}`));
+            continue;
+        }
+
+        if (stat.isDirectory()) {
+            copyDirectory(srcPath, destPath);
+        } else {
+            fs.copyFileSync(srcPath, destPath);
+        }
+    }
+}
+
+/**
  * Creates installation by copying current repository
  */
 async function createWithCopy(targetPath) {
-    console.log(chalk.blue('\n📁 Copying current repository...'));
-    
+    console.log(chalk.blue('\n📁 Creating installation by copying repository...'));
+
     try {
-        // Create target directory
-        fs.mkdirSync(targetPath, { recursive: true });
-        
-        // Copy all files except node_modules, .git, and other excluded directories
-        const excludeDirs = ['node_modules', '.git', 'dist', 'backups', 'logs'];
-        const excludeFiles = ['.env', 'cliadmin_accessKeys.csv'];
-        
-        function copyDirectory(src, dest) {
-            if (!fs.existsSync(dest)) {
-                fs.mkdirSync(dest, { recursive: true });
-            }
-            
-            const items = fs.readdirSync(src);
-            
-            for (const item of items) {
-                const srcPath = path.join(src, item);
-                const destPath = path.join(dest, item);
-                const stat = fs.statSync(srcPath);
-                
-                // Skip excluded directories and files
-                if (excludeDirs.includes(item) || excludeFiles.includes(item)) {
-                    console.log(chalk.gray(`⏭️  Skipping ${item}`));
-                    continue;
-                }
-                
-                if (stat.isDirectory()) {
-                    copyDirectory(srcPath, destPath);
-                } else {
-                    fs.copyFileSync(srcPath, destPath);
-                }
-            }
-        }
-        
         copyDirectory(CURRENT_DIR, targetPath);
-        
+
         // Remove package-lock.json and node_modules if they exist in target
         const targetPackageLock = path.join(targetPath, 'package-lock.json');
         const targetNodeModules = path.join(targetPath, 'node_modules');
-        
+
         if (fs.existsSync(targetPackageLock)) {
             fs.unlinkSync(targetPackageLock);
         }
-        
+
         if (fs.existsSync(targetNodeModules)) {
             fs.rmSync(targetNodeModules, { recursive: true, force: true });
         }
-        
+
         console.log(chalk.green('✅ Repository copied successfully'));
         return true;
     } catch (error) {
@@ -141,14 +141,14 @@ function generateUniqueIdentifiers() {
     const timestamp = Date.now();
     const random = Math.random().toString(36).substring(2, 8);
     const uniqueSuffix = `${timestamp}-${random}`;
-    
+
     return {
         s3BucketName: `chatterbox-data-${uniqueSuffix}`,
         s3BackupBucketName: `chatterbox-backups-${uniqueSuffix}`,
         dynamodbTableName: `chatterbox-state-${uniqueSuffix}`,
         terraformStateBucket: `chatterbox-terraform-state-${uniqueSuffix}`,
         logGroupName: `/aws/chatterbox-${uniqueSuffix}`,
-        vpcCidrBlock: `10.${Math.floor(Math.random() * 255)}.0.0/16`
+        vpcCidrBlock: `10.${Math.floor(Math.random() * 255)}.0.0/16`,
     };
 }
 
@@ -157,13 +157,13 @@ function generateUniqueIdentifiers() {
  */
 function updateTerraformConfig(targetPath, identifiers) {
     console.log(chalk.blue('\n🔧 Updating Terraform configuration...'));
-    
+
     try {
         // Update main variables.tf
         const variablesPath = path.join(targetPath, 'Cloud/AWS/terraform/variables.tf');
         if (fs.existsSync(variablesPath)) {
             let content = fs.readFileSync(variablesPath, 'utf8');
-            
+
             // Update default values with unique identifiers
             content = content.replace(
                 /default\s*=\s*"chatterbox-data"/g,
@@ -185,23 +185,23 @@ function updateTerraformConfig(targetPath, identifiers) {
                 /default\s*=\s*"10\.0\.0\.0\/16"/g,
                 `default = "${identifiers.vpcCidrBlock}"`
             );
-            
+
             fs.writeFileSync(variablesPath, content);
         }
-        
+
         // Update main.tf backend configuration
         const mainTfPath = path.join(targetPath, 'Cloud/AWS/terraform/main.tf');
         if (fs.existsSync(mainTfPath)) {
             let content = fs.readFileSync(mainTfPath, 'utf8');
-            
+
             content = content.replace(
                 /bucket\s*=\s*"[^"]*"/g,
                 `bucket = "${identifiers.terraformStateBucket}"`
             );
-            
+
             fs.writeFileSync(mainTfPath, content);
         }
-        
+
         console.log(chalk.green('✅ Terraform configuration updated'));
     } catch (error) {
         console.error(chalk.red('❌ Failed to update Terraform configuration:'), error.message);
@@ -218,12 +218,12 @@ function createInstallationConfig(targetPath, identifiers, installationMethod) {
         sourcePath: CURRENT_DIR,
         targetPath,
         uniqueIdentifiers: identifiers,
-        status: 'created'
+        status: 'created',
     };
-    
+
     const configPath = path.join(targetPath, '.installation-config.json');
     fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
-    
+
     console.log(chalk.green('✅ Installation configuration saved'));
 }
 
@@ -232,7 +232,7 @@ function createInstallationConfig(targetPath, identifiers, installationMethod) {
  */
 async function createInstallation() {
     console.log(chalk.blue.bold('\n🚀 Chatterbox Installation Creator\n'));
-    
+
     try {
         // Get target directory
         const { targetDirectory } = await inquirer.default.prompt([
@@ -247,16 +247,16 @@ async function createInstallation() {
                     } catch (error) {
                         return error.message;
                     }
-                }
-            }
+                },
+            },
         ]);
-        
+
         const targetPath = validateTargetDirectory(targetDirectory);
-        
+
         // Choose installation method
         const repoUrl = getRepositoryUrl();
         let installationMethod = 'copy';
-        
+
         if (repoUrl) {
             const { method } = await inquirer.default.prompt([
                 {
@@ -266,21 +266,21 @@ async function createInstallation() {
                     choices: [
                         {
                             name: `Copy current repository (${path.basename(CURRENT_DIR)})`,
-                            value: 'copy'
+                            value: 'copy',
                         },
                         {
                             name: `Git clone from repository (${repoUrl})`,
-                            value: 'git'
-                        }
-                    ]
-                }
+                            value: 'git',
+                        },
+                    ],
+                },
             ]);
             installationMethod = method;
         }
-        
+
         // Generate unique identifiers
         const identifiers = generateUniqueIdentifiers();
-        
+
         // Create installation
         let success = false;
         if (installationMethod === 'git') {
@@ -288,18 +288,18 @@ async function createInstallation() {
         } else {
             success = await createWithCopy(targetPath);
         }
-        
+
         if (!success) {
             console.error(chalk.red('\n❌ Installation creation failed'));
             process.exit(1);
         }
-        
+
         // Update Terraform configuration
         updateTerraformConfig(targetPath, identifiers);
-        
+
         // Create installation configuration
         createInstallationConfig(targetPath, identifiers, installationMethod);
-        
+
         // Final instructions
         console.log(chalk.green.bold('\n🎉 Installation created successfully!'));
         console.log(chalk.blue(`\n📁 Location: ${targetPath}`));
@@ -309,12 +309,13 @@ async function createInstallation() {
         console.log(chalk.white('2. Run the initialization script:'));
         console.log(chalk.gray('   npm run install:init'));
         console.log(chalk.white('3. Follow the setup wizard to configure your system'));
-        
+
         console.log(chalk.yellow('\n⚠️  Important:'));
-        console.log(chalk.white('• All subsequent work should be performed in the new installation'));
+        console.log(
+            chalk.white('• All subsequent work should be performed in the new installation')
+        );
         console.log(chalk.white('• The original repository remains unchanged'));
         console.log(chalk.white('• Unique AWS resource names have been generated'));
-        
     } catch (error) {
         console.error(chalk.red('\n❌ Installation creation failed:'), error.message);
         process.exit(1);
@@ -326,4 +327,4 @@ if (require.main === module) {
     createInstallation();
 }
 
-module.exports = { createInstallation }; 
+module.exports = { createInstallation };

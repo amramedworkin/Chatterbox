@@ -299,8 +299,8 @@ Chatterbox/
 - **Project README**: `README.md` for general setup
 - **AWS Documentation**: `Cloud/AWS/README.md` for AWS-specific setup
 - **Scripts Documentation**: `SCRIPTS_README.md` for available commands
-- **Architecture**: `Cloud/AWS/ARCHITECTURE_SUMMARY.md` for system design
-- **Final Specification**: `Cloud/AWS/FINAL_PRODUCT_SPEC.md` for complete details
+- **Architecture**: `Cloud/AWS/AWS_ARCHITECTURE_SUMMARY.md` for system design
+- **Final Specification**: `Cloud/AWS/AWS_FINAL_PRODUCT_SPEC.md` for complete details
 
 ---
 

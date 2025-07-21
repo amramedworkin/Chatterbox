@@ -49,6 +49,8 @@ locals {
   google_credentials_secret_name = data.terraform_remote_state.infrastructure.outputs.google_credentials_secret_name
   gmail_tokens_secret_name = data.terraform_remote_state.infrastructure.outputs.gmail_tokens_secret_name
   default_gmail_user = data.terraform_remote_state.infrastructure.outputs.default_gmail_user
+  # Temporary hardcoded bucket name until email processing is deployed
+  email_content_bucket = "chatterbox-email-content-development-pfspb0wj"
 }
 
 # Build Lambda deployment package
@@ -76,6 +78,7 @@ resource "aws_lambda_function" "poll_gmail" {
       EMAIL_STORAGE_BUCKET           = local.email_archive_bucket
       DEFAULT_GMAIL_USER             = local.default_gmail_user
       PARAMETER_STORE_PREFIX         = "/chatterbox/${var.environment}"
+      EMAIL_CONTENT_BUCKET           = local.email_content_bucket
     }
   }
 
@@ -102,6 +105,7 @@ resource "aws_lambda_function" "pull_latest_email" {
       GOOGLE_CREDENTIALS_SECRET_NAME = local.google_credentials_secret_name
       EMAIL_STORAGE_BUCKET           = local.email_archive_bucket
       DEFAULT_GMAIL_USER             = local.default_gmail_user
+      EMAIL_CONTENT_BUCKET           = local.email_content_bucket
     }
   }
 

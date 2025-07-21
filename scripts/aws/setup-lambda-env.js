@@ -1,6 +1,10 @@
 #!/usr/bin/env node
 
-const { SSMClient, PutParameterCommand, GetParameterCommand } = require('@aws-sdk/client-ssm');
+const {
+    SSMClient,
+    GetParameterCommand, // eslint-disable-line no-unused-vars
+    PutParameterCommand,
+} = require('@aws-sdk/client-ssm');
 const fs = require('fs');
 const path = require('path');
 
@@ -30,8 +34,9 @@ async function setupLambdaEnvironment() {
                 const credentials = JSON.parse(fs.readFileSync(credentialsPath, 'utf8'));
                 gmailCredentials = {
                     clientId: credentials.installed?.client_id || credentials.web?.client_id,
-                    clientSecret: credentials.installed?.client_secret || credentials.web?.client_secret,
-                    redirectUri: config.google?.redirectUri || 'http://localhost:3000'
+                    clientSecret:
+                        credentials.installed?.client_secret || credentials.web?.client_secret,
+                    redirectUri: config.google?.redirectUri || 'http://localhost:3000',
                 };
             } catch (error) {
                 console.error('❌ Error reading google_credentials.json:', error.message);
@@ -53,12 +58,12 @@ async function setupLambdaEnvironment() {
             console.log('  npm run mail:authorize');
             console.log('');
             console.log('For now, using placeholder values. Update them later in Parameter Store.');
-            
+
             // Use placeholder values for now
             gmailCredentials = {
                 clientId: 'YOUR_GMAIL_CLIENT_ID',
                 clientSecret: 'YOUR_GMAIL_CLIENT_SECRET',
-                redirectUri: config.google?.redirectUri || 'http://localhost:3000'
+                redirectUri: config.google?.redirectUri || 'http://localhost:3000',
             };
         }
 
@@ -68,24 +73,24 @@ async function setupLambdaEnvironment() {
                 name: `${prefix}/gmail/client-id`,
                 value: gmailCredentials.clientId,
                 type: 'SecureString',
-                description: 'Gmail OAuth2 Client ID for Lambda function'
+                description: 'Gmail OAuth2 Client ID for Lambda function',
             },
             {
                 name: `${prefix}/gmail/client-secret`,
                 value: gmailCredentials.clientSecret,
                 type: 'SecureString',
-                description: 'Gmail OAuth2 Client Secret for Lambda function'
+                description: 'Gmail OAuth2 Client Secret for Lambda function',
             },
             {
                 name: `${prefix}/gmail/redirect-uri`,
                 value: gmailCredentials.redirectUri,
                 type: 'String',
-                description: 'Gmail OAuth2 Redirect URI for Lambda function'
-            }
+                description: 'Gmail OAuth2 Redirect URI for Lambda function',
+            },
         ];
 
         console.log('📝 Storing parameters in Parameter Store...');
-        
+
         for (const param of parameters) {
             try {
                 const command = new PutParameterCommand({
@@ -93,7 +98,7 @@ async function setupLambdaEnvironment() {
                     Value: param.value,
                     Type: param.type,
                     Description: param.description,
-                    Overwrite: true
+                    Overwrite: true,
                 });
 
                 await ssm.send(command);
@@ -110,8 +115,12 @@ async function setupLambdaEnvironment() {
         if (gmailCredentials.clientId === 'YOUR_GMAIL_CLIENT_ID') {
             console.log('\n⚠️  WARNING: Using placeholder Gmail credentials!');
             console.log('Please update the parameters in AWS Parameter Store with real values:');
-            console.log(`  aws ssm put-parameter --name "${prefix}/gmail/client-id" --value "YOUR_REAL_CLIENT_ID" --type "SecureString" --overwrite`);
-            console.log(`  aws ssm put-parameter --name "${prefix}/gmail/client-secret" --value "YOUR_REAL_CLIENT_SECRET" --type "SecureString" --overwrite`);
+            console.log(
+                `  aws ssm put-parameter --name "${prefix}/gmail/client-id" --value "YOUR_REAL_CLIENT_ID" --type "SecureString" --overwrite`
+            );
+            console.log(
+                `  aws ssm put-parameter --name "${prefix}/gmail/client-secret" --value "YOUR_REAL_CLIENT_SECRET" --type "SecureString" --overwrite`
+            );
         }
 
         console.log('\n🎉 Lambda environment setup completed!');
@@ -120,7 +129,6 @@ async function setupLambdaEnvironment() {
         console.log('1. Update Lambda function to read from Parameter Store');
         console.log('2. Deploy the updated Lambda function');
         console.log('3. Test with: npm run aws:test:lambda <gmail-id>');
-
     } catch (error) {
         console.error('❌ Error setting up Lambda environment:', error);
         process.exit(1);
@@ -132,13 +140,13 @@ async function checkAWSCredentials() {
     try {
         const { STSClient, GetCallerIdentityCommand } = require('@aws-sdk/client-sts');
         const sts = new STSClient({ region: process.env.AWS_REGION || 'us-east-1' });
-        
+
         const command = new GetCallerIdentityCommand({});
         const response = await sts.send(command);
-        
+
         console.log(`🔐 Using AWS Account: ${response.Account}`);
         console.log(`👤 User: ${response.Arn}`);
-        
+
         return true;
     } catch (error) {
         console.error('❌ AWS credentials not configured or invalid');
@@ -156,4 +164,4 @@ async function main() {
     await setupLambdaEnvironment();
 }
 
-main(); 
+main();

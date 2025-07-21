@@ -145,7 +145,9 @@ export async function sendEmail(
             }
         }
 
-        bodyText += `Attachments: ${actualAttachments.length > 0 ? actualAttachments.join(', ') : '<none>'}\r\n`;
+        bodyText += `Attachments: ${
+            actualAttachments.length > 0 ? actualAttachments.join(', ') : '<none>'
+        }\r\n`;
 
         // Prepare email headers
         const emailHeaders: string[] = [
@@ -276,7 +278,7 @@ export async function sendTestEmail(
     senderEmail: string,
     recipientEmail: string,
     conversationId?: string,
-    attachCount: number = 0,
+    attachCount = 0,
     authClient?: OAuth2Client
 ): Promise<SendEmailResult> {
     // Ensure attachment folder exists
@@ -308,7 +310,9 @@ export async function sendTestEmail(
     }
 
     const subject = `chatterbox test title`;
-    const body = `What is the definition of quantum froth?  Does it exist?  How did we find it or are we still looking to verify its existence?\r\n\r\nConversation ID: ${conversationId || 'null'}\r\nAttachment count: ${attachCount}`;
+    const body = `What is the definition of quantum froth?  Does it exist?  How did we find it or are we still looking to verify its existence?\r\n\r\nConversation ID: ${
+        conversationId || 'null'
+    }\r\nAttachment count: ${attachCount}`;
 
     return sendEmail(
         senderEmail,

@@ -14,7 +14,7 @@ export interface LogEntry {
 export class AdminLogger {
     private static instance: AdminLogger;
     private logFilePath: string;
-    private currentLogId: number = 0;
+    private currentLogId = 0;
     private logFileHandle: number | null = null;
 
     private constructor() {
@@ -100,7 +100,7 @@ export class AdminLogger {
         }
     }
 
-    public log(actionType: string, action: string, notes: string = ''): void {
+    public log(actionType: string, action: string, notes = ''): void {
         const logId = this.getNextLogId();
         const entry: LogEntry = {
             logId,
@@ -161,7 +161,7 @@ export class AdminLogger {
         return this.logFilePath;
     }
 
-    public getRecentEntries(count: number = 50): LogEntry[] {
+    public getRecentEntries(count = 50): LogEntry[] {
         try {
             const content = fs.readFileSync(this.logFilePath, 'utf8');
             const lines = content.split('\n').filter((line) => line.trim());
@@ -206,43 +206,43 @@ export class AdminLogger {
 // Convenience functions for common logging patterns
 export const adminLog = AdminLogger.getInstance();
 
-export function logInfo(action: string, notes: string = ''): void {
+export function logInfo(action: string, notes = ''): void {
     adminLog.log('info', action, notes);
 }
 
-export function logBuild(action: string, notes: string = ''): void {
+export function logBuild(action: string, notes = ''): void {
     adminLog.log('build', action, notes);
 }
 
-export function logTeardown(action: string, notes: string = ''): void {
+export function logTeardown(action: string, notes = ''): void {
     adminLog.log('teardown', action, notes);
 }
 
-export function logValidate(action: string, notes: string = ''): void {
+export function logValidate(action: string, notes = ''): void {
     adminLog.log('validate', action, notes);
 }
 
-export function logClean(action: string, notes: string = ''): void {
+export function logClean(action: string, notes = ''): void {
     adminLog.log('clean', action, notes);
 }
 
-export function logDeploy(action: string, notes: string = ''): void {
+export function logDeploy(action: string, notes = ''): void {
     adminLog.log('deploy', action, notes);
 }
 
-export function logMigrate(action: string, notes: string = ''): void {
+export function logMigrate(action: string, notes = ''): void {
     adminLog.log('migrate', action, notes);
 }
 
-export function logTest(action: string, notes: string = ''): void {
+export function logTest(action: string, notes = ''): void {
     adminLog.log('test', action, notes);
 }
 
-export function logError(action: string, notes: string = ''): void {
+export function logError(action: string, notes = ''): void {
     adminLog.log('error', action, notes);
 }
 
-export function logWarning(action: string, notes: string = ''): void {
+export function logWarning(action: string, notes = ''): void {
     adminLog.log('warning', action, notes);
 }
 

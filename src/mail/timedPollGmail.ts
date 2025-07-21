@@ -151,9 +151,15 @@ async function main(): Promise<void> {
         logWithTimestamp('Cleaning up previous authorization and state...');
         try {
             // Delete google_tokens.json and last_history_id.txt for the current user
-            await fs.unlink(config.google.pollTokenPath).catch(() => {});
-            await fs.unlink(config.google.lastHistoryIdPath).catch(() => {});
-            await fs.unlink(config.google.totalPollCyclesPath).catch(() => {});
+            await fs
+                .unlink(config.google.pollTokenPath)
+                .catch((err) => logWithTimestamp('Failed to delete pollTokenPath:', err));
+            await fs
+                .unlink(config.google.lastHistoryIdPath)
+                .catch((err) => logWithTimestamp('Failed to delete lastHistoryIdPath:', err));
+            await fs
+                .unlink(config.google.totalPollCyclesPath)
+                .catch((err) => logWithTimestamp('Failed to delete totalPollCyclesPath:', err));
 
             logWithTimestamp(
                 'Cleanup complete. Please re-run the script to re-authorize and start fresh.'
@@ -198,13 +204,10 @@ async function main(): Promise<void> {
         }, pollInterval);
 
         // Set up timeout to stop polling after the specified duration
-        setTimeout(
-            () => {
-                logWithTimestamp('Polling duration reached. Stopping poller.');
-                clearInterval(intervalId);
-            },
-            pollDurationMinutes * 60 * 1000
-        );
+        setTimeout(() => {
+            logWithTimestamp('Polling duration reached. Stopping poller.');
+            clearInterval(intervalId);
+        }, pollDurationMinutes * 60 * 1000);
     } catch (err: unknown) {
         logWithTimestamp('Failed to start poller:', err);
         process.exit(1);

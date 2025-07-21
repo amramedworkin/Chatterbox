@@ -8,15 +8,12 @@
 const { exec } = require('child_process');
 
 function checkMailSite() {
-    return new Promise((resolve, reject) => {
-        // Check if there's a process running on port 3000 (mail site port)
-        exec("lsof -i :3000", (error, stdout, stderr) => {
+    return new Promise((resolve) => {
+        exec('curl -s -o /dev/null -w "%{http_code}" http://localhost:3000', (error, stdout) => {
             if (error) {
-                // No process found on port 3000
                 resolve('DOWN');
             } else {
-                // Process found on port 3000
-                resolve('UP');
+                resolve(stdout === '200' ? 'UP' : 'DOWN');
             }
         });
     });
@@ -37,4 +34,4 @@ if (require.main === module) {
     main();
 }
 
-module.exports = { checkMailSite }; 
+module.exports = { checkMailSite };

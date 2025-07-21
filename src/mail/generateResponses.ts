@@ -130,7 +130,7 @@ function getResponseStoragePath(): string {
  */
 async function loadConversation(conversationId: string): Promise<ConversationContext | null> {
     const filePath = getConversationPath(conversationId);
-    
+
     try {
         const data = await fs.readFile(filePath, 'utf8');
         return JSON.parse(data);
@@ -149,12 +149,12 @@ async function loadConversation(conversationId: string): Promise<ConversationCon
  */
 async function saveConversation(conversation: ConversationContext): Promise<void> {
     const filePath = getConversationPath(conversation.conversationId);
-    
+
     try {
         // Ensure directory exists
         const dir = path.dirname(filePath);
         await fs.mkdir(dir, { recursive: true });
-        
+
         await fs.writeFile(filePath, JSON.stringify(conversation, null, 2), 'utf8');
         logWithTimestamp(`Saved conversation ${conversation.conversationId}`);
     } catch (err) {
@@ -175,7 +175,7 @@ function createNewConversation(
         messages: [],
         lastUpdated: new Date().toISOString(),
         modelName,
-        userEmail
+        userEmail,
     };
 }
 
@@ -192,7 +192,7 @@ function addMessageToConversation(
         role,
         content,
         timestamp: new Date().toISOString(),
-        gmailId
+        gmailId,
     });
     conversation.lastUpdated = new Date().toISOString();
 }
@@ -204,13 +204,13 @@ function formatConversationHistory(conversation: ConversationContext): string {
     if (conversation.messages.length === 0) {
         return '';
     }
-    
+
     let history = '\n\nPrevious conversation:\n';
     for (const message of conversation.messages) {
         const role = message.role === 'user' ? 'User' : 'Assistant';
         history += `${role}: ${message.content}\n`;
     }
-    
+
     return history;
 }
 
@@ -219,10 +219,10 @@ function formatConversationHistory(conversation: ConversationContext): string {
  */
 async function saveGeneratedResponse(response: GeneratedResponse): Promise<void> {
     const filePath = getResponseStoragePath();
-    
+
     try {
         let storage: ResponseStorage;
-        
+
         try {
             const data = await fs.readFile(filePath, 'utf8');
             storage = JSON.parse(data);
@@ -234,10 +234,10 @@ async function saveGeneratedResponse(response: GeneratedResponse): Promise<void>
                 throw error;
             }
         }
-        
+
         storage.responses.push(response);
         storage.lastUpdated = new Date().toISOString();
-        
+
         await fs.writeFile(filePath, JSON.stringify(storage, null, 2), 'utf8');
         logWithTimestamp(`Saved response ${response.responseId}`);
     } catch (err) {
@@ -256,20 +256,21 @@ async function generateResponseContent(
 ): Promise<string> {
     // Prepare the full prompt
     let fullQuery = query;
-    
+
     if (conversationHistory) {
         fullQuery += conversationHistory;
     }
-    
+
     // Add attachment information if present
     if (attachments.length > 0) {
         fullQuery += '\n\nAttachments provided:\n';
         for (const attachment of attachments) {
             fullQuery += `- ${attachment.filename} (${attachment.mimeType}, ${attachment.size} bytes)\n`;
         }
-        fullQuery += '\nNote: Please reference any relevant information from the attachments in your response.';
+        fullQuery +=
+            '\nNote: Please reference any relevant information from the attachments in your response.';
     }
-    
+
     try {
         const response = await askAgent({ prompt: fullQuery, model: modelName });
         return response.text;
@@ -284,12 +285,12 @@ async function generateResponseContent(
  */
 function formatResponseSubject(originalSubject: string, conversationId?: string): string {
     let subject = `Re: ${originalSubject}`;
-    
+
     // Add conversation ID if present
     if (conversationId) {
         subject += ` <<<${conversationId}>>>`;
     }
-    
+
     return subject;
 }
 
@@ -302,17 +303,17 @@ function formatResponseBody(
     modelName?: string
 ): string {
     let body = responseContent;
-    
+
     // Add conversation ID if present
     if (conversationId) {
         body += `\n\n<<<${conversationId}>>>`;
     }
-    
+
     // Add model name if specified
     if (modelName) {
         body += `\n<<<${modelName}>>>`;
     }
-    
+
     return body;
 }
 
@@ -332,7 +333,7 @@ async function sendEmailResponse(
             {
                 to: toEmail,
                 subject,
-                body
+                body,
             },
             auth
         );
@@ -351,15 +352,17 @@ export async function generateResponses(
     processedQueries: ProcessedQuery[]
 ): Promise<GeneratedResponse[]> {
     logWithTimestamp(`Generating responses for ${processedQueries.length} queries...`);
-    
+
     const generatedResponses: GeneratedResponse[] = [];
-    
+
     for (const query of processedQueries) {
         const startTime = Date.now();
-        
+
         try {
-            logWithTimestamp(`Processing query ${query.queryId} from ${query.emailQuery.fromSender}`);
-            
+            logWithTimestamp(
+                `Processing query ${query.queryId} from ${query.emailQuery.fromSender}`
+            );
+
             // Load or create conversation context
             let conversation: ConversationContext | null = null;
             if (query.emailQuery.conversationId) {
@@ -373,7 +376,7 @@ export async function generateResponses(
                     );
                 }
             }
-            
+
             // Add user message to conversation if it's a conversation
             if (conversation) {
                 addMessageToConversation(
@@ -383,12 +386,10 @@ export async function generateResponses(
                     query.emailQuery.gmailId
                 );
             }
-            
+
             // Format conversation history
-            const conversationHistory = conversation 
-                ? formatConversationHistory(conversation)
-                : '';
-            
+            const conversationHistory = conversation ? formatConversationHistory(conversation) : '';
+
             // Generate response content
             const responseContent = await generateResponseContent(
                 query.standardizedQuery,
@@ -396,13 +397,13 @@ export async function generateResponses(
                 query.modelToUse,
                 query.emailQuery.attachments
             );
-            
+
             // Add assistant response to conversation if it's a conversation
             if (conversation) {
                 addMessageToConversation(conversation, 'assistant', responseContent);
                 await saveConversation(conversation);
             }
-            
+
             // Create generated response object
             const generatedResponse: GeneratedResponse = {
                 responseId: `${query.queryId}_response_${Date.now()}`,
@@ -412,26 +413,26 @@ export async function generateResponses(
                 conversationId: conversation?.conversationId,
                 modelUsed: query.modelToUse,
                 responseTime: Date.now() - startTime,
-                createdAt: new Date().toISOString()
+                createdAt: new Date().toISOString(),
             };
-            
+
             generatedResponses.push(generatedResponse);
-            
+
             // Save response to storage
             await saveGeneratedResponse(generatedResponse);
-            
+
             // Send email response
             const responseSubject = formatResponseSubject(
                 query.emailQuery.subject,
                 conversation?.conversationId
             );
-            
+
             const responseBody = formatResponseBody(
                 responseContent,
                 conversation?.conversationId,
                 query.modelToUse
             );
-            
+
             await sendEmailResponse(
                 auth,
                 query.emailQuery.userEmail,
@@ -439,13 +440,14 @@ export async function generateResponses(
                 responseSubject,
                 responseBody
             );
-            
+
             logWithTimestamp(`Successfully generated and sent response for query ${query.queryId}`);
-            
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-            logWithTimestamp(`Failed to generate response for query ${query.queryId}: ${errorMessage}`);
-            
+            logWithTimestamp(
+                `Failed to generate response for query ${query.queryId}: ${errorMessage}`
+            );
+
             // Create error response object
             const errorResponse: GeneratedResponse = {
                 responseId: `${query.queryId}_error_${Date.now()}`,
@@ -456,14 +458,14 @@ export async function generateResponses(
                 modelUsed: query.modelToUse,
                 responseTime: Date.now() - startTime,
                 errorMessage,
-                createdAt: new Date().toISOString()
+                createdAt: new Date().toISOString(),
             };
-            
+
             generatedResponses.push(errorResponse);
             await saveGeneratedResponse(errorResponse);
         }
     }
-    
+
     logWithTimestamp(`Completed generating responses for ${generatedResponses.length} queries`);
     return generatedResponses;
 }
@@ -476,37 +478,36 @@ async function main(): Promise<void> {
         // Import the processIncomingMail function to get processed queries
         const { processIncomingMail } = await import('./processIncomingMail');
         const { authorizeGmail } = await import('./authorizeGmail');
-        
+
         const gmailUser = process.argv[2] || config.app.defaultPollGmailUser;
         const auth = await authorizeGmail(gmailUser, config);
-        
+
         // Process incoming mail first
         const processedQueries = await processIncomingMail(auth, gmailUser);
-        
+
         if (processedQueries.length === 0) {
             logWithTimestamp('No queries to process');
             return;
         }
-        
+
         // Generate responses
         const generatedResponses = await generateResponses(auth, processedQueries);
-        
+
         logWithTimestamp(`Generated ${generatedResponses.length} responses`);
-        
+
         // Log summary
-        const successfulResponses = generatedResponses.filter(r => !r.errorMessage);
-        const failedResponses = generatedResponses.filter(r => r.errorMessage);
-        
+        const successfulResponses = generatedResponses.filter((r) => !r.errorMessage);
+        const failedResponses = generatedResponses.filter((r) => r.errorMessage);
+
         logWithTimestamp(`Successful responses: ${successfulResponses.length}`);
         logWithTimestamp(`Failed responses: ${failedResponses.length}`);
-        
+
         if (failedResponses.length > 0) {
             logWithTimestamp('Failed responses:');
             for (const response of failedResponses) {
                 logWithTimestamp(`  ${response.queryId}: ${response.errorMessage}`);
             }
         }
-        
     } catch (error) {
         logWithTimestamp('Failed to generate responses:', error);
         process.exit(1);
@@ -516,4 +517,4 @@ async function main(): Promise<void> {
 // Only run main if this file is executed directly
 if (require.main === module) {
     main();
-} 
+}

@@ -1,11 +1,16 @@
 #!/usr/bin/env node
 
-const { IAMClient, GetRoleCommand, ListAttachedRolePoliciesCommand, GetPolicyCommand } = require('@aws-sdk/client-iam');
+const {
+    IAMClient,
+    GetRoleCommand,
+    ListAttachedRolePoliciesCommand,
+    GetPolicyCommand,
+} = require('@aws-sdk/client-iam');
 const { execSync } = require('child_process');
 
-const iam = new IAMClient({ 
+const iam = new IAMClient({
     region: process.env.AWS_REGION || 'us-east-1',
-    profile: process.env.AWS_PROFILE || 'cliadmin'
+    profile: process.env.AWS_PROFILE || 'cliadmin',
 });
 
 async function testIAM() {
@@ -14,7 +19,9 @@ async function testIAM() {
     try {
         // Get IAM role ARN from Terraform outputs
         console.log('Getting IAM role ARN from Terraform outputs...');
-        const roleArn = execSync('cd Cloud/AWS/terraform && terraform output -raw iam_role_arn', { encoding: 'utf8' }).trim();
+        const roleArn = execSync('cd Cloud/AWS/terraform && terraform output -raw iam_role_arn', {
+            encoding: 'utf8',
+        }).trim();
         console.log(`✅ Role ARN: ${roleArn}`);
 
         // Extract role name from ARN
@@ -25,7 +32,7 @@ async function testIAM() {
         console.log('Getting role details...');
         const getRoleCommand = new GetRoleCommand({ RoleName: roleName });
         const roleResponse = await iam.send(getRoleCommand);
-        
+
         console.log('✅ Role details:');
         console.log(`   Role Name: ${roleResponse.Role.RoleName}`);
         console.log(`   Role ID: ${roleResponse.Role.RoleId}`);
@@ -35,8 +42,18 @@ async function testIAM() {
         // Check trust policy
         if (roleResponse.Role.AssumeRolePolicyDocument) {
             console.log('✅ Trust Policy:');
-            console.log(`   Version: ${roleResponse.Role.AssumeRolePolicyDocument.Version || 'Not specified'}`);
-            console.log(`   Statements: ${roleResponse.Role.AssumeRolePolicyDocument.Statement ? roleResponse.Role.AssumeRolePolicyDocument.Statement.length : 0}`);
+            console.log(
+                `   Version: ${
+                    roleResponse.Role.AssumeRolePolicyDocument.Version || 'Not specified'
+                }`
+            );
+            console.log(
+                `   Statements: ${
+                    roleResponse.Role.AssumeRolePolicyDocument.Statement
+                        ? roleResponse.Role.AssumeRolePolicyDocument.Statement.length
+                        : 0
+                }`
+            );
         }
 
         // List attached policies
@@ -48,12 +65,14 @@ async function testIAM() {
             console.log(`✅ Found ${policiesResponse.AttachedPolicies.length} attached policies:`);
             for (const policy of policiesResponse.AttachedPolicies) {
                 console.log(`   • ${policy.PolicyName} (${policy.PolicyArn})`);
-                
+
                 // Get policy details
                 try {
                     const getPolicyCommand = new GetPolicyCommand({ PolicyArn: policy.PolicyArn });
                     const policyResponse = await iam.send(getPolicyCommand);
-                    console.log(`     Description: ${policyResponse.Policy.Description || 'No description'}`);
+                    console.log(
+                        `     Description: ${policyResponse.Policy.Description || 'No description'}`
+                    );
                     console.log(`     Create Date: ${policyResponse.Policy.CreateDate}`);
                 } catch (error) {
                     console.log(`     ⚠️  Could not get policy details: ${error.message}`);
@@ -73,7 +92,6 @@ async function testIAM() {
         }
 
         console.log('\n🎉 IAM test completed successfully!');
-
     } catch (error) {
         console.error('❌ IAM test failed:');
         console.error(error.message);
@@ -81,4 +99,4 @@ async function testIAM() {
     }
 }
 
-testIAM(); 
+testIAM();

@@ -99,8 +99,8 @@ Before setting up Chatterbox, review the complete system requirements:
 
 ### AWS Documentation
 - **[AWS Setup Guide](Cloud/AWS/README.md)** - Complete AWS infrastructure setup
-- **[Architecture Summary](Cloud/AWS/ARCHITECTURE_SUMMARY.md)** - System architecture overview
-- **[Final Product Spec](Cloud/AWS/FINAL_PRODUCT_SPEC.md)** - Complete infrastructure specification
+- **[Architecture Summary](Cloud/AWS/AWS_ARCHITECTURE_SUMMARY.md)** - System architecture overview
+- **[Final Product Spec](Cloud/AWS/AWS_FINAL_PRODUCT_SPEC.md)** - Complete infrastructure specification
 
 ### Local System Management
 - **[Local System Clean](docs/LOCAL_SYSTEM_CLEAN.md)** - Clean system documentation

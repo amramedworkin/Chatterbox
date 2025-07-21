@@ -1,17 +1,25 @@
 #!/usr/bin/env node
 
-const { CloudWatchLogsClient, DescribeLogGroupsCommand, DescribeLogStreamsCommand } = require('@aws-sdk/client-cloudwatch-logs');
-const { CloudWatchClient, ListMetricsCommand, DescribeAlarmsCommand } = require('@aws-sdk/client-cloudwatch');
+const {
+    CloudWatchLogsClient,
+    DescribeLogGroupsCommand,
+    DescribeLogStreamsCommand,
+} = require('@aws-sdk/client-cloudwatch-logs');
+const {
+    CloudWatchClient,
+    ListMetricsCommand,
+    DescribeAlarmsCommand,
+} = require('@aws-sdk/client-cloudwatch');
 const { execSync } = require('child_process');
 
-const cloudWatchLogs = new CloudWatchLogsClient({ 
+const cloudWatchLogs = new CloudWatchLogsClient({
     region: process.env.AWS_REGION || 'us-east-1',
-    profile: process.env.AWS_PROFILE || 'cliadmin'
+    profile: process.env.AWS_PROFILE || 'cliadmin',
 });
 
-const cloudWatch = new CloudWatchClient({ 
+const cloudWatch = new CloudWatchClient({
     region: process.env.AWS_REGION || 'us-east-1',
-    profile: process.env.AWS_PROFILE || 'cliadmin'
+    profile: process.env.AWS_PROFILE || 'cliadmin',
 });
 
 async function testCloudWatch() {
@@ -20,15 +28,18 @@ async function testCloudWatch() {
     try {
         // Get log group name from Terraform outputs
         console.log('Getting log group name from Terraform outputs...');
-        const logGroupName = execSync('cd Cloud/AWS/terraform && terraform output -raw cloudwatch_log_group_name', { encoding: 'utf8' }).trim();
+        const logGroupName = execSync(
+            'cd Cloud/AWS/terraform && terraform output -raw cloudwatch_log_group_name',
+            { encoding: 'utf8' }
+        ).trim();
         console.log(`✅ Log Group Name: ${logGroupName}`);
 
         // Test CloudWatch Logs
         console.log('\nTesting CloudWatch Logs...');
-        
+
         // Describe log group
         const describeLogGroupCommand = new DescribeLogGroupsCommand({
-            LogGroupNamePrefix: logGroupName
+            LogGroupNamePrefix: logGroupName,
         });
         const logGroupResponse = await cloudWatchLogs.send(describeLogGroupCommand);
 
@@ -47,7 +58,7 @@ async function testCloudWatch() {
                 LogGroupName: logGroup.logGroupName,
                 OrderBy: 'LastEventTime',
                 Descending: true,
-                MaxItems: 5
+                MaxItems: 5,
             });
             const logStreamsResponse = await cloudWatchLogs.send(describeLogStreamsCommand);
 
@@ -55,7 +66,13 @@ async function testCloudWatch() {
                 console.log(`\n✅ Found ${logStreamsResponse.logStreams.length} log streams:`);
                 logStreamsResponse.logStreams.forEach((stream, index) => {
                     console.log(`   ${index + 1}. ${stream.logStreamName}`);
-                    console.log(`      Last Event Time: ${stream.lastEventTimestamp ? new Date(stream.lastEventTimestamp).toISOString() : 'No events'}`);
+                    console.log(
+                        `      Last Event Time: ${
+                            stream.lastEventTimestamp
+                                ? new Date(stream.lastEventTimestamp).toISOString()
+                                : 'No events'
+                        }`
+                    );
                     console.log(`      Stored Bytes: ${stream.storedBytes || 0} bytes`);
                 });
             } else {
@@ -67,7 +84,7 @@ async function testCloudWatch() {
 
         // Test CloudWatch Metrics
         console.log('\nTesting CloudWatch Metrics...');
-        
+
         // List metrics for DynamoDB
         const listMetricsCommand = new ListMetricsCommand({
             Namespace: 'AWS/DynamoDB',
@@ -75,9 +92,9 @@ async function testCloudWatch() {
             Dimensions: [
                 {
                     Name: 'TableName',
-                    Value: 'chatterbox-state'
-                }
-            ]
+                    Value: 'chatterbox-state',
+                },
+            ],
         });
         const metricsResponse = await cloudWatch.send(listMetricsCommand);
 
@@ -92,9 +109,9 @@ async function testCloudWatch() {
 
         // Test CloudWatch Alarms
         console.log('\nTesting CloudWatch Alarms...');
-        
+
         const describeAlarmsCommand = new DescribeAlarmsCommand({
-            AlarmNamePrefix: 'Chatterbox'
+            AlarmNamePrefix: 'Chatterbox',
         });
         const alarmsResponse = await cloudWatch.send(describeAlarmsCommand);
 
@@ -114,7 +131,7 @@ async function testCloudWatch() {
         console.log('\nTesting S3 metrics...');
         const s3MetricsCommand = new ListMetricsCommand({
             Namespace: 'AWS/S3',
-            MetricName: 'NumberOfObjects'
+            MetricName: 'NumberOfObjects',
         });
         const s3MetricsResponse = await cloudWatch.send(s3MetricsCommand);
 
@@ -125,7 +142,6 @@ async function testCloudWatch() {
         }
 
         console.log('\n🎉 CloudWatch test completed successfully!');
-
     } catch (error) {
         console.error('❌ CloudWatch test failed:');
         console.error(error.message);
@@ -133,4 +149,4 @@ async function testCloudWatch() {
     }
 }
 
-testCloudWatch(); 
+testCloudWatch();

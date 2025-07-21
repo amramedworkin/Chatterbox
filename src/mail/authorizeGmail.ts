@@ -149,7 +149,7 @@ export async function removeTokenForEmail(tokenPath: string, email: string): Pro
 export async function authorizeGmail(
     email: string,
     config: AppConfig,
-    force: boolean = false
+    force = false
 ): Promise<OAuth2Client> {
     console.log(`🔍 [AUTH DEBUG] Starting authorization for: ${email}`);
     console.log(`🔍 [AUTH DEBUG] Force re-authorization: ${force}`);

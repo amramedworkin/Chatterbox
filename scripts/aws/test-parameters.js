@@ -3,9 +3,9 @@
 const { SSMClient, GetParametersByPathCommand } = require('@aws-sdk/client-ssm');
 const { execSync } = require('child_process');
 
-const ssm = new SSMClient({ 
+const ssm = new SSMClient({
     region: process.env.AWS_REGION || 'us-east-1',
-    profile: process.env.AWS_PROFILE || 'cliadmin'
+    profile: process.env.AWS_PROFILE || 'cliadmin',
 });
 
 async function testParameters() {
@@ -14,7 +14,10 @@ async function testParameters() {
     try {
         // Get parameter prefix from Terraform outputs
         console.log('Getting parameter prefix from Terraform outputs...');
-        const prefix = execSync('cd Cloud/AWS/terraform && terraform output -raw parameter_store_prefix', { encoding: 'utf8' }).trim();
+        const prefix = execSync(
+            'cd Cloud/AWS/terraform && terraform output -raw parameter_store_prefix',
+            { encoding: 'utf8' }
+        ).trim();
         console.log(`✅ Parameter Prefix: ${prefix}`);
 
         // Get parameters by path
@@ -22,11 +25,11 @@ async function testParameters() {
         const command = new GetParametersByPathCommand({
             Path: prefix,
             Recursive: true,
-            WithDecryption: true
+            WithDecryption: true,
         });
 
         const response = await ssm.send(command);
-        
+
         if (response.Parameters && response.Parameters.length > 0) {
             console.log(`✅ Found ${response.Parameters.length} parameters:`);
             response.Parameters.forEach((param, index) => {
@@ -41,14 +44,14 @@ async function testParameters() {
         const testParams = [
             `${prefix}/environment`,
             `${prefix}/aws_region`,
-            `${prefix}/application_version`
+            `${prefix}/application_version`,
         ];
 
         for (const paramName of testParams) {
             try {
                 const getCommand = new GetParametersByPathCommand({
                     Path: paramName,
-                    WithDecryption: true
+                    WithDecryption: true,
                 });
                 await ssm.send(getCommand);
                 console.log(`   ✅ ${paramName} - Accessible`);
@@ -58,7 +61,6 @@ async function testParameters() {
         }
 
         console.log('\n🎉 Parameter Store test completed successfully!');
-
     } catch (error) {
         console.error('❌ Parameter Store test failed:');
         console.error(error.message);
@@ -66,4 +68,4 @@ async function testParameters() {
     }
 }
 
-testParameters(); 
+testParameters();

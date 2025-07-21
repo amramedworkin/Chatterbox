@@ -3,7 +3,7 @@
 /**
  * Local System Validation Script
  * Validates that the local Chatterbox system is properly configured
- * 
+ *
  * This script checks:
  * - Required files are present
  * - Gmail tokens are valid
@@ -12,6 +12,7 @@
  */
 
 const fs = require('fs');
+// eslint-disable-next-line no-unused-vars
 const path = require('path');
 
 // Colors for output
@@ -21,7 +22,7 @@ const colors = {
     yellow: '\x1b[33m',
     red: '\x1b[31m',
     blue: '\x1b[34m',
-    cyan: '\x1b[36m'
+    cyan: '\x1b[36m',
 };
 
 function printStatus(message) {
@@ -49,22 +50,18 @@ function printSection(message) {
 async function validateLocalSystem() {
     console.log(`🔍 Local System Validation`);
     console.log(`Timestamp: ${new Date().toISOString()}`);
-    
+
     printSection('Local System Validation');
-    
+
     // TODO: Implement comprehensive local system validation
     // This is a placeholder script - implement actual validation logic
-    
+
     printInfo('Local system validation script is a placeholder');
     printInfo('See docs/local/LOCAL_VALIDATION.md for implementation details');
-    
+
     // Placeholder checks
-    const requiredFiles = [
-        'data/google_tokens.json',
-        'google_credentials.json',
-        'config.json'
-    ];
-    
+    const requiredFiles = ['data/google_tokens.json', 'google_credentials.json', 'config.json'];
+
     printSection('Required Files');
     for (const file of requiredFiles) {
         if (fs.existsSync(file)) {
@@ -73,20 +70,22 @@ async function validateLocalSystem() {
             printWarning(`${file} - MISSING (placeholder check)`);
         }
     }
-    
+
     printSection('Summary');
     printInfo('Local validation complete. This is a placeholder implementation.');
     printInfo('For full validation, see the local validation guide.');
-    
+
     console.log(`\n${colors.green}${'='.repeat(60)}${colors.reset}`);
     console.log(`${colors.green}📋 Local System Validation - PLACEHOLDER${colors.reset}`);
-    console.log(`${colors.green}See docs/local/LOCAL_VALIDATION.md for full implementation${colors.reset}`);
+    console.log(
+        `${colors.green}See docs/local/LOCAL_VALIDATION.md for full implementation${colors.reset}`
+    );
     console.log(`${colors.green}${'='.repeat(60)}${colors.reset}`);
 }
 
 if (require.main === module) {
-    validateLocalSystem().catch(error => {
+    validateLocalSystem().catch((error) => {
         printError(`Validation failed: ${error.message}`);
         process.exit(1);
     });
-} 
+}

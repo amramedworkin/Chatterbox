@@ -2,10 +2,10 @@
 
 /**
  * Test polling script for both local and AWS environments
- * Usage: 
+ * Usage:
  *   node scripts/test-polling.js [--local|--aws]
  *   npm run mail:poll:test [--local|--aws]
- * 
+ *
  * Default behavior: Test AWS Lambda polling
  */
 
@@ -21,7 +21,7 @@ const colors = {
     yellow: '\x1b[33m',
     blue: '\x1b[34m',
     magenta: '\x1b[35m',
-    cyan: '\x1b[36m'
+    cyan: '\x1b[36m',
 };
 
 function printInfo(message) {
@@ -57,9 +57,9 @@ function parseArgs() {
     const options = {
         local: false,
         aws: false,
-        help: false
+        help: false,
     };
-    
+
     for (const arg of args) {
         switch (arg) {
             case '--local':
@@ -78,12 +78,12 @@ function parseArgs() {
                 printWarning(`Unknown argument: ${arg}`);
         }
     }
-    
+
     // If neither local nor aws specified, default to AWS
     if (!options.local && !options.aws) {
         options.aws = true;
     }
-    
+
     return options;
 }
 
@@ -132,7 +132,7 @@ function testLocalPolling() {
     printInfo('Environment: Local (Node.js)');
     printInfo('Command: npm run mail:poll:single');
     printInfo('This will execute the local polling script directly');
-    
+
     try {
         // Check if build exists
         const buildPath = path.join(process.cwd(), 'dist', 'src', 'mail', 'pollGmail.js');
@@ -142,21 +142,20 @@ function testLocalPolling() {
             execSync('npm run build', { stdio: 'inherit' });
             printSuccess('Build completed successfully');
         }
-        
+
         printStep('STEP 2', 'Executing local polling...');
         printInfo('Running: npm run mail:poll:single');
-        
-        const result = execSync('npm run mail:poll:single', { 
+
+        const result = execSync('npm run mail:poll:single', {
             encoding: 'utf8',
-            stdio: 'pipe'
+            stdio: 'pipe',
         });
-        
+
         printSuccess('Local polling executed successfully');
         printInfo('Output:');
         console.log(result);
-        
+
         return true;
-        
     } catch (error) {
         printError(`Local polling failed: ${error.message}`);
         if (error.stdout) {
@@ -179,62 +178,69 @@ function testAwsPolling() {
     printInfo('Environment: AWS Lambda');
     printInfo('Profile: ' + (process.env.AWS_PROFILE || 'cliadmin'));
     printInfo('Environment: ' + (process.env.ENVIRONMENT || 'development'));
-    
+
     try {
         // Get default Gmail user from infrastructure
         printStep('STEP 2', 'Getting default Gmail user from AWS infrastructure...');
-        printInfo('Executing: cd Cloud/AWS/terraform-simple && terraform output -raw default_gmail_user');
-        
-        const defaultUser = execSync('cd Cloud/AWS/terraform-simple && terraform output -raw default_gmail_user', {
-            encoding: 'utf8',
-            stdio: 'pipe'
-        }).trim();
-        
+        printInfo(
+            'Executing: cd Cloud/AWS/terraform-simple && terraform output -raw default_gmail_user'
+        );
+
+        const defaultUser = execSync(
+            'cd Cloud/AWS/terraform-simple && terraform output -raw default_gmail_user',
+            {
+                encoding: 'utf8',
+                stdio: 'pipe',
+            }
+        ).trim();
+
         printSuccess(`Default Gmail user: ${defaultUser}`);
-        
+
         // Test the Lambda function
         printStep('STEP 3', 'Invoking AWS Lambda function...');
         const functionName = `${process.env.ENVIRONMENT || 'development'}-poll-gmail`;
         const payload = JSON.stringify({
             queryStringParameters: {
-                userEmail: defaultUser
-            }
+                userEmail: defaultUser,
+            },
         });
-        
+
         printInfo(`Function: ${functionName}`);
         printInfo(`Payload: ${payload}`);
         printInfo('Executing: aws lambda invoke...');
-        
-        const result = execSync(`aws lambda invoke \
+
+        const result = execSync(
+            `aws lambda invoke \
             --function-name ${functionName} \
             --payload '${payload}' \
             response.json \
             --cli-binary-format raw-in-base64-out \
-            --profile ${process.env.AWS_PROFILE || 'cliadmin'}`, {
-            encoding: 'utf8',
-            stdio: 'pipe'
-        });
-        
+            --profile ${process.env.AWS_PROFILE || 'cliadmin'}`,
+            {
+                encoding: 'utf8',
+                stdio: 'pipe',
+            }
+        );
+
         printSuccess('AWS Lambda function invoked successfully');
         printInfo('Invocation result:');
         console.log(result);
-        
+
         // Read and display the response
         printStep('STEP 4', 'Reading Lambda response...');
         if (require('fs').existsSync('response.json')) {
             const response = require('fs').readFileSync('response.json', 'utf8');
             printInfo('Lambda response:');
             console.log(response);
-            
+
             // Clean up response file
             require('fs').unlinkSync('response.json');
             printInfo('Cleaned up response.json file');
         } else {
             printWarning('No response.json file found');
         }
-        
+
         return true;
-        
     } catch (error) {
         printError(`AWS Lambda polling failed: ${error.message}`);
         if (error.stdout) {
@@ -254,26 +260,26 @@ function testAwsPolling() {
  */
 async function main() {
     const options = parseArgs();
-    
+
     if (options.help) {
         showHelp();
         return;
     }
-    
+
     printHeader('Gmail Polling Test');
     printInfo(`Testing ${options.local ? 'LOCAL' : 'AWS'} polling environment`);
     printInfo(`Working directory: ${process.cwd()}`);
     printInfo(`Node version: ${process.version}`);
     printInfo(`Platform: ${process.platform}`);
-    
+
     let success = false;
-    
+
     if (options.local) {
         success = testLocalPolling();
     } else {
         success = testAwsPolling();
     }
-    
+
     // Summary
     printHeader('Test Summary');
     if (success) {
@@ -300,16 +306,16 @@ async function main() {
             printInfo('• Verify secrets are populated: npm run aws:deploy:secrets');
         }
     }
-    
+
     process.exit(success ? 0 : 1);
 }
 
 // Run the script
 if (require.main === module) {
-    main().catch(error => {
+    main().catch((error) => {
         printError(`Unhandled error: ${error.message}`);
         process.exit(1);
     });
 }
 
-module.exports = { testLocalPolling, testAwsPolling, parseArgs }; 
+module.exports = { testLocalPolling, testAwsPolling, parseArgs };

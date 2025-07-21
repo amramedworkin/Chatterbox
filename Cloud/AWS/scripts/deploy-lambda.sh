@@ -104,8 +104,12 @@ print_status "Lambda deployment outputs retrieved"
 # Step 7: Test the deployment
 print_info "Testing Lambda functions..."
 
-# Get default Gmail user from infrastructure
-DEFAULT_GMAIL_USER=$(cd ../terraform-simple && terraform output -raw default_gmail_user)
+# Get default Gmail user from infrastructure (with fallback)
+DEFAULT_GMAIL_USER="awsamram@gmail.com"  # Default fallback
+if cd ../terraform-simple && terraform output default_gmail_user > /dev/null 2>&1; then
+    DEFAULT_GMAIL_USER=$(terraform output -raw default_gmail_user)
+fi
+cd "$PROJECT_ROOT/Cloud/AWS/terraform-lambda"
 
 aws lambda invoke \
     --function-name ${ENVIRONMENT}-poll-gmail \

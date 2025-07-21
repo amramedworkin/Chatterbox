@@ -1,1 +1,0 @@
-# Consolidated AWS Infrastructure Management

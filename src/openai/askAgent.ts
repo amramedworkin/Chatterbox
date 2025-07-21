@@ -124,7 +124,9 @@ export async function askAgent(options: AskAgentOptions): Promise<AskAgentRespon
         return response;
     } catch (error) {
         throw new Error(
-            `Failed to process agent request: ${error instanceof Error ? error.message : String(error)}`
+            `Failed to process agent request: ${
+                error instanceof Error ? error.message : String(error)
+            }`
         );
     }
 }

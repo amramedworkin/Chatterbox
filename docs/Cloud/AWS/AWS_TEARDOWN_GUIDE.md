@@ -46,6 +46,7 @@ This script will:
 - Delete CloudWatch log groups
 - Delete IAM roles and policies
 - Delete resource groups
+- **Cleanup SES**: Remove verified emails and disable account sending
 
 ### Step 3: Remove Terraform State Backend
 
@@ -97,6 +98,12 @@ aws ssm delete-parameter --name "/chatterbox/google-config" --profile cliadmin
 aws ssm delete-parameter --name "/chatterbox/openai-config" --profile cliadmin
 aws ssm delete-parameter --name "/chatterbox/polling-config" --profile cliadmin
 
+# Cleanup SES resources
+aws ses delete-identity --identity awsamram@gmail.com --profile cliadmin
+aws ses delete-identity --identity chatterbox@awsamram.com --profile cliadmin
+aws ses delete-configuration-set --configuration-set-name chatterbox-email-config --profile cliadmin
+aws ses set-account-sending-enabled --enabled false --profile cliadmin
+
 # List and remove any remaining DynamoDB tables
 aws dynamodb list-tables --profile cliadmin | grep chatterbox
 aws dynamodb delete-table --table-name chatterbox-state --profile cliadmin
@@ -139,6 +146,11 @@ aws dynamodb list-tables --profile cliadmin | grep chatterbox
 aws lambda list-functions --profile cliadmin | grep chatterbox
 aws iam list-groups --profile cliadmin | grep chatterbox
 aws iam list-users --profile cliadmin | grep chatterbox
+
+# Verify SES cleanup
+aws ses list-identities --profile cliadmin | grep chatterbox
+aws ses list-configuration-sets --profile cliadmin | grep chatterbox
+aws ses get-account-sending-enabled --profile cliadmin
 ```
 
 ## Automated Teardown Script
@@ -223,6 +235,12 @@ aws ssm delete-parameter --name "/chatterbox/polling-config" --profile cliadmin
 
 # Delete CloudWatch log groups
 aws logs delete-log-group --log-group-name "/aws/chatterbox" --profile cliadmin
+
+# Cleanup SES resources
+aws ses delete-identity --identity awsamram@gmail.com --profile cliadmin
+aws ses delete-identity --identity chatterbox@awsamram.com --profile cliadmin
+aws ses delete-configuration-set --configuration-set-name chatterbox-email-config --profile cliadmin
+aws ses set-account-sending-enabled --enabled false --profile cliadmin
 ```
 
 ## Support

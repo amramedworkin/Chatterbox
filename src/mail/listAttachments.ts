@@ -139,7 +139,10 @@ async function main(): Promise<void> {
     } else {
         uniqueAttachments.forEach((file) => {
             console.log(
-                `${file.uniqueName} => ${path.relative(INTERACTIONS_BASE_FOLDER, file.originalPath)}`
+                `${file.uniqueName} => ${path.relative(
+                    INTERACTIONS_BASE_FOLDER,
+                    file.originalPath
+                )}`
             );
         });
     }

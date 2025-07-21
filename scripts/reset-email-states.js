@@ -13,7 +13,7 @@ const DEFAULTS = {
     targetState: 'pending',
     originalState: 'all',
     filterType: 'recent',
-    days: 1
+    days: 1,
 };
 
 /**
@@ -27,12 +27,12 @@ function parseArguments() {
         date: null,
         targetState: DEFAULTS.targetState,
         originalState: DEFAULTS.originalState,
-        filterType: DEFAULTS.filterType
+        filterType: DEFAULTS.filterType,
     };
 
     for (let i = 0; i < args.length; i++) {
         const arg = args[i];
-        
+
         if (arg.startsWith('--state=')) {
             options.targetState = arg.split('=')[1];
         } else if (arg.startsWith('--from-state=')) {
@@ -101,7 +101,9 @@ Filter Priority:
  */
 function validateState(state, stateName = 'state') {
     if (!VALID_STATES.includes(state) && state !== 'all') {
-        throw new Error(`Invalid ${stateName}: "${state}". Valid states are: ${VALID_STATES.join(', ')}, all`);
+        throw new Error(
+            `Invalid ${stateName}: "${state}". Valid states are: ${VALID_STATES.join(', ')}, all`
+        );
     }
 }
 
@@ -144,10 +146,12 @@ function parseDate(dateStr) {
 function isEmailOnDate(emailDate, targetDate) {
     const email = new Date(emailDate);
     const target = new Date(targetDate);
-    
-    return email.getFullYear() === target.getFullYear() &&
-           email.getMonth() === target.getMonth() &&
-           email.getDate() === target.getDate();
+
+    return (
+        email.getFullYear() === target.getFullYear() &&
+        email.getMonth() === target.getMonth() &&
+        email.getDate() === target.getDate()
+    );
 }
 
 /**
@@ -157,7 +161,7 @@ function isEmailWithinDays(emailDate, days) {
     const email = new Date(emailDate);
     const cutoff = new Date();
     cutoff.setDate(cutoff.getDate() - days);
-    
+
     return email >= cutoff;
 }
 
@@ -175,7 +179,7 @@ function getPendingEmailsPath(gmailUser) {
  */
 async function loadPendingEmails(gmailUser) {
     const filePath = getPendingEmailsPath(gmailUser);
-    
+
     try {
         const data = await fs.readFile(filePath, 'utf8');
         return JSON.parse(data);
@@ -203,30 +207,30 @@ function determineFilter(options) {
         return {
             type: 'ids',
             reason: 'Email IDs specified - they trump all other filters',
-            filter: options.emailIds
+            filter: options.emailIds,
         };
     }
-    
+
     if (options.date) {
         return {
             type: 'date',
             reason: 'Date specified - it trumps days filter',
-            filter: options.date
+            filter: options.date,
         };
     }
-    
+
     if (options.days) {
         return {
             type: 'days',
             reason: 'Days specified',
-            filter: options.days
+            filter: options.days,
         };
     }
-    
+
     return {
         type: 'recent',
         reason: 'No filters specified - using default (most recent)',
-        filter: 1
+        filter: 1,
     };
 }
 
@@ -235,35 +239,38 @@ function determineFilter(options) {
  */
 function filterEmails(emails, filterInfo, options) {
     let filtered = [...emails];
-    
+
     switch (filterInfo.type) {
         case 'ids':
-            filtered = emails.filter(email => filterInfo.filter.includes(email.gmailId));
+            filtered = emails.filter((email) => filterInfo.filter.includes(email.gmailId));
             break;
-            
-        case 'date':
+
+        case 'date': {
             const targetDate = parseDate(filterInfo.filter);
-            filtered = emails.filter(email => isEmailOnDate(email.receivedDate, targetDate));
+            filtered = emails.filter((email) => isEmailOnDate(email.receivedDate, targetDate));
             break;
-            
+        }
+
         case 'days':
-            filtered = emails.filter(email => isEmailWithinDays(email.receivedDate, filterInfo.filter));
+            filtered = emails.filter((email) =>
+                isEmailWithinDays(email.receivedDate, filterInfo.filter)
+            );
             break;
-            
+
         case 'recent':
             // Get the most recent email
             filtered = emails.length > 0 ? [emails[0]] : [];
             break;
     }
-    
+
     // Apply original state filter
     if (options.originalState !== 'all') {
-        filtered = filtered.filter(email => email.status === options.originalState);
+        filtered = filtered.filter((email) => email.status === options.originalState);
     }
-    
+
     // Don't change emails already in target state
-    filtered = filtered.filter(email => email.status !== options.targetState);
-    
+    filtered = filtered.filter((email) => email.status !== options.targetState);
+
     return filtered;
 }
 
@@ -274,74 +281,83 @@ async function main() {
     try {
         // Parse arguments
         const options = parseArguments();
-        
+
         // Log incoming values
         logWithTimestamp('=== Email State Reset Script ===');
         logWithTimestamp('Incoming values:');
-        logWithTimestamp(`  Email IDs: ${options.emailIds.length > 0 ? options.emailIds.join(', ') : 'none'}`);
+        logWithTimestamp(
+            `  Email IDs: ${options.emailIds.length > 0 ? options.emailIds.join(', ') : 'none'}`
+        );
         logWithTimestamp(`  Days: ${options.days || 'none'}`);
         logWithTimestamp(`  Date: ${options.date || 'none'}`);
         logWithTimestamp(`  Target State: ${options.targetState}`);
         logWithTimestamp(`  Original State: ${options.originalState}`);
-        
+
         // Validate states
         validateState(options.targetState, 'target state');
         validateState(options.originalState, 'original state');
-        
+
         // Determine which filter to use
         const filterInfo = determineFilter(options);
         logWithTimestamp(`Filter chosen: ${filterInfo.type}`);
         logWithTimestamp(`Reason: ${filterInfo.reason}`);
         logWithTimestamp(`Filter value: ${filterInfo.filter}`);
-        
+
         // Load pending emails for all users
         const dataDir = path.join(process.cwd(), 'data');
         const files = await fs.readdir(dataDir);
-        const pendingFiles = files.filter(file => file.startsWith('pending_emails_') && file.endsWith('.json'));
-        
+        const pendingFiles = files.filter(
+            (file) => file.startsWith('pending_emails_') && file.endsWith('.json')
+        );
+
         if (pendingFiles.length === 0) {
             logWithTimestamp('No pending email files found');
             return;
         }
-        
+
         let totalChanged = 0;
-        
+
         for (const file of pendingFiles) {
-            const gmailUser = file.replace('pending_emails_', '').replace('.json', '').replace(/_/g, '@');
+            const gmailUser = file
+                .replace('pending_emails_', '')
+                .replace('.json', '')
+                .replace(/_/g, '@');
             logWithTimestamp(`Processing user: ${gmailUser}`);
-            
+
             // Load emails
             const data = await loadPendingEmails(gmailUser);
             const emails = data.pendingEmails || [];
-            
+
             if (emails.length === 0) {
                 logWithTimestamp(`  No emails found for ${gmailUser}`);
                 continue;
             }
-            
+
             // Filter emails
             const filteredEmails = filterEmails(emails, filterInfo, options);
-            
+
             if (filteredEmails.length === 0) {
                 logWithTimestamp(`  No emails match criteria for ${gmailUser}`);
                 continue;
             }
-            
+
             // Update emails
             let changed = 0;
             for (const email of filteredEmails) {
                 const oldState = email.status;
                 email.status = options.targetState;
                 email.lastProcessedAt = new Date().toISOString();
-                
-                logWithTimestamp(`  Reset email ${email.gmailId}: ${oldState} → ${options.targetState}`);
+
+                logWithTimestamp(
+                    `  Reset email ${email.gmailId}: ${oldState} → ${options.targetState}`
+                );
                 logWithTimestamp(`    Subject: ${email.subject}`);
                 logWithTimestamp(`    From: ${email.fromSender}`);
                 logWithTimestamp(`    Date: ${email.receivedDate}`);
-                
+
                 changed++;
             }
-            
+
             // Save changes
             if (changed > 0) {
                 data.lastUpdated = new Date().toISOString();
@@ -350,19 +366,18 @@ async function main() {
                 totalChanged += changed;
             }
         }
-        
+
         logWithTimestamp('=== Summary ===');
         logWithTimestamp(`Total emails reset: ${totalChanged}`);
         logWithTimestamp(`Target state: ${options.targetState}`);
         logWithTimestamp(`Filter used: ${filterInfo.type}`);
-        
+
         if (totalChanged === 0) {
             logWithTimestamp('No emails were reset. Possible reasons:');
             logWithTimestamp('  - No emails match the filter criteria');
             logWithTimestamp('  - All matching emails are already in the target state');
             logWithTimestamp('  - No emails match the original state filter');
         }
-        
     } catch (error) {
         logWithTimestamp('Error:', error.message);
         process.exit(1);
@@ -374,4 +389,4 @@ if (require.main === module) {
     main();
 }
 
-module.exports = { main, parseArguments, validateState }; 
+module.exports = { main, parseArguments, validateState };

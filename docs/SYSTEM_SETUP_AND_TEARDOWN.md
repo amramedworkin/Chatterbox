@@ -255,15 +255,26 @@ This creates:
 - IAM roles and policies
 - API Gateway endpoints
 
-**Step 2: Migrate Configuration Data**
+**Step 2: Prepare and Migrate Configuration Data**
 ```bash
+npm run aws:init:build
+```
+This performs:
+- Creates initialization folder with timestamp
+- Copies all configuration files to init folder
+- Populates AWS Secrets Manager with Gmail credentials
+- Populates AWS Parameter Store with configuration
+- Prepares system for AWS deployment
+
+**Alternative: Step-by-Step Init Process**
+If you prefer to run the init process step by step:
+```bash
+# Step 2a: Prepare init folder
+npm run aws:init:prepare
+
+# Step 2b: Migrate data to AWS
 npm run aws:init:migrate
 ```
-This populates:
-- AWS Secrets Manager with Gmail credentials
-- AWS Parameter Store with configuration
-- S3 buckets with initial data
-- DynamoDB with system state
 
 **Step 3: Validate AWS Deployment**
 ```bash
@@ -287,12 +298,12 @@ This performs:
 #### AWS System Components
 
 The AWS system consists of:
-- **Lambda Functions** (see [AWS Lambda Guide](Cloud/AWS/LAMBDA_GUIDE.md))
-- **S3 Storage** (see [AWS S3 Guide](Cloud/AWS/S3_GUIDE.md))
-- **DynamoDB Tables** (see [AWS DynamoDB Guide](Cloud/AWS/DYNAMODB_GUIDE.md))
-- **CloudWatch Logging** (see [AWS CloudWatch Guide](Cloud/AWS/CLOUDWATCH_GUIDE.md))
-- **IAM Security** (see [AWS IAM Guide](Cloud/AWS/IAM_GUIDE.md))
-- **API Gateway** (see [AWS API Gateway Guide](Cloud/AWS/API_GATEWAY_GUIDE.md))
+- **Lambda Functions** (see [AWS Lambda Guide](Cloud/AWS/AWS_LAMBDA_GUIDE.md))
+- **S3 Storage** (see [AWS S3 Guide](Cloud/AWS/AWS_S3_GUIDE.md))
+- **DynamoDB Tables** (see [AWS DynamoDB Guide](Cloud/AWS/AWS_DYNAMODB_GUIDE.md))
+- **CloudWatch Logging** (see [AWS CloudWatch Guide](Cloud/AWS/AWS_CLOUDWATCH_GUIDE.md))
+- **IAM Security** (see [AWS IAM Guide](Cloud/AWS/AWS_IAM_GUIDE.md))
+- **API Gateway** (see [AWS API Gateway Guide](Cloud/AWS/AWS_API_GATEWAY_GUIDE.md))
 
 ### 5.b. Tearing Down the AWS System
 
@@ -352,8 +363,8 @@ This removes:
 #### AWS Cleanup Components
 
 The AWS teardown affects:
-- **Infrastructure Resources** (see [AWS Infrastructure Guide](Cloud/AWS/INFRASTRUCTURE_GUIDE.md))
-- **Configuration Data** (see [AWS Configuration Guide](Cloud/AWS/CONFIGURATION_GUIDE.md))
+- **Infrastructure Resources** (see [AWS Infrastructure Guide](Cloud/AWS/AWS_INFRASTRUCTURE_GUIDE.md))
+- **Configuration Data** (see [AWS Configuration Guide](Cloud/AWS/AWS_CONFIGURATION_GUIDE.md))
 - **Security Resources** (see [AWS Security Guide](Cloud/AWS/SECURITY_GUIDE.md))
 
 ## Validation and Verification

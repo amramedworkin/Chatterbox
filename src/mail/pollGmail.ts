@@ -136,7 +136,7 @@ function getPendingEmailsPath(gmailUser: string): string {
  */
 async function loadPendingEmails(gmailUser: string): Promise<PendingEmailJob[]> {
     const filePath = getPendingEmailsPath(gmailUser);
-    
+
     try {
         const data = await fs.readFile(filePath, 'utf8');
         const storage: LocalStorage = JSON.parse(data);
@@ -157,18 +157,21 @@ async function loadPendingEmails(gmailUser: string): Promise<PendingEmailJob[]> 
  * @param {string} gmailUser The Gmail user email.
  * @param {PendingEmailJob[]} pendingEmails Array of pending email jobs.
  */
-async function savePendingEmails(gmailUser: string, pendingEmails: PendingEmailJob[]): Promise<void> {
+async function savePendingEmails(
+    gmailUser: string,
+    pendingEmails: PendingEmailJob[]
+): Promise<void> {
     const filePath = getPendingEmailsPath(gmailUser);
     const dataDir = path.dirname(filePath);
-    
+
     // Ensure data directory exists
     await fs.mkdir(dataDir, { recursive: true });
-    
+
     const storage: LocalStorage = {
         pendingEmails,
-        lastUpdated: new Date().toISOString()
+        lastUpdated: new Date().toISOString(),
     };
-    
+
     await fs.writeFile(filePath, JSON.stringify(storage, null, 2), 'utf8');
 }
 
@@ -180,7 +183,7 @@ async function savePendingEmails(gmailUser: string, pendingEmails: PendingEmailJ
  */
 async function isEmailAlreadyStored(gmailId: string, gmailUser: string): Promise<boolean> {
     const pendingEmails = await loadPendingEmails(gmailUser);
-    return pendingEmails.some(job => job.gmailId === gmailId);
+    return pendingEmails.some((job) => job.gmailId === gmailId);
 }
 
 /**
@@ -201,7 +204,10 @@ async function storePendingEmailJob(job: PendingEmailJob, gmailUser: string): Pr
  * @param {string} gmailUser The Gmail user email.
  * @returns {object} Extracted metadata.
  */
-function extractEmailMetadata(message: any, gmailUser: string): {
+function extractEmailMetadata(
+    message: any,
+    gmailUser: string
+): {
     gmailId: string;
     subject: string;
     fromSender: string;
@@ -211,12 +217,12 @@ function extractEmailMetadata(message: any, gmailUser: string): {
     const subject = headers.find((h: any) => h.name === 'Subject')?.value || '';
     const from = headers.find((h: any) => h.name === 'From')?.value || '';
     const date = headers.find((h: any) => h.name === 'Date')?.value || '';
-    
+
     return {
         gmailId: message.id,
         subject: subject.trim(),
         fromSender: from.trim(),
-        receivedDate: date.trim()
+        receivedDate: date.trim(),
     };
 }
 
@@ -228,11 +234,11 @@ function extractEmailMetadata(message: any, gmailUser: string): {
 function isChatterboxEmail(message: any): boolean {
     const headers = message.payload?.headers || [];
     const subject = headers.find((h: any) => h.name === 'Subject')?.value || '';
-    
+
     // Check if subject starts with "chatterbox" (case insensitive, ignoring leading whitespace)
     const trimmedSubject = subject.trim();
     const subjectLower = trimmedSubject.toLowerCase();
-    
+
     // Check if "chatterbox" is the first standalone word in the subject
     if (subjectLower.startsWith('chatterbox')) {
         // Check if it's followed by whitespace or end of string
@@ -241,7 +247,7 @@ function isChatterboxEmail(message: any): boolean {
             return true;
         }
     }
-    
+
     return false;
 }
 
@@ -260,7 +266,7 @@ export async function pollGmail(
     const totalPollCyclesPath = config.google.totalPollCyclesPath;
 
     let lastHistoryId: string | null = null;
-    let totalPollCycles: number = 0;
+    let totalPollCycles = 0;
 
     try {
         lastHistoryId = await fs.readFile(lastHistoryIdPath, 'utf8');
@@ -317,15 +323,15 @@ export async function pollGmail(
                         });
 
                         const fullMessage = messageResponse.data;
-                        
+
                         if (isChatterboxEmail(fullMessage)) {
                             logWithTimestamp(`Found Chatterbox email: ${messageRef.id}`);
                             newMessages.push(messageRef.id);
-                            
+
                             // Check if already stored
                             if (!(await isEmailAlreadyStored(messageRef.id, gmailUser))) {
                                 const metadata = extractEmailMetadata(fullMessage, gmailUser);
-                                
+
                                 // Store as pending job
                                 const pendingJob: PendingEmailJob = {
                                     pk: `PENDING_EMAIL#${messageRef.id}`,
@@ -337,14 +343,16 @@ export async function pollGmail(
                                     receivedDate: metadata.receivedDate,
                                     createdAt: new Date().toISOString(),
                                     status: 'pending',
-                                    retryCount: 0
+                                    retryCount: 0,
                                 };
-                                
+
                                 await storePendingEmailJob(pendingJob, gmailUser);
                                 chatterboxEmailIds.push(messageRef.id);
                                 logWithTimestamp(`Stored Chatterbox email ID: ${messageRef.id}`);
                             } else {
-                                logWithTimestamp(`Chatterbox email already stored: ${messageRef.id}`);
+                                logWithTimestamp(
+                                    `Chatterbox email already stored: ${messageRef.id}`
+                                );
                             }
                             chatterboxCount++;
                         }
@@ -388,7 +396,7 @@ export async function pollGmail(
                                 const messageId = message.message.id;
                                 logWithTimestamp(`New message ID: ${messageId}`);
                                 newMessages.push(messageId);
-                                
+
                                 // Get full message details
                                 try {
                                     const messageResponse = await gmail.users.messages.get({
@@ -397,17 +405,22 @@ export async function pollGmail(
                                         format: 'full',
                                         metadataHeaders: ['Subject', 'From', 'Date'],
                                     });
-                                    
+
                                     const fullMessage = messageResponse.data;
-                                    
+
                                     // Check if it's a Chatterbox email
                                     if (isChatterboxEmail(fullMessage)) {
-                                        logWithTimestamp(`Processing Chatterbox email: ${messageId}`);
-                                        
+                                        logWithTimestamp(
+                                            `Processing Chatterbox email: ${messageId}`
+                                        );
+
                                         // Check if already stored
                                         if (!(await isEmailAlreadyStored(messageId, gmailUser))) {
-                                            const metadata = extractEmailMetadata(fullMessage, gmailUser);
-                                            
+                                            const metadata = extractEmailMetadata(
+                                                fullMessage,
+                                                gmailUser
+                                            );
+
                                             // Store as pending job
                                             const pendingJob: PendingEmailJob = {
                                                 pk: `PENDING_EMAIL#${messageId}`,
@@ -419,20 +432,29 @@ export async function pollGmail(
                                                 receivedDate: metadata.receivedDate,
                                                 createdAt: new Date().toISOString(),
                                                 status: 'pending',
-                                                retryCount: 0
+                                                retryCount: 0,
                                             };
-                                            
+
                                             await storePendingEmailJob(pendingJob, gmailUser);
                                             chatterboxEmailIds.push(messageId);
-                                            logWithTimestamp(`Stored Chatterbox email ID: ${messageId}`);
+                                            logWithTimestamp(
+                                                `Stored Chatterbox email ID: ${messageId}`
+                                            );
                                         } else {
-                                            logWithTimestamp(`Chatterbox email already stored: ${messageId}`);
+                                            logWithTimestamp(
+                                                `Chatterbox email already stored: ${messageId}`
+                                            );
                                         }
                                     } else {
-                                        logWithTimestamp(`Skipping non-Chatterbox email: ${messageId}`);
+                                        logWithTimestamp(
+                                            `Skipping non-Chatterbox email: ${messageId}`
+                                        );
                                     }
                                 } catch (error) {
-                                    logWithTimestamp(`Error processing message ${messageId}:`, error);
+                                    logWithTimestamp(
+                                        `Error processing message ${messageId}:`,
+                                        error
+                                    );
                                 }
                             }
                         }
@@ -448,7 +470,9 @@ export async function pollGmail(
                 logWithTimestamp(
                     'Error fetching Gmail history (possibly invalid history ID or first run). Resetting history ID.'
                 );
-                await fs.unlink(lastHistoryIdPath).catch(() => {}); // Attempt to delete, ignore if not found
+                await fs
+                    .unlink(lastHistoryIdPath)
+                    .catch((err) => logWithTimestamp('Failed to delete lastHistoryIdPath:', err)); // Attempt to delete, log if not found
             } else {
                 logWithTimestamp('Error fetching new emails:', err);
                 throw error;
@@ -473,9 +497,15 @@ async function main(): Promise<void> {
         logWithTimestamp('Cleaning up previous authorization and state...');
         try {
             // Delete google_tokens.json and last_history_id.txt for the current user
-            await fs.unlink(config.google.pollTokenPath).catch(() => {});
-            await fs.unlink(config.google.lastHistoryIdPath).catch(() => {});
-            await fs.unlink(config.google.totalPollCyclesPath).catch(() => {});
+            await fs
+                .unlink(config.google.pollTokenPath)
+                .catch((err) => logWithTimestamp('Failed to delete pollTokenPath:', err));
+            await fs
+                .unlink(config.google.lastHistoryIdPath)
+                .catch((err) => logWithTimestamp('Failed to delete lastHistoryIdPath:', err));
+            await fs
+                .unlink(config.google.totalPollCyclesPath)
+                .catch((err) => logWithTimestamp('Failed to delete totalPollCyclesPath:', err));
 
             logWithTimestamp(
                 'Cleanup complete. Please re-run the script to re-authorize and start fresh.'
@@ -500,7 +530,7 @@ async function main(): Promise<void> {
         if (result.newMessages.length > 0) {
             logWithTimestamp('New message IDs:', result.newMessages);
         }
-        
+
         if (result.chatterboxEmailIds.length > 0) {
             logWithTimestamp('New Chatterbox email IDs:', result.chatterboxEmailIds);
         }
