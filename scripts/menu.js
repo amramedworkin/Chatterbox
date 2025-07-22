@@ -46,8 +46,8 @@ const MENU_STRUCTURE = {
                     {
                         id: 'deploy-complete',
                         name: 'Deploy Complete System',
-                        description: `Deploy all AWS infrastructure and setup SES${SHOW_SCRIPTS ? `\n${colors.yellow}Script: npm run aws:deploy:complete (bash Cloud/AWS/scripts/deploy-complete.sh)${colors.reset}` : ''}`,
-                        command: 'aws:deploy:complete',
+                        description: `Deploy all AWS infrastructure and setup SES${SHOW_SCRIPTS ? `\n${colors.yellow}Script: npm run aws:deploy (bash Cloud/AWS/scripts/deploy-complete.sh)${colors.reset}` : ''}`,
+                        command: 'aws:deploy',
                         type: 'script'
                     },
                     {
