@@ -8,6 +8,7 @@ declare interface GoogleConfig {
     totalPollCyclesPath: string;
     scopes: string[];
     redirectUri: string;
+    optionalEmails?: string[]; // Optional email addresses for authentication
 }
 
 declare interface PollingConfig {

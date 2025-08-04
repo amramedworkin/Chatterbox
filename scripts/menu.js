@@ -118,8 +118,8 @@ const MENU_STRUCTURE = {
             },
             {
                 id: 'standalone-actions',
-                name: 'Standalone Actions (3 items)',
-                description: 'Independent operations for authentication and token management',
+                name: 'Standalone Actions (4 items)',
+                description: 'Independent operations for authentication, token management, and AWS setup',
                 type: 'category',
                 submenu: [
                     {
@@ -141,6 +141,13 @@ const MENU_STRUCTURE = {
                         name: 'Authenticate Only (No Migration)',
                         description: `Authenticate all Gmail users without migrating tokens to AWS${SHOW_SCRIPTS ? `\n${colors.yellow}Script: npm run mail:auth-only (node scripts/authenticate-and-migrate.js --no-migrate)${colors.reset}` : ''}`,
                         command: 'mail:auth-only',
+                        type: 'script'
+                    },
+                    {
+                        id: 'aws-init-selective',
+                        name: 'Selective Migration Menu',
+                        description: `Interactive menu to select which migration components to execute${SHOW_SCRIPTS ? `\n${colors.yellow}Script: npm run aws:init:selective (node scripts/selective-migration.js)${colors.reset}` : ''}`,
+                        command: 'aws:init:selective',
                         type: 'script'
                     }
                 ]

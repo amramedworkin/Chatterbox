@@ -146,99 +146,111 @@ function extractEnvVarFromContent(content, envVarName) {
     return null;
 }
 
-async function populateSecrets(initPath) {
+async function populateSecrets(initPath, options = {}) {
     console.log('🔐 Populating AWS Secrets Manager...');
   
     try {
         // 1. Google OAuth Credentials
-        const googleCredentialsContent = loadFileFromInit(initPath, 'google_credentials.json');
-        if (googleCredentialsContent) {
-            const googleCredentials = JSON.parse(googleCredentialsContent);
-            
-            await createOrUpdateSecret(
-                `${ENVIRONMENT}-chatterbox-google-credentials`,
-                'Google OAuth credentials for Chatterbox Gmail integration',
-                JSON.stringify(googleCredentials),
-                [
-                    { Key: 'Product', Value: 'Chatterbox' },
-                    { Key: 'Subsystem', Value: 'mail' },
-                    { Key: 'Environment', Value: ENVIRONMENT },
-                    { Key: 'ManagedBy', Value: 'Terraform' }
-                ]
-            );
-            
-            printStatus('Google credentials stored in Secrets Manager');
-        } else {
-            printWarning('Google credentials not found in init folder');
-        }
-        
-        // 2. Gmail Tokens
-        const gmailTokensContent = loadFileFromInit(initPath, 'google_tokens.json');
-        if (gmailTokensContent) {
-            const gmailTokens = JSON.parse(gmailTokensContent);
-            
-            await createOrUpdateSecret(
-                `${ENVIRONMENT}-chatterbox-gmail-tokens`,
-                'Gmail OAuth tokens for Chatterbox',
-                JSON.stringify(gmailTokens),
-                [
-                    { Key: 'Product', Value: 'Chatterbox' },
-                    { Key: 'Subsystem', Value: 'mail' },
-                    { Key: 'Environment', Value: ENVIRONMENT },
-                    { Key: 'ManagedBy', Value: 'Terraform' }
-                ]
-            );
-            
-            printStatus('Gmail tokens stored in Secrets Manager');
-        } else {
-            // Create empty tokens if not found
-            const initialTokens = {
-                access_token: '',
-                refresh_token: '',
-                scope: 'https://www.googleapis.com/auth/gmail.readonly',
-                token_type: 'Bearer',
-                expiry_date: null
-            };
-            
-            await createOrUpdateSecret(
-                `${ENVIRONMENT}-chatterbox-gmail-tokens`,
-                'Gmail OAuth tokens for Chatterbox',
-                JSON.stringify(initialTokens),
-                [
-                    { Key: 'Product', Value: 'Chatterbox' },
-                    { Key: 'Subsystem', Value: 'mail' },
-                    { Key: 'Environment', Value: ENVIRONMENT },
-                    { Key: 'ManagedBy', Value: 'Terraform' }
-                ]
-            );
-            
-            printStatus('Gmail tokens secret created (empty, will be populated by OAuth)');
-        }
-        
-        // 3. OpenAI API Key
-        const envContent = loadEnvFileFromInit(initPath, '.env');
-        if (envContent) {
-            const openaiApiKey = extractEnvVarFromContent(envContent, 'OPENAI_API_KEY');
-            if (openaiApiKey) {
+        if (!options.googleCredentialsOnly) {
+            const googleCredentialsContent = loadFileFromInit(initPath, 'google_credentials.json');
+            if (googleCredentialsContent) {
+                const googleCredentials = JSON.parse(googleCredentialsContent);
+                
                 await createOrUpdateSecret(
-                    'chatterbox/openai-api-key',
-                    'OpenAI API key for Chatterbox application',
-                    openaiApiKey,
+                    `${ENVIRONMENT}-chatterbox-google-credentials`,
+                    'Google OAuth credentials for Chatterbox Gmail integration',
+                    JSON.stringify(googleCredentials),
                     [
                         { Key: 'Product', Value: 'Chatterbox' },
-                        { Key: 'Subsystem', Value: 'ai' },
-                        { Key: 'Provider', Value: 'openai' },
+                        { Key: 'Subsystem', Value: 'mail' },
                         { Key: 'Environment', Value: ENVIRONMENT },
                         { Key: 'ManagedBy', Value: 'Terraform' }
                     ]
                 );
                 
-                printStatus('OpenAI API key stored in Secrets Manager');
+                printStatus('Google credentials stored in Secrets Manager');
             } else {
-                printWarning('OpenAI API key not found in .env file');
+                printWarning('Google credentials not found in init folder');
             }
         } else {
-            printWarning('.env file not found in init folder');
+            printInfo('Skipping Google credentials as per --google-credentials-only flag');
+        }
+        
+        // 2. Gmail Tokens
+        if (!options.gmailTokensOnly) {
+            const gmailTokensContent = loadFileFromInit(initPath, 'google_tokens.json');
+            if (gmailTokensContent) {
+                const gmailTokens = JSON.parse(gmailTokensContent);
+                
+                await createOrUpdateSecret(
+                    `${ENVIRONMENT}-chatterbox-gmail-tokens`,
+                    'Gmail OAuth tokens for Chatterbox',
+                    JSON.stringify(gmailTokens),
+                    [
+                        { Key: 'Product', Value: 'Chatterbox' },
+                        { Key: 'Subsystem', Value: 'mail' },
+                        { Key: 'Environment', Value: ENVIRONMENT },
+                        { Key: 'ManagedBy', Value: 'Terraform' }
+                    ]
+                );
+                
+                printStatus('Gmail tokens stored in Secrets Manager');
+            } else {
+                // Create empty tokens if not found
+                const initialTokens = {
+                    access_token: '',
+                    refresh_token: '',
+                    scope: 'https://www.googleapis.com/auth/gmail.readonly',
+                    token_type: 'Bearer',
+                    expiry_date: null
+                };
+                
+                await createOrUpdateSecret(
+                    `${ENVIRONMENT}-chatterbox-gmail-tokens`,
+                    'Gmail OAuth tokens for Chatterbox',
+                    JSON.stringify(initialTokens),
+                    [
+                        { Key: 'Product', Value: 'Chatterbox' },
+                        { Key: 'Subsystem', Value: 'mail' },
+                        { Key: 'Environment', Value: ENVIRONMENT },
+                        { Key: 'ManagedBy', Value: 'Terraform' }
+                    ]
+                );
+                
+                printStatus('Gmail tokens secret created (empty, will be populated by OAuth)');
+            }
+        } else {
+            printInfo('Skipping Gmail tokens as per --gmail-tokens-only flag');
+        }
+        
+        // 3. OpenAI API Key
+        if (!options.openaiKeyOnly) {
+            const envContent = loadEnvFileFromInit(initPath, '.env');
+            if (envContent) {
+                const openaiApiKey = extractEnvVarFromContent(envContent, 'OPENAI_API_KEY');
+                if (openaiApiKey) {
+                    await createOrUpdateSecret(
+                        'chatterbox/openai-api-key',
+                        'OpenAI API key for Chatterbox application',
+                        openaiApiKey,
+                        [
+                            { Key: 'Product', Value: 'Chatterbox' },
+                            { Key: 'Subsystem', Value: 'ai' },
+                            { Key: 'Provider', Value: 'openai' },
+                            { Key: 'Environment', Value: ENVIRONMENT },
+                            { Key: 'ManagedBy', Value: 'Terraform' }
+                        ]
+                    );
+                    
+                    printStatus('OpenAI API key stored in Secrets Manager');
+                } else {
+                    printWarning('OpenAI API key not found in .env file');
+                }
+            } else {
+                printWarning('.env file not found in init folder');
+            }
+        } else {
+            printInfo('Skipping OpenAI key as per --openai-key-only flag');
         }
         
     } catch (error) {
@@ -452,12 +464,29 @@ async function main() {
     const args = process.argv.slice(2);
     const folderName = args[0] || null; // First argument is the folder name
     
+    // Check for selective migration flags
+    const configOnly = args.includes('--config-only');
+    const googleCredentialsOnly = args.includes('--google-credentials-only');
+    const gmailTokensOnly = args.includes('--gmail-tokens-only');
+    const openaiKeyOnly = args.includes('--openai-key-only');
+    
+    const selectiveMode = configOnly || googleCredentialsOnly || gmailTokensOnly || openaiKeyOnly;
+    
     console.log(`🚀 Populating AWS resources for environment: ${ENVIRONMENT}`);
     if (folderName) {
         console.log(`📁 Using init folder: ${folderName}`);
     } else {
         console.log(`📁 Using most recent init folder`);
     }
+    
+    if (selectiveMode) {
+        console.log(`🔧 Selective migration mode enabled`);
+        if (configOnly) console.log(`   - Configuration file only`);
+        if (googleCredentialsOnly) console.log(`   - Google credentials only`);
+        if (gmailTokensOnly) console.log(`   - Gmail tokens only`);
+        if (openaiKeyOnly) console.log(`   - OpenAI key only`);
+    }
+    
     console.log('='.repeat(60));
     
     try {
@@ -475,12 +504,23 @@ async function main() {
             console.log(`Failed: ${manifest.summary.failed}`);
         }
         
-        await populateSecrets(initPath);
-        console.log('');
-        await populateParameters(initPath);
+        if (selectiveMode) {
+            // Selective migration based on flags
+            if (googleCredentialsOnly || gmailTokensOnly || openaiKeyOnly) {
+                await populateSecrets(initPath, { googleCredentialsOnly, gmailTokensOnly, openaiKeyOnly });
+            }
+            if (configOnly) {
+                await populateParameters(initPath);
+            }
+        } else {
+            // Full migration
+            await populateSecrets(initPath);
+            console.log('');
+            await populateParameters(initPath);
+        }
         
         console.log('');
-        printStatus('Successfully populated AWS Secrets Manager and Parameter Store!');
+        printStatus('Successfully populated AWS resources!');
         console.log('');
         console.log('📋 Next steps:');
         console.log('1. Run the OAuth flow to populate Gmail tokens (if needed)');

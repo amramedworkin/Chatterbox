@@ -8,6 +8,18 @@ import chalk from 'chalk';
 
 import { AppConfig } from '../types/config';
 
+// Helper function to generate timestamp in yyyymmdd_hhmmss format
+function generateTimestamp(): string {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    const seconds = String(now.getSeconds()).padStart(2, '0');
+    return `${year}${month}${day}_${hours}${minutes}${seconds}`;
+}
+
 // Define an interface for the token data structure, allowing null for optional properties
 interface TokenData {
     [email: string]: {
@@ -17,6 +29,7 @@ interface TokenData {
         token_type: string;
         expiry_date: number | null;
         id_token?: string | null;
+        last_updated?: string; // Format: yyyymmdd_hhmmss
     };
 }
 
@@ -42,6 +55,7 @@ export async function readTokenData(tokenPath: string): Promise<TokenData> {
                     token_type: data.token_type,
                     expiry_date: data.expiry_date,
                     id_token: data.id_token,
+                    last_updated: generateTimestamp(),
                 },
             };
             // Write the migrated data back to the file
@@ -240,7 +254,10 @@ export async function authorizeGmail(
             console.log(`  - Token type: ${newTokens.token_type || 'Not specified'}`);
             console.log(`  - Expiry date: ${newTokens.expiry_date || 'Not specified'}`);
 
-            tokenData[email] = newTokens as TokenData[string];
+            tokenData[email] = {
+                ...newTokens,
+                last_updated: generateTimestamp()
+            } as TokenData[string];
             await writeTokenData(tokenPath, tokenData);
             console.log(`✅ [AUTH DEBUG] Authorization completed successfully for ${email}`);
             return oAuth2Client;
@@ -302,7 +319,10 @@ export async function authorizeGmail(
             console.log(`  - Token type: ${newTokens.token_type || 'Not specified'}`);
             console.log(`  - Expiry date: ${newTokens.expiry_date || 'Not specified'}`);
 
-            tokenData[email] = newTokens as TokenData[string];
+            tokenData[email] = {
+                ...newTokens,
+                last_updated: generateTimestamp()
+            } as TokenData[string];
             await writeTokenData(tokenPath, tokenData);
         }
     } else {
@@ -319,7 +339,10 @@ export async function authorizeGmail(
         console.log(`  - Token type: ${newTokens.token_type || 'Not specified'}`);
         console.log(`  - Expiry date: ${newTokens.expiry_date || 'Not specified'}`);
 
-        tokenData[email] = newTokens as TokenData[string];
+        tokenData[email] = {
+                ...newTokens,
+                last_updated: generateTimestamp()
+            } as TokenData[string];
         await writeTokenData(tokenPath, tokenData);
     }
 

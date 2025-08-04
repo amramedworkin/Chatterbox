@@ -15,7 +15,11 @@
       "https://www.googleapis.com/auth/gmail.readonly",
       "https://www.googleapis.com/auth/gmail.send"
     ],
-    "redirectUri": "http://localhost:3000"
+    "redirectUri": "http://localhost:3000",
+    "optionalEmails": [
+      "isnotmynameatall.gmail.com",
+      "newyork.minute@gmail.com"
+    ]
   },
   "polling": {
     "defaultIntervalMinutes": 2.0,

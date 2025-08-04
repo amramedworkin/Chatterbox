@@ -110,6 +110,7 @@ const config: AppConfig = {
             'google.redirectUri',
             'http://localhost:3000'
         ),
+        optionalEmails: appDefaults.google?.optionalEmails || [],
     },
     polling: {
         defaultIntervalMinutes: getOrDefault(

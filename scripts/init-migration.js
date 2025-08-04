@@ -439,6 +439,10 @@ function listInitFolderFiles(folderPath) {
 }
 
 async function main() {
+    // Parse command line arguments for selective migration
+    const args = process.argv.slice(2);
+    const migrationPoints = args.length > 0 ? args[0].split(',').map(s => s.trim()) : null;
+    
     printHeader('🚀 Chatterbox Migration Initialization');
     console.log('This script will help you prepare for data migration by:');
     console.log('1. Checking all prerequisites are in place');
@@ -449,6 +453,10 @@ async function main() {
     console.log('6. Copying files to the named folder');
     console.log('7. Initializing default values for counter files');
     console.log('8. Preparing for new migration script');
+
+    if (migrationPoints) {
+        console.log(`\n🔧 Selective migration mode enabled for: ${migrationPoints.join(', ')}`);
+    }
 
     // Step 0: Run prerequisite checks
     printHeader('🔍 Checking Prerequisites');
@@ -511,10 +519,21 @@ async function main() {
         // Step 4: Initialize default values for counter files
         initializeDefaultValues(folderPath);
 
-        // Step 5: Walk through migration items
+        // Step 5: Walk through migration items (selective or all)
         const migrationResults = [];
+        const itemsToProcess = migrationPoints 
+            ? migrationItems.filter(item => migrationPoints.includes(item.key || item.name.toLowerCase().replace(/\s+/g, '_')))
+            : migrationItems;
 
-        for (const item of migrationItems) {
+        if (migrationPoints && itemsToProcess.length === 0) {
+            printWarning(`No matching migration items found for: ${migrationPoints.join(', ')}`);
+            console.log('Available migration items:');
+            migrationItems.forEach(item => {
+                console.log(`  - ${item.key || item.name.toLowerCase().replace(/\s+/g, '_')}: ${item.name}`);
+            });
+        }
+
+        for (const item of itemsToProcess) {
             const result = await handleMigrationItem(item, folderPath);
             migrationResults.push({
                 name: item.name,
@@ -537,41 +556,26 @@ async function main() {
         console.log(`Total items: ${manifest.summary.total}`);
         console.log(`Successful: ${manifest.summary.successful}`);
         console.log(`Failed: ${manifest.summary.failed}`);
-        console.log(`Folder path: ${folderPath}`);
-
-        // At the end, summarize failed items with reasons
-        const failedItems = migrationResults.filter((item) => !item.success);
-        if (failedItems.length > 0) {
-            console.log('\n❌ The following items failed to migrate:');
-            failedItems.forEach((item) => {
-                console.log(`- ${item.name}: ${item.reason || 'Unknown reason'}`);
-            });
-        } else {
-            console.log('\n✅ All items migrated successfully.');
-
-            // Only show file listing if there were no errors
-            listInitFolderFiles(folderPath);
+        
+        if (migrationPoints) {
+            console.log(`Selective migration points: ${migrationPoints.join(', ')}`);
         }
 
-        printHeader('📋 Next Steps');
-        console.log('1. Review the files in the folder');
-        console.log('2. Verify all required data is present');
-        console.log('3. Run migration: npm run aws:init:migrate');
-        console.log('4. Test the migration process');
+        console.log(`\n📁 Files created in: ${folderPath}`);
+        listInitFolderFiles(folderPath);
 
-        printStatus('\nMigration initialization completed successfully!');
-        
-        return { 
-            success: manifest.summary.failed === 0, 
-            errors: failedItems.map(item => `${item.name}: ${item.reason || 'Unknown reason'}`),
-            folderPath,
-            manifest
-        };
+        console.log('\n🎉 Migration initialization completed successfully!');
+        console.log('\nNext steps:');
+        console.log('1. Review the files in the init folder');
+        console.log('2. Run the migration script: npm run aws:init:migrate');
+        console.log('3. Deploy to AWS: npm run aws:deploy');
+
+        rl.close();
+        return { success: true, manifest };
     } catch (error) {
         printError(`Migration initialization failed: ${error.message}`);
-        return { success: false, errors: [error.message] };
-    } finally {
         rl.close();
+        return { success: false, errors: [error.message] };
     }
 }
 

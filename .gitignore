@@ -40,6 +40,7 @@ build/Release
 
 # Dependency directories
 node_modules/
+**/node_modules/
 jspm_packages/
 
 # Snowpack dependency directory (https://snowpack.dev/)
@@ -224,6 +225,15 @@ terraform.rc
 **/aws-resource-inventory*.*
 # Migration initialization data
 data/init/
+
+# Cursor rules backup and history data
+data/cursor/
+
+# Backup and archived files
+backups/
+*.backup
+*_backup
+*_old.*
 
 # Ignore the AWS credentials file
 /Docs/Cloud/AWS/aws-account-into.txt

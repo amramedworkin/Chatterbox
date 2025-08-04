@@ -43,6 +43,12 @@
     "aws:init:migrate": "node Cloud/AWS/scripts/populate-secrets-from-init.js",
     "aws:init:clean": "bash scripts/clean-init-folders.sh",
     "aws:init:build": "npm run aws:init:prepare && npm run aws:init:migrate",
+    "aws:init:selective": "node scripts/selective-migration.js",
+    "aws:init:prepare:selective": "node scripts/init-migration.js",
+    "aws:init:migrate:config": "node scripts/migrate-config.js",
+    "aws:init:migrate:google-credentials": "node scripts/migrate-google-credentials.js",
+    "aws:init:migrate:gmail-tokens": "node scripts/migrate-gmail-tokens.js",
+    "aws:init:migrate:openai-key": "node scripts/migrate-openai-key.js",
     "aws:validate": "node scripts/validate-aws-system.js",
     "aws:validate:clean": "node scripts/validate-aws-system.js --clean",
     "aws:state": "node scripts/aws-state.js",
@@ -113,7 +119,8 @@
     "mail:respond": "ts-node src/mail/generateResponses.ts",
     "mail:reset:states": "node scripts/reset-email-states.js",
     "start": "npm run mail:poll",
-    "help": "open docs/SYSTEM_SETUP_AND_TEARDOWN.md"
+    "help": "open docs/SYSTEM_SETUP_AND_TEARDOWN.md",
+    "cursor:setup": "node scripts/setup-cursor-rules.js"
   },
   "dependencies": {
     "@aws-sdk/client-apigatewayv2": "^3.840.0",

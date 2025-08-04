@@ -111,7 +111,7 @@ async function main() {
         console.log(chalk.blue('🔑 Step 1: Authenticating Gmail users...'));
         console.log(chalk.cyan('-'.repeat(40)));
         
-        const authorizedClients = await authorizeAllGmailUsers(forceReauthorize);
+        const { clients: authorizedClients, results: authResults } = await authorizeAllGmailUsers(forceReauthorize);
         
         if (authorizedClients.size === 0) {
             console.log(chalk.yellow('   ⚠️  No Gmail users were authorized'));
