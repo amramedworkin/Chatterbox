@@ -150,6 +150,13 @@ dist
 .data/last_sent_email_number.txt
 .data/test/sendtest_last_sent_email_number.txt
 
+# Ignore large data files and runtime state
+data/generated_responses.json
+data/pending_emails_*.json
+data/sendtest_*.txt
+data/total_poll_cycles.txt
+data/state.json
+
 # ===============================
 # Secrets and Credentials (Global)
 # ===============================
