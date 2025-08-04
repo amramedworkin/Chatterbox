@@ -1,0 +1,70 @@
+@startuml Rules Flow Part 2: Creation Phase
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+
+LAYOUT_WITH_LEGEND()
+
+title Cursor Rules Creation: Part 2 - Creation Phase (Rule Generation & Documentation)
+
+' Define input from previous phase
+Component(refined_instructions, "AI-Refined Instructions", "cursor_instructions_to_create_rules_after_ai.txt", "Professional, AI-ready instructions")
+
+' Row 1: Rule Generation Phase (left to right)
+Container_Boundary(rule_generation_phase, "Phase 3: Rule Generation") {
+    Component(console_rules, "Console Rules", "CONSOLE_OUTPUT_DISPLAY_RULES.md", "357 lines - Display standards")
+    Component(menu_rules, "Menu Rules", "MENU_DASHBOARD_RULES.md", "295 lines - Dashboard standards")
+    Component(library_rules, "Library Rules", "LIBRARY_COMPONENT_RULES.md", "410 lines - Component standards")
+    Component(script_rules, "Script Rules", "SCRIPT_TYPE_RULES.md", "528 lines - Script type standards")
+    Component(package_rules, "Package Rules", "PACKAGE_SCRIPT_RULES.md", "535 lines - NPM script standards")
+}
+
+' Row 2: More Rule Generation (left to right)
+Container_Boundary(rule_generation_phase2, "Phase 3: Rule Generation (cont.)") {
+    Component(logging_rules, "Logging Rules", "CLOUDWATCH_LOGGING_RULES.md", "707 lines - Logging standards")
+    Component(init_rules, "Init Rules", "INITIALIZATION_RULES.md", "537 lines - Setup standards")
+    Component(config_rules, "Config Rules", "CONFIGURATION_MANAGEMENT_RULES.md", "537 lines - Config standards")
+    Component(folder_rules, "Folder Rules", "FOLDER_NAMING_RULES.md", "694 lines - Naming standards")
+}
+
+' Row 3: Documentation Phase (left to right)
+Container_Boundary(documentation_phase, "Phase 4: Documentation") {
+    Component(usage_guide, "Usage Guide", "docs/CURSOR_RULES_GUIDE.md", "Comprehensive usage instructions")
+    Component(implementation_summary, "Implementation Summary", "CURSOR_RULES_IMPLEMENTATION_SUMMARY.md", "Technical implementation details")
+    Component(confluence_package, "Confluence Package", "Cursor/Confluence/", "Documentation for team adoption")
+    Component(main_intro, "Main Intro", "Cursor_Rules_Project_Standardization.md", "Confluence landing page")
+}
+
+' Define relationships - Rule Generation
+refined_instructions --> console_rules: "Generates console rules"
+refined_instructions --> menu_rules: "Generates menu rules"
+refined_instructions --> library_rules: "Generates library rules"
+refined_instructions --> script_rules: "Generates script rules"
+refined_instructions --> package_rules: "Generates package rules"
+refined_instructions --> logging_rules: "Generates logging rules"
+refined_instructions --> init_rules: "Generates init rules"
+refined_instructions --> config_rules: "Generates config rules"
+refined_instructions --> folder_rules: "Generates folder rules"
+
+' Documentation relationships
+console_rules --> usage_guide: "Documents usage"
+menu_rules --> usage_guide: "Documents usage"
+library_rules --> usage_guide: "Documents usage"
+script_rules --> usage_guide: "Documents usage"
+package_rules --> usage_guide: "Documents usage"
+logging_rules --> usage_guide: "Documents usage"
+init_rules --> usage_guide: "Documents usage"
+config_rules --> usage_guide: "Documents usage"
+folder_rules --> usage_guide: "Documents usage"
+
+usage_guide --> implementation_summary: "Creates summary"
+usage_guide --> confluence_package: "Packages for Confluence"
+confluence_package --> main_intro: "Creates landing page"
+
+' Add process flow indicators
+note right of rule_generation_phase: **Creation Phase**\nGenerate comprehensive rule system
+note right of documentation_phase: **Documentation Phase**\nCreate comprehensive documentation
+
+' Add output note
+note right of confluence_package: **Output: Complete Documentation Package**\nReady for automation phase
+
+@enduml 

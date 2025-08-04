@@ -1,0 +1,82 @@
+@startuml Cursor Rules Creation Process
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+
+LAYOUT_WITH_LEGEND()
+
+title Cursor Rules Creation Process: From Mature Project to Comprehensive Rule Set
+
+' Define the main actors at the top
+Person(developer, "Developer", "Creates and manages cursor rules")
+Person(ai, "Cursor AI", "Assists in rule creation and refinement")
+
+' Row 1: Foundation Phase (left to right)
+Container_Boundary(phase1, "Phase 1: Project Analysis") {
+    Container(project, "Mature Project", "Chatterbox", "Well-functioning project with proven patterns")
+    Container(analysis, "Pattern Analysis", "Code Review", "Identifies successful practices and patterns")
+}
+
+Container_Boundary(phase2, "Phase 2: Instruction Creation") {
+    Container(raw_instructions, "Raw Instructions", "cursor_instructions_to_create_rules.txt", "Initial draft of rule creation instructions")
+    Container(refined_instructions, "AI-Refined Instructions", "cursor_instructions_to_create_rules_after_ai.txt", "Professional, AI-ready instructions")
+}
+
+' Row 2: Creation Phase (left to right)
+Container_Boundary(phase3, "Phase 3: Rule Generation") {
+    Container(rule_files, "Rule Files", "Cursor/*.md", "9 specialized rule files (4,600+ lines)")
+    Container(rule_categories, "Rule Categories", "Specialized Areas", "Console, Menu, Library, Script, Package, Logging, Init, Config, Folder")
+}
+
+Container_Boundary(phase4, "Phase 4: Documentation") {
+    Container(usage_guide, "Usage Guide", "docs/CURSOR_RULES_GUIDE.md", "Comprehensive usage instructions")
+    Container(confluence_docs, "Confluence Package", "Cursor/Confluence/", "Documentation for team adoption")
+}
+
+' Row 3: Deployment Phase (left to right)
+Container_Boundary(phase5, "Phase 5: Automation & Control") {
+    Container(setup_scripts, "Setup Scripts", "Automation", "Rule installation and management scripts")
+    Container(version_control, "Version Control", "Git + Backups", "Timestamped backups and change tracking")
+}
+
+Container_Boundary(phase6, "Phase 6: Integration & Deployment") {
+    Container(git_repo, "Git Repository", "Remote Storage", "Stores all rules and documentation")
+    Container(team_ready, "Team Ready", "Production", "Rules available for team use")
+}
+
+' Define relationships - Row 1 (Foundation)
+developer --> project: "Identifies mature project"
+developer --> analysis: "Analyzes patterns"
+analysis --> raw_instructions: "Documents requirements"
+developer --> ai: "Requests refinement"
+ai --> refined_instructions: "Improves instructions"
+
+' Row 2 (Creation)
+refined_instructions --> rule_files: "Generates rules"
+rule_files --> rule_categories: "Organizes by category"
+rule_categories --> usage_guide: "Creates documentation"
+usage_guide --> confluence_docs: "Packages for Confluence"
+
+' Row 3 (Deployment)
+confluence_docs --> setup_scripts: "Creates automation"
+setup_scripts --> version_control: "Implements backup"
+version_control --> git_repo: "Commits and pushes"
+git_repo --> team_ready: "Makes available"
+
+' Add success metrics
+note right of team_ready
+  **Final Results:**
+  ✅ 9 specialized rule files
+  ✅ 4,600+ lines of rules
+  ✅ Complete documentation
+  ✅ Automation scripts
+  ✅ Version control
+  ✅ Confluence package
+  ✅ AI-ready instructions
+end note
+
+' Add process flow indicators
+note right of phase1: **Foundation Phase**\nEstablish base for rule creation
+note right of phase3: **Creation Phase**\nGenerate comprehensive rule system
+note right of phase5: **Deployment Phase**\nMake rules available for team use
+
+@enduml 

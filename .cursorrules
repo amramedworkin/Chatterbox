@@ -6,113 +6,113 @@ This project follows comprehensive development standards with extensive automati
 ## Core Development Principles
 
 ### Project Management
-- Follow the comprehensive project management rules defined in `Cursor/PROJECT_MANAGEMENT_RULES.md`
+- Follow the comprehensive project management rules defined in `Cursor/rules/PROJECT_MANAGEMENT_RULES.md`
 - All operations must be fully automated and scripted
 - Use the menu system (`scripts/menu.js`) for all system operations
 - Maintain comprehensive documentation for all features and processes
 
 ### Local Development
-- Follow the local development rules defined in `Cursor/LOCAL_DEVELOPMENT_RULES.md`
+- Follow the local development rules defined in `Cursor/rules/LOCAL_DEVELOPMENT_RULES.md`
 - Use configuration-first approach with `config.json` as primary configuration source
 - Minimize environment variable usage
 - All local operations must be scripted and automated
 
 ### Cloud Infrastructure
-- **AWS**: Follow the AWS cloud rules defined in `Cursor/AWS_CLOUD_RULES.md`
+- **AWS**: Follow the AWS cloud rules defined in `Cursor/rules/AWS_CLOUD_RULES.md`
   - Use serverless architecture (Lambda, API Gateway, DynamoDB, S3, SES)
   - Implement infrastructure as code with Terraform
   - Script everything that cannot be terraformed
   - Use AWS Bedrock for AI components when available
 
-- **Azure**: Follow the Azure cloud rules defined in `Cursor/AZURE_CLOUD_RULES.md`
+- **Azure**: Follow the Azure cloud rules defined in `Cursor/rules/AZURE_CLOUD_RULES.md`
   - Use Azure Functions, Cosmos DB, Blob Storage, SendGrid
   - Use Azure Configuration Provider (ACP) for configurable resources
   - Script remaining operations not supported by ACP
   - Use Azure AI/ML services when available
 
 ### AI Integration
-- Follow the AI integration rules defined in `Cursor/AI_INTEGRATION_RULES.md`
+- Follow the AI integration rules defined in `Cursor/rules/AI_INTEGRATION_RULES.md`
 - Use direct OpenAI API calls as default for AI services
 - Use AWS Bedrock for AI components when on AWS
 - Use Azure AI/ML services when on Azure
 - Store all AI configuration in `config.json`
 
 ### Scripting and Automation
-- Follow the scripting and automation rules defined in `Cursor/SCRIPTING_AUTOMATION_RULES.md`
+- Follow the scripting and automation rules defined in `Cursor/rules/SCRIPTING_AUTOMATION_RULES.md`
 - Every operation must be fully scripted - no manual operations allowed
 - Use the menu system for all system operations
 - Implement comprehensive error handling and recovery
 - All deployments must be fully automated
 
 ### Testing and Quality
-- Follow the testing and quality rules defined in `Cursor/TESTING_QUALITY_RULES.md`
+- Follow the testing and quality rules defined in `Cursor/rules/TESTING_QUALITY_RULES.md`
 - Implement comprehensive testing including unit, integration, E2E, and performance tests
 - Use Jest, custom scripts, and manual processes as appropriate
 - All code must pass ESLint without errors
 - Maintain high test coverage for critical components
 
 ### Documentation Standards
-- Follow the documentation standards defined in `Cursor/DOCUMENTATION_STANDARDS_RULES.md`
+- Follow the documentation standards defined in `Cursor/rules/DOCUMENTATION_STANDARDS_RULES.md`
 - Document all features, processes, design decisions, and operational procedures
 - Use Markdown format for all documentation
 - Follow established naming conventions in `docs/DOCUMENTATION_CONVENTIONS.md`
 - Keep documentation synchronized with code changes
 
 ### Console Output and Display
-- Follow the console output and display rules defined in `Cursor/CONSOLE_OUTPUT_DISPLAY_RULES.md`
+- Follow the console output and display rules defined in `Cursor/rules/CONSOLE_OUTPUT_DISPLAY_RULES.md`
 - Use consistent color schemes and display patterns
 - Implement comprehensive logging and status reporting
 - Support both dark and light terminal backgrounds
 - Use standardized display functions and emoji patterns
 
 ### Menu Dashboard System
-- Follow the menu dashboard rules defined in `Cursor/MENU_DASHBOARD_RULES.md`
+- Follow the menu dashboard rules defined in `Cursor/rules/MENU_DASHBOARD_RULES.md`
 - Use centralized menu system for all operations
 - Implement hierarchical menu organization
 - Provide clear navigation and user feedback
 - Maintain extensible menu architecture
 
 ### Library and Component Selection
-- Follow the library and component rules defined in `Cursor/LIBRARY_COMPONENT_RULES.md`
+- Follow the library and component rules defined in `Cursor/rules/LIBRARY_COMPONENT_RULES.md`
 - Use preferred library set for consistency
 - Allow extension of library list for new requirements
 - Evaluate new libraries before adoption
 - Document all library choices and rationale
 
 ### Script Type Selection
-- Follow the script type rules defined in `Cursor/SCRIPT_TYPE_RULES.md`
+- Follow the script type rules defined in `Cursor/rules/SCRIPT_TYPE_RULES.md`
 - Prefer TypeScript over JavaScript for new development
 - Use shell scripts for system-level operations
 - Use JavaScript/TypeScript for complex business logic
 - Follow established decision matrix for script type selection
 
 ### Package.json Script Management
-- Follow the package.json script rules defined in `Cursor/PACKAGE_SCRIPT_RULES.md`
+- Follow the package.json script rules defined in `Cursor/rules/PACKAGE_SCRIPT_RULES.md`
 - Use consistent naming conventions (category:subcategory:operation)
 - Maintain comprehensive script documentation
 - Implement proper error handling and validation
 - Ensure all operations are accessible via npm scripts
 
 ### CloudWatch Logging and Monitoring
-- Follow the CloudWatch logging rules defined in `Cursor/CLOUDWATCH_LOGGING_RULES.md`
+- Follow the CloudWatch logging rules defined in `Cursor/rules/CLOUDWATCH_LOGGING_RULES.md`
 - Implement centralized logging in CloudWatch
 - Use structured JSON format for all logs
 - Implement comprehensive metrics and alarms
 - Use Azure Application Insights equivalents when on Azure
 
 ### Initialization and Configuration Management
-- Follow the initialization rules defined in `Cursor/INITIALIZATION_RULES.md`
+- Follow the initialization rules defined in `Cursor/rules/INITIALIZATION_RULES.md`
 - Use consistent initialization process across environments
 - Maintain configuration history and rollback capabilities
 - Implement proper validation and testing
 - Use data/init folder concept for configuration management
-- Follow the configuration management rules defined in `Cursor/CONFIGURATION_MANAGEMENT_RULES.md`
+- Follow the configuration management rules defined in `Cursor/rules/CONFIGURATION_MANAGEMENT_RULES.md`
 - Implement safe configuration modification procedures
 - Maintain comprehensive configuration versioning and backup
 - Use approval processes for critical configuration changes
 
 ### Folder Naming and Organization
-- Follow the folder naming rules defined in `Cursor/FOLDER_NAMING_RULES.md`
+- Follow the folder naming rules defined in `Cursor/rules/FOLDER_NAMING_RULES.md`
 - Use consistent timestamp format (yyyymmdd_hhmmss)
 - Implement proper version naming (current vs historical)
 - Use descriptive and readable folder names

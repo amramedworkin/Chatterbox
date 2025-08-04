@@ -1,0 +1,51 @@
+@startuml Rules Flow Part 3: Deployment Phase
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+
+LAYOUT_WITH_LEGEND()
+
+title Cursor Rules Creation: Part 3 - Deployment Phase (Automation & Integration)
+
+' Define input from previous phase
+Component(confluence_package, "Confluence Package", "Cursor/Confluence/", "Documentation for team adoption")
+
+' Row 1: Automation & Deployment (left to right)
+Container_Boundary(automation_phase, "Phase 5: Automation & Control") {
+    Component(setup_scripts, "Setup Scripts", "Automation", "Rule installation and management scripts")
+    Component(backup_system, "Backup System", "Timestamped Folders", "data/cursor/ide_<timestamp>/")
+    Component(version_control, "Version Control", "Git + Backups", "Timestamped backups and change tracking")
+}
+
+Container_Boundary(deployment_phase, "Phase 6: Integration & Deployment") {
+    Component(git_repo, "Git Repository", "Remote Storage", "Stores all rules and documentation")
+    Component(main_branch, "Main Branch", "Production", "Rules integrated into main branch")
+    Component(team_ready, "Team Ready", "Production", "Rules available for team use")
+}
+
+' Define relationships - Deployment Phase
+confluence_package --> setup_scripts: "Creates automation"
+setup_scripts --> backup_system: "Implements backup"
+setup_scripts --> version_control: "Implements version control"
+version_control --> git_repo: "Commits and pushes"
+git_repo --> main_branch: "Merges to main"
+main_branch --> team_ready: "Makes available"
+
+' Add process flow indicators
+note right of automation_phase: **Automation Phase**\nImplement automation and control
+note right of deployment_phase: **Deployment Phase**\nMake rules available for team use
+
+' Add success metrics
+note right of team_ready
+  **Final Results:**
+  ✅ 9 specialized rule files (4,600+ lines)
+  ✅ Complete documentation package
+  ✅ Confluence-ready materials
+  ✅ Proper git ignore patterns
+  ✅ Version control implementation
+  ✅ Ready for team adoption
+end note
+
+' Add input note
+note left of confluence_package: **Input: Complete Documentation Package**\nFrom creation phase
+
+@enduml 

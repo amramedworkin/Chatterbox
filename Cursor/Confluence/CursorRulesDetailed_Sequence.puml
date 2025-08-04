@@ -1,0 +1,130 @@
+@startuml Cursor Rules Detailed Sequence
+!theme plain
+skinparam backgroundColor #F8F9FA
+skinparam defaultFontName Arial
+skinparam defaultFontSize 10
+skinparam roundcorner 12
+skinparam shadowing false
+
+title Detailed Cursor Rules Creation: Step-by-Step Process
+
+start
+
+:🔍 **Identify Mature Project** (Chatterbox);
+note right: Project demonstrates:\n• AWS serverless architecture\n• Comprehensive automation\n• Configuration management\n• Quality practices\n• Documentation standards
+
+:📊 **Analyze Existing Codebase**;
+note right: Review:\n• Project structure\n• Development patterns\n• Automation approaches\n• Configuration strategies\n• Documentation practices
+
+:📝 **Create Raw Instructions**;
+note right: cursor_instructions_to_create_rules.txt\n• Define rule categories\n• Specify requirements\n• Outline process steps\n• Document expectations
+
+:🤖 **Use Cursor AI to Refine Instructions**;
+note right: Request AI to:\n• Clean up language\n• Improve structure\n• Add missing details\n• Make AI-ready
+
+:✨ **Generate AI-Refined Instructions**;
+note right: cursor_instructions_to_create_rules_after_ai.txt\n• Professional language\n• Clear structure\n• Comprehensive coverage\n• AI-optimized format
+
+:⚙️ **Create Rule Files Based on Instructions**;
+note right: Generate 9 specialized rule files:\n• Console Output & Display Rules\n• Menu Dashboard Rules\n• Library & Component Rules\n• Script Type Rules\n• Package.json Script Rules\n• CloudWatch Logging Rules\n• Initialization Rules\n• Configuration Management Rules\n• Folder Naming Rules
+
+:🔗 **Update Main .cursorrules File**;
+note right: Add references to:\n• All new rule files\n• Integration points\n• Usage guidelines
+
+:📚 **Create Comprehensive Usage Guide**;
+note right: docs/CURSOR_RULES_GUIDE.md\n• Rule explanations\n• Setup instructions\n• Usage examples\n• Troubleshooting
+
+:📋 **Create Implementation Summary**;
+note right: CURSOR_RULES_IMPLEMENTATION_SUMMARY.md\n• Implementation status\n• File statistics\n• Compliance verification\n• Results summary
+
+:📖 **Create Confluence Documentation Package**;
+note right: Cursor/Confluence/\n• Main introductory page\n• AI-ready instructions\n• Usage guide copy\n• Implementation summary\n• README for package
+
+:🔒 **Update .gitignore for Large Files**;
+note right: Add exclusions for:\n• Runtime data files\n• Generated responses\n• Test state files\n• Backup folders
+
+:🗑️ **Remove Large Files from Tracking**;
+note right: git rm --cached:\n• data/generated_responses.json\n• data/pending_emails_*.json\n• data/sendtest_*.txt\n• data/state.json
+
+:💾 **Commit All Changes**;
+note right: Comprehensive commit with:\n• Rule files\n• Documentation\n• Git ignore updates\n• File cleanup
+
+:📤 **Push to Remote Repository**;
+note right: Push to ses_and_cursor_rules branch\n• All rule files\n• Complete documentation\n• Automation scripts\n• Version control
+
+:🔄 **Merge with Main Branch**;
+note right: git checkout main\ngit merge ses_and_cursor_rules\n• Fast-forward merge\n• No conflicts\n• All changes integrated
+
+:📤 **Push Updated Main**;
+note right: git push origin main\n• Rules system in main\n• Documentation available\n• Ready for team use
+
+:🌿 **Create New Development Branch**;
+note right: git checkout -b pre_ai_integration\n• Based on updated main\n• Ready for AI integration work\n• All rules available
+
+stop
+
+' Add decision points with visual styling
+if (Are there conflicts?) then (yes)
+  :🔧 **Resolve conflicts**;
+  :📝 **Update documentation**;
+else (no)
+  :✅ **Continue with merge**;
+endif
+
+if (Are all files properly ignored?) then (no)
+  :🔒 **Update .gitignore**;
+  :🗑️ **Remove tracked files**;
+else (yes)
+  :✅ **Proceed with commit**;
+endif
+
+if (Is documentation complete?) then (no)
+  :📝 **Add missing sections**;
+  :📋 **Update examples**;
+else (yes)
+  :✅ **Proceed with final commit**;
+endif
+
+' Add file structure notes with visual styling
+note over :⚙️ **Create Rule Files Based on Instructions**;
+  📁 **File Structure Created:**
+  ```
+  Cursor/
+  ├── AI_INTEGRATION_RULES.md
+  ├── AWS_CLOUD_RULES.md
+  ├── AZURE_CLOUD_RULES.md
+  ├── CLOUDWATCH_LOGGING_RULES.md
+  ├── CONFIGURATION_MANAGEMENT_RULES.md
+  ├── CONSOLE_OUTPUT_DISPLAY_RULES.md
+  ├── DOCUMENTATION_STANDARDS_RULES.md
+  ├── FOLDER_NAMING_RULES.md
+  ├── INITIALIZATION_RULES.md
+  ├── LIBRARY_COMPONENT_RULES.md
+  ├── LOCAL_DEVELOPMENT_RULES.md
+  ├── MENU_DASHBOARD_RULES.md
+  ├── PACKAGE_SCRIPT_RULES.md
+  ├── PROJECT_MANAGEMENT_RULES.md
+  ├── SCRIPTING_AUTOMATION_RULES.md
+  ├── SCRIPT_TYPE_RULES.md
+  ├── TESTING_QUALITY_RULES.md
+  └── Confluence/
+      ├── Cursor_Rules_Project_Standardization.md
+      ├── CURSOR_RULES_GUIDE.md
+      ├── CURSOR_RULES_IMPLEMENTATION_SUMMARY.md
+      ├── cursor_instructions_to_create_rules_after_ai.txt
+      └── README.md
+  ```
+end note
+
+' Add results summary with visual styling
+note over :🌿 **Create New Development Branch**;
+  🎯 **Final Results:**
+  ✅ 9 specialized rule files (4,600+ lines)
+  ✅ Complete documentation package
+  ✅ Confluence-ready materials
+  ✅ Proper git ignore patterns
+  ✅ Version control implementation
+  ✅ Ready for team adoption
+end note
+
+@enduml 

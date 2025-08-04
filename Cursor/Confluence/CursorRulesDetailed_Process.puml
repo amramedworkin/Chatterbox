@@ -1,0 +1,123 @@
+@startuml Cursor Rules Detailed Process
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+
+LAYOUT_WITH_LEGEND()
+
+title Detailed Cursor Rules Creation: Component-Level Process
+
+' Define the main actors at the top
+Person(developer, "Developer", "Creates and manages cursor rules")
+Person(ai, "Cursor AI", "Assists in rule creation and refinement")
+
+' Row 1: Foundation Phase (left to right)
+Container_Boundary(analysis_phase, "Phase 1: Project Analysis") {
+    Component(mature_project, "Mature Project", "Chatterbox", "Well-functioning project with proven patterns")
+    Component(pattern_analysis, "Pattern Analysis", "Code Review", "Identifies successful practices and patterns")
+    Component(requirement_docs, "Requirements", "Documentation", "Captures rule creation requirements")
+}
+
+Container_Boundary(instruction_phase, "Phase 2: Instruction Creation") {
+    Component(raw_instructions, "Raw Instructions", "cursor_instructions_to_create_rules.txt", "Initial draft of rule creation instructions")
+    Component(ai_refinement, "AI Refinement", "Cursor AI Process", "Improves language and structure")
+    Component(refined_instructions, "AI-Refined Instructions", "cursor_instructions_to_create_rules_after_ai.txt", "Professional, AI-ready instructions")
+}
+
+' Row 2: Rule Generation Phase (left to right)
+Container_Boundary(rule_generation_phase, "Phase 3: Rule Generation") {
+    Component(console_rules, "Console Rules", "CONSOLE_OUTPUT_DISPLAY_RULES.md", "357 lines - Display standards")
+    Component(menu_rules, "Menu Rules", "MENU_DASHBOARD_RULES.md", "295 lines - Dashboard standards")
+    Component(library_rules, "Library Rules", "LIBRARY_COMPONENT_RULES.md", "410 lines - Component standards")
+    Component(script_rules, "Script Rules", "SCRIPT_TYPE_RULES.md", "528 lines - Script type standards")
+    Component(package_rules, "Package Rules", "PACKAGE_SCRIPT_RULES.md", "535 lines - NPM script standards")
+}
+
+' Row 3: More Rule Generation (left to right)
+Container_Boundary(rule_generation_phase2, "Phase 3: Rule Generation (cont.)") {
+    Component(logging_rules, "Logging Rules", "CLOUDWATCH_LOGGING_RULES.md", "707 lines - Logging standards")
+    Component(init_rules, "Init Rules", "INITIALIZATION_RULES.md", "537 lines - Setup standards")
+    Component(config_rules, "Config Rules", "CONFIGURATION_MANAGEMENT_RULES.md", "537 lines - Config standards")
+    Component(folder_rules, "Folder Rules", "FOLDER_NAMING_RULES.md", "694 lines - Naming standards")
+}
+
+' Row 4: Documentation Phase (left to right)
+Container_Boundary(documentation_phase, "Phase 4: Documentation") {
+    Component(usage_guide, "Usage Guide", "docs/CURSOR_RULES_GUIDE.md", "Comprehensive usage instructions")
+    Component(implementation_summary, "Implementation Summary", "CURSOR_RULES_IMPLEMENTATION_SUMMARY.md", "Technical implementation details")
+    Component(confluence_package, "Confluence Package", "Cursor/Confluence/", "Documentation for team adoption")
+    Component(main_intro, "Main Intro", "Cursor_Rules_Project_Standardization.md", "Confluence landing page")
+}
+
+' Row 5: Automation & Deployment (left to right)
+Container_Boundary(automation_phase, "Phase 5: Automation & Control") {
+    Component(setup_scripts, "Setup Scripts", "Automation", "Rule installation and management scripts")
+    Component(backup_system, "Backup System", "Timestamped Folders", "data/cursor/ide_<timestamp>/")
+    Component(version_control, "Version Control", "Git + Backups", "Timestamped backups and change tracking")
+}
+
+Container_Boundary(deployment_phase, "Phase 6: Integration & Deployment") {
+    Component(git_repo, "Git Repository", "Remote Storage", "Stores all rules and documentation")
+    Component(main_branch, "Main Branch", "Production", "Rules integrated into main branch")
+    Component(team_ready, "Team Ready", "Production", "Rules available for team use")
+}
+
+' Define relationships - Row 1 (Foundation)
+developer --> mature_project: "Identifies mature project"
+mature_project --> pattern_analysis: "Provides patterns"
+pattern_analysis --> requirement_docs: "Documents requirements"
+requirement_docs --> raw_instructions: "Creates initial instructions"
+developer --> ai: "Requests refinement"
+ai --> ai_refinement: "Processes instructions"
+ai_refinement --> refined_instructions: "Generates improved instructions"
+
+' Row 2-3 (Rule Generation)
+refined_instructions --> console_rules: "Generates console rules"
+refined_instructions --> menu_rules: "Generates menu rules"
+refined_instructions --> library_rules: "Generates library rules"
+refined_instructions --> script_rules: "Generates script rules"
+refined_instructions --> package_rules: "Generates package rules"
+refined_instructions --> logging_rules: "Generates logging rules"
+refined_instructions --> init_rules: "Generates init rules"
+refined_instructions --> config_rules: "Generates config rules"
+refined_instructions --> folder_rules: "Generates folder rules"
+
+' Row 4 (Documentation)
+console_rules --> usage_guide: "Documents usage"
+menu_rules --> usage_guide: "Documents usage"
+library_rules --> usage_guide: "Documents usage"
+script_rules --> usage_guide: "Documents usage"
+package_rules --> usage_guide: "Documents usage"
+logging_rules --> usage_guide: "Documents usage"
+init_rules --> usage_guide: "Documents usage"
+config_rules --> usage_guide: "Documents usage"
+folder_rules --> usage_guide: "Documents usage"
+
+usage_guide --> implementation_summary: "Creates summary"
+usage_guide --> confluence_package: "Packages for Confluence"
+confluence_package --> main_intro: "Creates landing page"
+
+' Row 5 (Deployment)
+confluence_package --> setup_scripts: "Creates automation"
+setup_scripts --> backup_system: "Implements backup"
+setup_scripts --> version_control: "Implements version control"
+version_control --> git_repo: "Commits and pushes"
+git_repo --> main_branch: "Merges to main"
+main_branch --> team_ready: "Makes available"
+
+' Add success metrics
+note right of team_ready
+  **Final Results:**
+  ✅ 9 specialized rule files (4,600+ lines)
+  ✅ Complete documentation package
+  ✅ Confluence-ready materials
+  ✅ Proper git ignore patterns
+  ✅ Version control implementation
+  ✅ Ready for team adoption
+end note
+
+' Add process flow indicators
+note right of analysis_phase: **Foundation Phase**\nEstablish base for rule creation
+note right of rule_generation_phase: **Creation Phase**\nGenerate comprehensive rule system
+note right of automation_phase: **Deployment Phase**\nMake rules available for team use
+
+@enduml 

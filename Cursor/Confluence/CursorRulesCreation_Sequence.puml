@@ -1,0 +1,83 @@
+@startuml Cursor Rules Creation Sequence
+!theme plain
+skinparam backgroundColor #F8F9FA
+skinparam defaultFontName Arial
+skinparam defaultFontSize 11
+skinparam roundcorner 15
+skinparam shadowing false
+
+title Cursor Rules Creation: From Mature Project to Comprehensive Rule Set
+
+' Define main phases with visual styling
+rectangle "🏗️ **Mature Project Analysis**" as PHASE1 #E3F2FD {
+  participant "Project" as P
+  participant "Patterns" as PAT
+  participant "Practices" as PRAC
+}
+
+rectangle "📝 **Instruction Creation**" as PHASE2 #F3E5F5 {
+  participant "Raw Instructions" as RI
+  participant "AI Refinement" as AR
+}
+
+rectangle "⚙️ **Rule Generation**" as PHASE3 #E8F5E8 {
+  participant "Rule Files" as RF
+  participant "Categories" as CAT
+}
+
+rectangle "📚 **Documentation**" as PHASE4 #FFF3E0 {
+  participant "Usage Guide" as UG
+  participant "Confluence Docs" as CD
+}
+
+rectangle "🔧 **Automation & Control**" as PHASE5 #FCE4EC {
+  participant "Setup Scripts" as SS
+  participant "Version Control" as VC
+}
+
+rectangle "✅ **Integration & Deployment**" as PHASE6 #E0F2F1 {
+  participant "Git Repository" as GIT
+  participant "Team Ready" as TEAM
+}
+
+' Start the flow
+P -> PAT: Identify successful patterns
+note right of P: Serverless Architecture\nComprehensive Automation\nConfiguration Management\nQuality Practices\nDocumentation Standards
+
+PAT -> PRAC: Document proven practices
+PRAC -> RI: Create initial instructions
+
+RI -> AR: AI-powered refinement
+note right of AR: Professional language\nClear structure\nComprehensive coverage\nAI-optimized format
+
+AR -> RF: Generate specialized rules
+RF -> CAT: Create rule categories
+note right of CAT: 9 Specialized Categories\n4,600+ Lines of Rules\nComprehensive Coverage\nBest Practices Codified
+
+CAT -> UG: Generate usage documentation
+UG -> CD: Create Confluence package
+note right of CD: Main introductory page\nAI-ready instructions\nImplementation summary\nProcess documentation
+
+CD -> SS: Create automation scripts
+SS -> VC: Implement version control
+note right of VC: Timestamped backups\nChange tracking\nRollback procedures\nHistory management
+
+VC -> GIT: Commit and push changes
+GIT -> TEAM: Ready for team adoption
+
+' Add visual enhancements
+note over PHASE1, PHASE2: **Phase 1-2: Foundation**\nEstablish the base for rule creation
+note over PHASE3, PHASE4: **Phase 3-4: Creation**\nGenerate comprehensive rule system
+note over PHASE5, PHASE6: **Phase 5-6: Deployment**\nMake rules available for team use
+
+' Add success metrics
+note over TEAM: **Final Results**\n✅ 9 Specialized Rule Files\n✅ 4,600+ Lines of Rules\n✅ Complete Documentation\n✅ Automation Scripts\n✅ Version Control\n✅ Confluence Package\n✅ AI-Ready Instructions
+
+' Add flow styling
+PHASE1 -[#2196F3,thick]-> PHASE2
+PHASE2 -[#9C27B0,thick]-> PHASE3
+PHASE3 -[#4CAF50,thick]-> PHASE4
+PHASE4 -[#FF9800,thick]-> PHASE5
+PHASE5 -[#E91E63,thick]-> PHASE6
+
+@enduml 

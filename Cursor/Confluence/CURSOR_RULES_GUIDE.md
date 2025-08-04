@@ -204,7 +204,7 @@ AI: [References TESTING_QUALITY_RULES.md for testing strategies]
 ## Rule Categories and Usage
 
 ### Project Management Rules
-**File**: `Cursor/PROJECT_MANAGEMENT_RULES.md`
+**File**: `Cursor/rules/PROJECT_MANAGEMENT_RULES.md`
 
 **Use When**:
 - Planning new features or components
@@ -221,7 +221,7 @@ AI: [References TESTING_QUALITY_RULES.md for testing strategies]
 - Documentation standards
 
 ### Local Development Rules
-**File**: `Cursor/LOCAL_DEVELOPMENT_RULES.md`
+**File**: `Cursor/rules/LOCAL_DEVELOPMENT_RULES.md`
 
 **Use When**:
 - Setting up local development environment
@@ -237,7 +237,7 @@ AI: [References TESTING_QUALITY_RULES.md for testing strategies]
 - Debugging and troubleshooting
 
 ### AWS Cloud Rules
-**File**: `Cursor/AWS_CLOUD_RULES.md`
+**File**: `Cursor/rules/AWS_CLOUD_RULES.md`
 
 **Use When**:
 - Developing AWS-based features
@@ -253,7 +253,7 @@ AI: [References TESTING_QUALITY_RULES.md for testing strategies]
 - Security and compliance
 
 ### Azure Cloud Rules
-**File**: `Cursor/AZURE_CLOUD_RULES.md`
+**File**: `Cursor/rules/AZURE_CLOUD_RULES.md`
 
 **Use When**:
 - Developing Azure-based features
@@ -269,7 +269,7 @@ AI: [References TESTING_QUALITY_RULES.md for testing strategies]
 - Security and compliance
 
 ### AI Integration Rules
-**File**: `Cursor/AI_INTEGRATION_RULES.md`
+**File**: `Cursor/rules/AI_INTEGRATION_RULES.md`
 
 **Use When**:
 - Integrating AI services
@@ -285,7 +285,7 @@ AI: [References TESTING_QUALITY_RULES.md for testing strategies]
 - Error handling and resilience
 
 ### Scripting and Automation Rules
-**File**: `Cursor/SCRIPTING_AUTOMATION_RULES.md`
+**File**: `Cursor/rules/SCRIPTING_AUTOMATION_RULES.md`
 
 **Use When**:
 - Creating automation scripts
@@ -300,7 +300,7 @@ AI: [References TESTING_QUALITY_RULES.md for testing strategies]
 - Testing and validation
 
 ### Initialization Rules
-**File**: `Cursor/INITIALIZATION_RULES.md`
+**File**: `Cursor/rules/INITIALIZATION_RULES.md`
 
 **Use When**:
 - Setting up new environments
@@ -316,7 +316,7 @@ AI: [References TESTING_QUALITY_RULES.md for testing strategies]
 - Backup and recovery procedures
 
 ### Configuration Management Rules
-**File**: `Cursor/CONFIGURATION_MANAGEMENT_RULES.md`
+**File**: `Cursor/rules/CONFIGURATION_MANAGEMENT_RULES.md`
 
 **Use When**:
 - Making configuration changes
@@ -333,7 +333,7 @@ AI: [References TESTING_QUALITY_RULES.md for testing strategies]
 - Monitoring and logging
 
 ### Testing and Quality Rules
-**File**: `Cursor/TESTING_QUALITY_RULES.md`
+**File**: `Cursor/rules/TESTING_QUALITY_RULES.md`
 
 **Use When**:
 - Writing tests for components
@@ -349,7 +349,7 @@ AI: [References TESTING_QUALITY_RULES.md for testing strategies]
 - Security testing
 
 ### Documentation Standards Rules
-**File**: `Cursor/DOCUMENTATION_STANDARDS_RULES.md`
+**File**: `Cursor/rules/DOCUMENTATION_STANDARDS_RULES.md`
 
 **Use When**:
 - Writing documentation

@@ -129,9 +129,13 @@ function createCursorRules() {
         'DOCUMENTATION_STANDARDS_RULES.md'
     ];
     
+    // Create rules subdirectory
+    const rulesDir = path.join(cursorDir, 'rules');
+    ensureDirectoryExists(rulesDir);
+    
     // Check if rule files already exist
     const existingFiles = ruleFiles.filter(file => 
-        fs.existsSync(path.join(cursorDir, file))
+        fs.existsSync(path.join(rulesDir, file))
     );
     
     if (existingFiles.length > 0) {
@@ -148,53 +152,53 @@ This project follows comprehensive development standards with extensive automati
 ## Core Development Principles
 
 ### Project Management
-- Follow the comprehensive project management rules defined in \`Cursor/PROJECT_MANAGEMENT_RULES.md\`
+- Follow the comprehensive project management rules defined in \`Cursor/rules/PROJECT_MANAGEMENT_RULES.md\`
 - All operations must be fully automated and scripted
 - Use the menu system (\`scripts/menu.js\`) for all system operations
 - Maintain comprehensive documentation for all features and processes
 
 ### Local Development
-- Follow the local development rules defined in \`Cursor/LOCAL_DEVELOPMENT_RULES.md\`
+- Follow the local development rules defined in \`Cursor/rules/LOCAL_DEVELOPMENT_RULES.md\`
 - Use configuration-first approach with \`config.json\` as primary configuration source
 - Minimize environment variable usage
 - All local operations must be scripted and automated
 
 ### Cloud Infrastructure
-- **AWS**: Follow the AWS cloud rules defined in \`Cursor/AWS_CLOUD_RULES.md\`
+- **AWS**: Follow the AWS cloud rules defined in \`Cursor/rules/AWS_CLOUD_RULES.md\`
   - Use serverless architecture (Lambda, API Gateway, DynamoDB, S3, SES)
   - Implement infrastructure as code with Terraform
   - Script everything that cannot be terraformed
   - Use AWS Bedrock for AI components when available
 
-- **Azure**: Follow the Azure cloud rules defined in \`Cursor/AZURE_CLOUD_RULES.md\`
+- **Azure**: Follow the Azure cloud rules defined in \`Cursor/rules/AZURE_CLOUD_RULES.md\`
   - Use Azure Functions, Cosmos DB, Blob Storage, SendGrid
   - Use Azure Configuration Provider (ACP) for configurable resources
   - Script remaining operations not supported by ACP
   - Use Azure AI/ML services when available
 
 ### AI Integration
-- Follow the AI integration rules defined in \`Cursor/AI_INTEGRATION_RULES.md\`
+- Follow the AI integration rules defined in \`Cursor/rules/AI_INTEGRATION_RULES.md\`
 - Use direct OpenAI API calls as default for AI services
 - Use AWS Bedrock for AI components when on AWS
 - Use Azure AI/ML services when on Azure
 - Store all AI configuration in \`config.json\`
 
 ### Scripting and Automation
-- Follow the scripting and automation rules defined in \`Cursor/SCRIPTING_AUTOMATION_RULES.md\`
+- Follow the scripting and automation rules defined in \`Cursor/rules/SCRIPTING_AUTOMATION_RULES.md\`
 - Every operation must be fully scripted - no manual operations allowed
 - Use the menu system for all system operations
 - Implement comprehensive error handling and recovery
 - All deployments must be fully automated
 
 ### Testing and Quality
-- Follow the testing and quality rules defined in \`Cursor/TESTING_QUALITY_RULES.md\`
+- Follow the testing and quality rules defined in \`Cursor/rules/TESTING_QUALITY_RULES.md\`
 - Implement comprehensive testing including unit, integration, E2E, and performance tests
 - Use Jest, custom scripts, and manual processes as appropriate
 - All code must pass ESLint without errors
 - Maintain high test coverage for critical components
 
 ### Documentation Standards
-- Follow the documentation standards defined in \`Cursor/DOCUMENTATION_STANDARDS_RULES.md\`
+- Follow the documentation standards defined in \`Cursor/rules/DOCUMENTATION_STANDARDS_RULES.md\`
 - Document all features, processes, design decisions, and operational procedures
 - Use Markdown format for all documentation
 - Follow established naming conventions in \`docs/DOCUMENTATION_CONVENTIONS.md\`
@@ -297,7 +301,7 @@ This comprehensive approach ensures that all development maintains high quality,
     
     // Create individual rule files (these will be populated by the actual rule files)
     ruleFiles.forEach(file => {
-        const filePath = path.join(cursorDir, file);
+        const filePath = path.join(rulesDir, file);
         const placeholderContent = `# ${file.replace('.md', '').replace(/_/g, ' ')} Rules
 
 ## Overview
@@ -329,14 +333,14 @@ function copyRulesToInit(initDir) {
     const cursorDir = path.join(process.cwd(), 'Cursor');
     const ruleFiles = [
         '.cursorrules',
-        'Cursor/PROJECT_MANAGEMENT_RULES.md',
-        'Cursor/LOCAL_DEVELOPMENT_RULES.md',
-        'Cursor/AWS_CLOUD_RULES.md',
-        'Cursor/AZURE_CLOUD_RULES.md',
-        'Cursor/AI_INTEGRATION_RULES.md',
-        'Cursor/SCRIPTING_AUTOMATION_RULES.md',
-        'Cursor/TESTING_QUALITY_RULES.md',
-        'Cursor/DOCUMENTATION_STANDARDS_RULES.md'
+        'Cursor/rules/PROJECT_MANAGEMENT_RULES.md',
+        'Cursor/rules/LOCAL_DEVELOPMENT_RULES.md',
+        'Cursor/rules/AWS_CLOUD_RULES.md',
+        'Cursor/rules/AZURE_CLOUD_RULES.md',
+        'Cursor/rules/AI_INTEGRATION_RULES.md',
+        'Cursor/rules/SCRIPTING_AUTOMATION_RULES.md',
+        'Cursor/rules/TESTING_QUALITY_RULES.md',
+        'Cursor/rules/DOCUMENTATION_STANDARDS_RULES.md'
     ];
     
     ruleFiles.forEach(file => {
@@ -384,7 +388,7 @@ function displaySetupSummary(backupDir, ruleFiles) {
     console.log(chalk.cyan('🔧 Main .cursorrules:'), 'Created');
     console.log('');
     console.log(chalk.yellow('📋 Next Steps:'));
-    console.log('1. Review the created rule files in the Cursor/ directory');
+    console.log('1. Review the created rule files in the Cursor/rules/ directory');
     console.log('2. Customize rules as needed for your specific requirements');
     console.log('3. Restart Cursor to load the new rules');
     console.log('4. Test the rules by starting a new conversation in Cursor');

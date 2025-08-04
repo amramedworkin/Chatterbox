@@ -6,54 +6,54 @@
 1.a.2. cloud stuff
 1.a.3. selectable AI, 
 1.a.4. nodejs development
-1.a.5. scripted everthing.  As little manual setup/teardown/init etc.
+1.a.5. scripted everything.  As little manual setup/teardown/init etc.
 1.a.6 For AWS terraform anything that can be terraformed and script anything that cannot
-1.a.7 For azure ACP everything that can be done through configuration files and script the the rest
+1.a.7 For azure ACP everything that can be done through configuration files and script the rest
 1.a.8. scripting for cloud service/object creation, 
 1.a.9 As much generated and automated testing as possible.
-1.a.10j. Testing is not limited to JEST or NUNIT etc.  It can be any script or code or manual process that makes sense
+1.a.10. Testing is not limited to JEST or NUNIT etc.  It can be any script or code or manual process that makes sense
 1.a.11. All features should be captured in a mechanism like menu.js.  The menu contents should be easy to change and frequently specified by the developer
 1.a.12. Design rules 
-1.a.12.I. use of lambda (or azure functions) whenever possible rather than EC2 or azure virtual machines
-1.a.12.ii.  All values shjould be stored in config.json or env.  
-1.a.12.iii. Use environment variab;les absolutely as little as possible.  These projects are config file oriented rather than OS environment controlled
+1.a.12.i. use of lambda (or azure functions) whenever possible rather than EC2 or azure virtual machines
+1.a.12.ii.  All values should be stored in config.json or env.  
+1.a.12.iii. Use environment variables absolutely as little as possible.  These projects are config file oriented rather than OS environment controlled
 1.a.13 All logging in to cloud, AI, etc. accounts should be done through keys and login information stored on the box, never entered at run time.  I am aware this reduces security but the box itself is very secure so I am willing to make the tradeoff of ease of development over security
 1.a.14.  Everything, features, processes, design, and decisions should be documented in its own docs section
 1.a.14.i Docs should be, whenever possible, in markdown or .txt files with a preference for markdown.
-1.a.14.ii Rules for documenation  are contained in /Users/n091733/Projects/Chatterbox/docs/DOCUMENTATION_CONVENTIONS.md
+1.a.14.ii Rules for documentation are contained in /Users/n091733/Projects/Chatterbox/docs/DOCUMENTATION_CONVENTIONS.md
 1.a.15. Github will always be the version/code manager
 1.a.16. .gitignore should be assiduously managed and maintained to make up for the fact that we embed authentication/authorization information stored locally in config and text and environment variables
 1.a.17. All code must pass ESLint and other checkers and build without errors or warnings.
 1.a.17.i It is acceptable to suppress warnings when it makes sense.  
 1.a.18. Deployments and builds and initialization and teardown and modifications to the system and the target environment should be completely scripted.  NO MANUAL setup/teardown/update
 1.a.19. For openai direct calls to OpenAI are the default
-1.a.20. For any AI component that are available through Bedrock (when hosted on AWS), then Bedrock should be the AI integrationn point
-1.a.21. For any AI compoentn that are through Azure AI and ML (when hosted on Azure) then the Azure versions of those compoenents should be the integration point.
+1.a.20. For any AI component that are available through Bedrock (when hosted on AWS), then Bedrock should be the AI integration point
+1.a.21. For any AI component that are through Azure AI and ML (when hosted on Azure) then the Azure versions of those components should be the integration point.
 1.a.22.  Very important: as much as possible, serverless approaches, components, and services should be preferenced over static (EC2, Azure VMs).
-1.a.23. Read through the scripting an code console output
+1.a.23. Read through the scripting and code console output
 1.a.23.i Create a very detailed set of centralized rules for displaying information, showing state and status, writing up processes as they execute, and any specific approaches to on screen information sharing
 1.a.23.ii Make sure to capture color rules and approaches, fonts, etc.
 1.a.23.iii Emphasize that this approach assumes a black background
-1.a.23.iv Create a second set of colors, etc that would be  used on a white background
+1.a.23.iv Create a second set of colors, etc that would be used on a white background
 1.a.24. Go through the menu.js process in depth and 
 1.a.24.i make the rules for creating a centralized dashboard in the form of a menu
-1.a.25. Go through the node and other macos libraries and components used for variouas actions (like menus or console or file management) and create the rule set for acceptable library/component inclusion
+1.a.25. Go through the node and other macos libraries and components used for various actions (like menus or console or file management) and create the rule set for acceptable library/component inclusion
 1.a.25.i Specify that this library/component set is the preferred set but not required.  
 1.a.25.ii make sure that the rules allow for extension of the library/component inclusion list as new functionality is required
-1.a.26. Come up with the rules for the use of shells scripts vs. JS scripts.
+1.a.26. Come up with the rules for the use of shell scripts vs. JS scripts.
 1.a.27.  Specify that TS is preferred over JS but not required.
-1.a.28 Go throughb package.json
+1.a.28 Go through package.json
 1.a.28.i Determine script standards (names, grouping, etc) and make the rules for what is and is not included as package.json scripts
-1.a.28.i Naming standards should be carefully rule controlled.
+1.a.28.ii Naming standards should be carefully rule controlled.
 1.a.29. Go through the code and determine Cloudwatch logging and inclusion.  
 1.a.29.i Cloudwatch logging standard inclusion
-1.a.29.ii Clouldwatch management
-1.a.30.iii Using cloudwatch specific features (if they are used).
-1.a.30.iv Suggest similar rules for Azure equivalents.
-1.a.31. Review the initialization process for the rules to standup up systems
+1.a.29.ii Cloudwatch management
+1.a.29.iii Using cloudwatch specific features (if they are used).
+1.a.29.iv Suggest similar rules for Azure equivalents.
+1.a.31. Review the initialization process for the rules to standup systems
 1.a.31.i Local vs. AWS standup
 1.a.31.ii The use of the data/init folder concept
-1.a.32. Indicate how the use of saved configuration information should be preferenced to allow for rollback and modificatoin
+1.a.32. Indicate how the use of saved configuration information should be preferenced to allow for rollback and modification
 1.a.33. Look at the way folders are named and used to save status, state, configured etc.  
 1.a.33.i All timestamps should be in yyyymmdd_hhmmss.  The rule should be about consistency and readability
 1.a.33.ii Show how the current version is named: awsinit vs historical awsinit_<timestamp>
@@ -62,25 +62,25 @@
 
 2. Read through the entire code suite and create the rules based on how this project is constructed, configured, and deployed.
 
-3. THese rules will be turned into cursor rules for use during the development process.
+3. These rules will be turned into cursor rules for use during the development process.
 
 4. create the rules as files in a new folder Cursor named very precisely after what they do and their use.
 
-5. Create an IN DPETH GUIDE markdown documenty detailong
-5.a. the use of the new rules capabilithy
+5. Create an IN DEPTH GUIDE markdown document detailing
+5.a. the use of the new rules capability
 5.b. an overview on cursor rules (what, why and how)
 5.c. A section with each cursor rule file just created, what it contains, and what it does.  Make sure, when appropriate, to explain the rationale for each rule or sub-rule
 5.d. A very precise how-to about how to set up cursor using these new rules.  This is being developed on a MacOS but make how-to support windows and macos
 5.e. The instructions for extending, modifying, and/or deleting rules once Cursor has been setup to use them
-5.f. Add a section of the guide that comprehensively details the expected affects these rules will have on the design, developing, and code process.  
-5.f.1. These would the ACTUAL impact of rules and these rules, not an abstract discussion about rules and their usage.
+5.f. Add a section of the guide that comprehensively details the expected effects these rules will have on the design, developing, and code process.  
+5.f.1. These would be the ACTUAL impact of rules and these rules, not an abstract discussion about rules and their usage.
 5.f.2. Give examples of when the rules would impact on the development process.
 
 6. In the scripts code section write scripts to set up the new rules.
 6.a. Make sure the scripts do not duplicate rules
 6.b. If a rule is going to stomp on or delete an existing rule, save the existing rule text to a datetime stamped folder
-6.b.1. The folder should be something like data/cursor/ide_<yyyymmdd_hhmmss/history .  
-6.c. Under data/cursor/ide_yyyymmdd_hhmmss/init folder create duplicates fo the rules files used during this setup.  This is to make sure we do not love context if we want to change later on and a log of all actions taken and why
+6.b.1. The folder should be something like data/cursor/ide_<yyyymmdd_hhmmss>/history .  
+6.c. Under data/cursor/ide_yyyymmdd_hhmmss/init folder create duplicates of the rules files used during this setup.  This is to make sure we do not lose context if we want to change later on and a log of all actions taken and why
 
 7. when you finish setting up the new rules set, display a summary of actions taken and why.
 

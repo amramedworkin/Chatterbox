@@ -1,0 +1,42 @@
+@startuml Rules Flow Part 1: Foundation Phase
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+
+LAYOUT_WITH_LEGEND()
+
+title Cursor Rules Creation: Part 1 - Foundation Phase (Project Analysis & Instruction Creation)
+
+' Define the main actors at the top
+Person(developer, "Developer", "Creates and manages cursor rules")
+Person(ai, "Cursor AI", "Assists in rule creation and refinement")
+
+' Row 1: Foundation Phase (left to right)
+Container_Boundary(analysis_phase, "Phase 1: Project Analysis") {
+    Component(mature_project, "Mature Project", "Chatterbox", "Well-functioning project with proven patterns")
+    Component(pattern_analysis, "Pattern Analysis", "Code Review", "Identifies successful practices and patterns")
+    Component(requirement_docs, "Requirements", "Documentation", "Captures rule creation requirements")
+}
+
+Container_Boundary(instruction_phase, "Phase 2: Instruction Creation") {
+    Component(raw_instructions, "Raw Instructions", "cursor_instructions_to_create_rules.txt", "Initial draft of rule creation instructions")
+    Component(ai_refinement, "AI Refinement", "Cursor AI Process", "Improves language and structure")
+    Component(refined_instructions, "AI-Refined Instructions", "cursor_instructions_to_create_rules_after_ai.txt", "Professional, AI-ready instructions")
+}
+
+' Define relationships - Foundation Phase
+developer --> mature_project: "Identifies mature project"
+mature_project --> pattern_analysis: "Provides patterns"
+pattern_analysis --> requirement_docs: "Documents requirements"
+requirement_docs --> raw_instructions: "Creates initial instructions"
+developer --> ai: "Requests refinement"
+ai --> ai_refinement: "Processes instructions"
+ai_refinement --> refined_instructions: "Generates improved instructions"
+
+' Add process flow indicators
+note right of analysis_phase: **Foundation Phase**\nEstablish base for rule creation
+note right of instruction_phase: **Instruction Phase**\nCreate AI-ready instructions
+
+' Add output note
+note right of refined_instructions: **Output: AI-Refined Instructions**\nReady for rule generation phase
+
+@enduml 
