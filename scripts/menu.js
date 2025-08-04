@@ -115,6 +115,35 @@ const MENU_STRUCTURE = {
                         type: 'script'
                     }
                 ]
+            },
+            {
+                id: 'standalone-actions',
+                name: 'Standalone Actions (3 items)',
+                description: 'Independent operations for authentication and token management',
+                type: 'category',
+                submenu: [
+                    {
+                        id: 'auth-and-migrate',
+                        name: 'Authenticate & Migrate Tokens',
+                        description: `Authenticate all Gmail users and migrate tokens to AWS${SHOW_SCRIPTS ? `\n${colors.yellow}Script: npm run mail:auth-and-migrate (node scripts/authenticate-and-migrate.js)${colors.reset}` : ''}`,
+                        command: 'mail:auth-and-migrate',
+                        type: 'script'
+                    },
+                    {
+                        id: 'auth-and-migrate-force',
+                        name: 'Force Re-authenticate & Migrate',
+                        description: `Force re-authentication of all Gmail users and migrate tokens to AWS${SHOW_SCRIPTS ? `\n${colors.yellow}Script: npm run mail:auth-and-migrate:force (node scripts/authenticate-and-migrate.js --force)${colors.reset}` : ''}`,
+                        command: 'mail:auth-and-migrate:force',
+                        type: 'script'
+                    },
+                    {
+                        id: 'auth-only',
+                        name: 'Authenticate Only (No Migration)',
+                        description: `Authenticate all Gmail users without migrating tokens to AWS${SHOW_SCRIPTS ? `\n${colors.yellow}Script: npm run mail:auth-only (node scripts/authenticate-and-migrate.js --no-migrate)${colors.reset}` : ''}`,
+                        command: 'mail:auth-only',
+                        type: 'script'
+                    }
+                ]
             }
         ]
     },

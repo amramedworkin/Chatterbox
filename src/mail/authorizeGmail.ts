@@ -76,12 +76,19 @@ async function writeTokenData(tokenPath: string, tokenData: TokenData): Promise<
  * @param {string[]} scopes The scopes required for authorization.
  * @returns {Promise<void>}
  */
-async function getNewToken(oAuth2Client: OAuth2Client, scopes: string[]): Promise<void> {
+async function getNewToken(oAuth2Client: OAuth2Client, scopes: string[], email: string): Promise<void> {
     const authUrl = oAuth2Client.generateAuthUrl({
         access_type: 'offline',
         scope: scopes,
         prompt: 'consent', // Force consent screen to ensure refresh token
     });
+
+    // Display the email address prominently before the authorization URL
+    console.log(chalk.cyan('='.repeat(60)));
+    console.log(chalk.yellow.bold(`🔐 AUTHORIZING EMAIL ACCOUNT:`));
+    console.log(chalk.white.bold(`📧 ${email}`));
+    console.log(chalk.cyan('='.repeat(60)));
+    console.log('');
 
     // Display the URL so the user can copy/paste it into a browser manually
     console.log(chalk.cyan('Authorize this app by visiting this URL:'));
@@ -223,7 +230,7 @@ export async function authorizeGmail(
                 `⚠️ [AUTH DEBUG] No refresh token found for ${email}. Re-authorization required.`
             );
             console.warn('🔄 [AUTH DEBUG] Attempting to re-authorize from scratch.');
-            await getNewToken(oAuth2Client, scopes);
+            await getNewToken(oAuth2Client, scopes, email);
 
             // Save the new tokens with all fields
             const newTokens = oAuth2Client.credentials;
@@ -285,7 +292,7 @@ export async function authorizeGmail(
             }
 
             console.warn('🔄 [AUTH DEBUG] Attempting to re-authorize from scratch.');
-            await getNewToken(oAuth2Client, scopes);
+            await getNewToken(oAuth2Client, scopes, email);
 
             // Save the new tokens with all fields
             const newTokens = oAuth2Client.credentials;
@@ -302,7 +309,7 @@ export async function authorizeGmail(
         console.log(
             `⚠️ [AUTH DEBUG] No existing token found for ${email}. Starting fresh authorization.`
         );
-        await getNewToken(oAuth2Client, scopes);
+        await getNewToken(oAuth2Client, scopes, email);
 
         // Save the new tokens with all fields
         const newTokens = oAuth2Client.credentials;

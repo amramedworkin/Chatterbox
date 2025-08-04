@@ -84,7 +84,7 @@ async function getSESVerifiedEmails(): Promise<string[]> {
 
         const verifiedEmails: string[] = [];
         for (const email of identities.Identities) {
-            const status = verificationAttributes.VerificationAttributes[email]?.VerificationStatus;
+            const status = verificationAttributes.VerificationAttributes?.[email]?.VerificationStatus;
             if (status === 'Success') {
                 verifiedEmails.push(email);
             }
